@@ -1,0 +1,170 @@
+erDiagram
+    PATIENTS ||--o{ PATIENT_TREATMENTS : has
+    PATIENTS ||--o{ PATIENT_TURNS_MONTHLY : has
+    PATIENTS ||--o{ PATIENT_TURNS_OVERRIDES : has
+    PATIENTS ||--o{ PATIENT_TURNS : has
+    PATIENTS ||--o{ ATTENDANCES : attends
+    PATIENTS ||--o{ PATIENT_REQUESTS : requests
+
+    PATIENT_TURNS }o--|| TREATMENTS : applies_to
+
+    PATIENT_TREATMENTS }o--|| TREATMENTS  : includes
+    PATIENT_TURNS_MONTHLY }o--|| TREATMENTS : applies_to
+    PATIENT_TURNS_OVERRIDES }o--|| TREATMENTS : applies_to
+    ATTENDANCES }o--|| TREATMENTS : belongs_to
+    TREATMENTS ||--o{ PATIENT_REQUEST_TREATMENTS : includes
+    TREATMENTS ||--o{ PATIENT_REQUEST_TREATMENTS : includes
+    
+
+
+
+    TREATMENT_SPECIALTIES }o--|| TREATMENTS : requires
+    SPECIALTIES ||--o{ PROFESSIONAL_SPECIALTIES : has
+    PROFESSIONAL_SPECIALTIES }o--|| PROFESSIONALS  : has
+    SPECIALTIES ||--o{ TREATMENT_SPECIALTIES : required_by
+    PATIENT_REQUESTS ||--o{ PATIENT_REQUEST_TREATMENTS : includes
+    
+
+
+
+
+    USERS ||--o{ SESSIONS : owns
+    USERS ||--o{ USER_ACTIVITY_LOGS : logs
+
+    PATIENTS {
+        string id PK
+        string full_name
+        string dni
+        string cuit
+        string cud
+        string os
+        string affiliate_number
+        date birth_date
+        date authorized_at
+        date authorization_expires_at
+        boolean is_active
+        boolean is_discharged
+        timestamptz created_at
+    }
+    TREATMENTS {
+        bigint id PK
+        string name
+    }
+    PATIENT_TREATMENTS {
+        string patient_id FK
+        bigint treatment_id FK
+    }
+    PATIENT_TURNS {
+        string patient_id FK
+        bigint treatment_id FK
+        string day_of_week
+        string time
+    }
+    PATIENT_TURNS_MONTHLY {
+        string patient_id FK
+        bigint treatment_id FK
+        int month
+        string day_of_week
+        string time
+    }
+    PATIENT_TURNS_OVERRIDES {
+        string patient_id FK
+        bigint treatment_id FK
+        string date
+        string time
+        boolean active
+    }
+    ATTENDANCES {
+        bigint id PK
+        string patient_id FK
+        date date
+        bigint treatment_id FK
+        string note
+        timestamptz created_at
+    }
+    PATIENT_REQUESTS {
+        bigint id PK
+        string patient_id FK
+        date start_date
+        date end_date
+        boolean apply_treatments
+        timestamptz applied_at
+    }
+    PATIENT_REQUEST_TREATMENTS {
+        bigint request_id FK
+        bigint treatment_id FK
+    }
+    USERS {
+        bigint id PK
+        string username
+        string password_hash
+        boolean is_admin
+        timestamptz created_at
+    }
+    SESSIONS {
+        string token PK
+        bigint user_id FK
+        timestamptz expires_at
+        timestamptz created_at
+    }
+    USER_ACTIVITY_LOGS {
+        bigint id PK
+        bigint actor_user_id FK
+        string actor_username
+        string action_type
+        string entity_type
+        string entity_id
+        string entity_label
+        timestamptz created_at
+    }
+    PROFESSIONALS {
+        bigint id PK
+        string full_name
+        string specialty
+    }
+    SPECIALTIES {
+        bigint id PK
+        string name
+    }
+    PROFESSIONAL_SPECIALTIES {
+        bigint professional_id FK
+        bigint specialty_id FK
+    }
+    TREATMENT_SPECIALTIES {
+        bigint treatment_id FK
+        bigint specialty_id FK
+    }
+    REQUEST {
+        bigint id PK
+        string patient_id FK
+        date date
+        string note
+        timestamptz created_at
+    }
+    PATIENT_RECORDS {
+        bigint id PK
+        string patient_id FK
+        date date
+        bigint budget
+        timestamptz created_at
+    }
+    APPOINTMENTS {
+        bigint id PK
+        string patient_id FK
+        string professional_id FK
+        date date
+        string time
+        string note
+        timestamptz created_at
+    }
+    TREATMENT_PLANS {
+        bigint id PK
+        string patient_id FK
+        date start_date
+        date end_date
+        string note
+        timestamptz created_at
+    }
+    TREATMENT_PLAN_ITEMS{
+        
+    }
