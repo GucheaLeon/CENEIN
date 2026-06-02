@@ -23,10 +23,6 @@ erDiagram
     PROFESSIONAL_SPECIALTIES }o--|| PROFESSIONALS  : has
     SPECIALTIES ||--o{ TREATMENT_SPECIALTIES : required_by
     PATIENT_REQUESTS ||--o{ PATIENT_REQUEST_TREATMENTS : includes
-    
-
-
-
 
     USERS ||--o{ SESSIONS : owns
     USERS ||--o{ USER_ACTIVITY_LOGS : logs
@@ -37,7 +33,7 @@ erDiagram
         string dni
         string cuit
         string cud
-        string os
+        bigint os_id FK
         string affiliate_number
         date birth_date
         date authorized_at
