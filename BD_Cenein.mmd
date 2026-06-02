@@ -21,7 +21,7 @@ erDiagram
     SEDE ||--o{ PATIENTS_SEDE : serves
     PATIENTS ||--o{ PATIENTS_SEDE : serves
     PATIENT_STATE ||--o{ PATIENTS : has
-    PATIENT_RECORDS |o--|| TREATMENT_PLANS  : belongs_to
+    TREATMENT_PLANS ||--o| PATIENT_RECORDS  : belongs_to
 
     PATIENTS ||--o| TREATMENT_PLANS : has
     TREATMENT_PLANS ||--|| TREATMENT_PLAN_ITEMS : includes
