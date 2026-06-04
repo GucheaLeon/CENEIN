@@ -37,13 +37,6 @@ main          ← Production code (stable, deployed)
 | `development`    | Integration branch. All completed features are merged here.            | Any developer (via Pull Request or direct merge) | Development environment  |
 | `feature/<name>` | Temporary branch for a single feature or task. Deleted after merging.  | Developer working on the feature                 | Local only               |
 
-### Visual Flow
-
-```
-feature/xyz ──merge──► development ──merge──► staging ──merge──► main
-  (work)                (integrate)            (test)             (deploy)
-```
-
 ---
 
 ## Branch Rules
@@ -231,7 +224,7 @@ git push
 
 ### Step 3 — Merge into development
 
-**Option A — Via GitHub Pull Request (Recommended)**
+**Via GitHub Pull Request**
 
 1. Go to the repository on GitHub.
 2. Click **"Compare & pull request"** for your feature branch.
@@ -240,18 +233,6 @@ git push
 5. Request a code review from a teammate (if applicable).
 6. Once approved, click **"Merge pull request"**.
 
-**Option B — Via command line (Direct merge)**
-
-```bash
-# Switch to development
-git checkout development
-
-# Merge the feature branch
-git merge feature/my-new-feature
-
-# Push the updated development to the remote
-git push origin development
-```
 
 ### Step 4 — Clean up the feature branch
 
@@ -337,41 +318,6 @@ git log HEAD..origin/development --oneline
 
 This shows you all the commits that exist on the remote `development` but not on your current branch.
 
-### 📌 "I made a commit with the wrong message"
-
-If it's the very last commit and you haven't pushed:
-
-```bash
-git commit --amend -m "Correct commit message here"
-```
-
-### 📌 "I need to undo my last commit entirely"
-
-```bash
-# Keep changes in working directory (unstaged)
-git reset HEAD~1
-
-# OR discard changes completely (DANGEROUS — data loss)
-git reset --hard HEAD~1
-```
-
-### 📌 "I want to temporarily save my work without committing (to switch branches)"
-
-Use `git stash` to save uncommitted changes temporarily:
-
-```bash
-# Save current changes
-git stash
-
-# Switch branches, pull, do whatever you need
-git checkout development
-git pull origin development
-git checkout feature/my-feature
-
-# Restore your saved changes
-git stash pop
-```
-
 ### 📌 "Two developers are working on the same feature"
 
 Both developers should work on the same feature branch. Coordinate by pushing and pulling frequently:
@@ -387,18 +333,6 @@ git commit -m "My contribution"
 git push
 ```
 
-### 📌 "The merge into development broke something"
-
-If a merge into `development` introduced a bug, you can revert the merge commit:
-
-```bash
-git checkout development
-git log --oneline -5   # Find the merge commit hash
-git revert -m 1 <merge-commit-hash>
-git push origin development
-```
-
-This creates a new commit that undoes the merge, without rewriting history.
 
 ---
 
