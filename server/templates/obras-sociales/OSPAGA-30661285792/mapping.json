@@ -1,0 +1,829 @@
+{
+  "label": "OSPAGA",
+  "_meta": {
+    "refHeight": 841.8
+  },
+  "fields": [
+    {
+      "page": 0,
+      "x": 220,
+      "y": 781.8,
+      "size": 10,
+      "source": "patient.nombreCompleto"
+    },
+    {
+      "page": 0,
+      "x": 220,
+      "y": 761.8,
+      "size": 10,
+      "source": "planilla.tratamiento"
+    },
+    {
+      "page": 0,
+      "x": 220,
+      "y": 711.8,
+      "size": 10,
+      "source": "planilla.periodo"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 662.8,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.1.dia",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.1.fecha"
+    },
+    {
+      "page": 0,
+      "x": 70,
+      "y": 662.8,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.1.mes",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.1.fecha"
+    },
+    {
+      "page": 0,
+      "x": 124,
+      "y": 662.8,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.1.inicio",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.1.fecha"
+    },
+    {
+      "page": 0,
+      "x": 226,
+      "y": 662.8,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.1.fin",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.1.fecha"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 638.8,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.2.dia",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.2.fecha"
+    },
+    {
+      "page": 0,
+      "x": 70,
+      "y": 638.8,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.2.mes",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.2.fecha"
+    },
+    {
+      "page": 0,
+      "x": 124,
+      "y": 638.8,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.2.inicio",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.2.fecha"
+    },
+    {
+      "page": 0,
+      "x": 226,
+      "y": 638.8,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.2.fin",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.2.fecha"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 614.8,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.3.dia",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.3.fecha"
+    },
+    {
+      "page": 0,
+      "x": 70,
+      "y": 614.8,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.3.mes",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.3.fecha"
+    },
+    {
+      "page": 0,
+      "x": 124,
+      "y": 614.8,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.3.inicio",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.3.fecha"
+    },
+    {
+      "page": 0,
+      "x": 226,
+      "y": 614.8,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.3.fin",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.3.fecha"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 590.8,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.4.dia",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.4.fecha"
+    },
+    {
+      "page": 0,
+      "x": 70,
+      "y": 590.8,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.4.mes",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.4.fecha"
+    },
+    {
+      "page": 0,
+      "x": 124,
+      "y": 590.8,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.4.inicio",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.4.fecha"
+    },
+    {
+      "page": 0,
+      "x": 226,
+      "y": 590.8,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.4.fin",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.4.fecha"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 566.8,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.5.dia",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.5.fecha"
+    },
+    {
+      "page": 0,
+      "x": 70,
+      "y": 566.8,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.5.mes",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.5.fecha"
+    },
+    {
+      "page": 0,
+      "x": 124,
+      "y": 566.8,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.5.inicio",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.5.fecha"
+    },
+    {
+      "page": 0,
+      "x": 226,
+      "y": 566.8,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.5.fin",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.5.fecha"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 542.8,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.6.dia",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.6.fecha"
+    },
+    {
+      "page": 0,
+      "x": 70,
+      "y": 542.8,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.6.mes",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.6.fecha"
+    },
+    {
+      "page": 0,
+      "x": 124,
+      "y": 542.8,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.6.inicio",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.6.fecha"
+    },
+    {
+      "page": 0,
+      "x": 226,
+      "y": 542.8,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.6.fin",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.6.fecha"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 518.8,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.7.dia",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.7.fecha"
+    },
+    {
+      "page": 0,
+      "x": 70,
+      "y": 518.8,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.7.mes",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.7.fecha"
+    },
+    {
+      "page": 0,
+      "x": 124,
+      "y": 518.8,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.7.inicio",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.7.fecha"
+    },
+    {
+      "page": 0,
+      "x": 226,
+      "y": 518.8,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.7.fin",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.7.fecha"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 494.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.8.dia",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.8.fecha"
+    },
+    {
+      "page": 0,
+      "x": 70,
+      "y": 494.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.8.mes",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.8.fecha"
+    },
+    {
+      "page": 0,
+      "x": 124,
+      "y": 494.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.8.inicio",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.8.fecha"
+    },
+    {
+      "page": 0,
+      "x": 226,
+      "y": 494.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.8.fin",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.8.fecha"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 470.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.9.dia",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.9.fecha"
+    },
+    {
+      "page": 0,
+      "x": 70,
+      "y": 470.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.9.mes",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.9.fecha"
+    },
+    {
+      "page": 0,
+      "x": 124,
+      "y": 470.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.9.inicio",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.9.fecha"
+    },
+    {
+      "page": 0,
+      "x": 226,
+      "y": 470.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.9.fin",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.9.fecha"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 446.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.10.dia",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.10.fecha"
+    },
+    {
+      "page": 0,
+      "x": 70,
+      "y": 446.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.10.mes",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.10.fecha"
+    },
+    {
+      "page": 0,
+      "x": 124,
+      "y": 446.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.10.inicio",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.10.fecha"
+    },
+    {
+      "page": 0,
+      "x": 226,
+      "y": 446.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.10.fin",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.10.fecha"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 422.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.11.dia",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.11.fecha"
+    },
+    {
+      "page": 0,
+      "x": 70,
+      "y": 422.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.11.mes",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.11.fecha"
+    },
+    {
+      "page": 0,
+      "x": 124,
+      "y": 422.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.11.inicio",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.11.fecha"
+    },
+    {
+      "page": 0,
+      "x": 226,
+      "y": 422.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.11.fin",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.11.fecha"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 398.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.12.dia",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.12.fecha"
+    },
+    {
+      "page": 0,
+      "x": 70,
+      "y": 398.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.12.mes",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.12.fecha"
+    },
+    {
+      "page": 0,
+      "x": 124,
+      "y": 398.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.12.inicio",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.12.fecha"
+    },
+    {
+      "page": 0,
+      "x": 226,
+      "y": 398.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.12.fin",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.12.fecha"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 374.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.13.dia",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.13.fecha"
+    },
+    {
+      "page": 0,
+      "x": 70,
+      "y": 374.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.13.mes",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.13.fecha"
+    },
+    {
+      "page": 0,
+      "x": 124,
+      "y": 374.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.13.inicio",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.13.fecha"
+    },
+    {
+      "page": 0,
+      "x": 226,
+      "y": 374.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.13.fin",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.13.fecha"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 350.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.14.dia",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.14.fecha"
+    },
+    {
+      "page": 0,
+      "x": 70,
+      "y": 350.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.14.mes",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.14.fecha"
+    },
+    {
+      "page": 0,
+      "x": 124,
+      "y": 350.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.14.inicio",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.14.fecha"
+    },
+    {
+      "page": 0,
+      "x": 226,
+      "y": 350.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.14.fin",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.14.fecha"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 326.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.15.dia",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.15.fecha"
+    },
+    {
+      "page": 0,
+      "x": 70,
+      "y": 326.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.15.mes",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.15.fecha"
+    },
+    {
+      "page": 0,
+      "x": 124,
+      "y": 326.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.15.inicio",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.15.fecha"
+    },
+    {
+      "page": 0,
+      "x": 226,
+      "y": 326.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.15.fin",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.15.fecha"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 302.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.16.dia",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.16.fecha"
+    },
+    {
+      "page": 0,
+      "x": 70,
+      "y": 302.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.16.mes",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.16.fecha"
+    },
+    {
+      "page": 0,
+      "x": 124,
+      "y": 302.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.16.inicio",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.16.fecha"
+    },
+    {
+      "page": 0,
+      "x": 226,
+      "y": 302.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.16.fin",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.16.fecha"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 278.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.17.dia",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.17.fecha"
+    },
+    {
+      "page": 0,
+      "x": 70,
+      "y": 278.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.17.mes",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.17.fecha"
+    },
+    {
+      "page": 0,
+      "x": 124,
+      "y": 278.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.17.inicio",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.17.fecha"
+    },
+    {
+      "page": 0,
+      "x": 226,
+      "y": 278.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.17.fin",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.17.fecha"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 254.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.18.dia",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.18.fecha"
+    },
+    {
+      "page": 0,
+      "x": 70,
+      "y": 254.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.18.mes",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.18.fecha"
+    },
+    {
+      "page": 0,
+      "x": 124,
+      "y": 254.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.18.inicio",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.18.fecha"
+    },
+    {
+      "page": 0,
+      "x": 226,
+      "y": 254.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.18.fin",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.18.fecha"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 230.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.19.dia",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.19.fecha"
+    },
+    {
+      "page": 0,
+      "x": 70,
+      "y": 230.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.19.mes",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.19.fecha"
+    },
+    {
+      "page": 0,
+      "x": 124,
+      "y": 230.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.19.inicio",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.19.fecha"
+    },
+    {
+      "page": 0,
+      "x": 226,
+      "y": 230.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.19.fin",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.19.fecha"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 206.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.20.dia",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.20.fecha"
+    },
+    {
+      "page": 0,
+      "x": 70,
+      "y": 206.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.20.mes",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.20.fecha"
+    },
+    {
+      "page": 0,
+      "x": 124,
+      "y": 206.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.20.inicio",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.20.fecha"
+    },
+    {
+      "page": 0,
+      "x": 226,
+      "y": 206.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.20.fin",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.20.fecha"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 182.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.21.dia",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.21.fecha"
+    },
+    {
+      "page": 0,
+      "x": 70,
+      "y": 182.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.21.mes",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.21.fecha"
+    },
+    {
+      "page": 0,
+      "x": 124,
+      "y": 182.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.21.inicio",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.21.fecha"
+    },
+    {
+      "page": 0,
+      "x": 226,
+      "y": 182.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.21.fin",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.21.fecha"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 158.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.22.dia",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.22.fecha"
+    },
+    {
+      "page": 0,
+      "x": 70,
+      "y": 158.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.22.mes",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.22.fecha"
+    },
+    {
+      "page": 0,
+      "x": 124,
+      "y": 158.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.22.inicio",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.22.fecha"
+    },
+    {
+      "page": 0,
+      "x": 226,
+      "y": 158.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.22.fin",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.22.fecha"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 134.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.23.dia",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.23.fecha"
+    },
+    {
+      "page": 0,
+      "x": 70,
+      "y": 134.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.23.mes",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.23.fecha"
+    },
+    {
+      "page": 0,
+      "x": 124,
+      "y": 134.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.23.inicio",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.23.fecha"
+    },
+    {
+      "page": 0,
+      "x": 226,
+      "y": 134.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.23.fin",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.23.fecha"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 110.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.24.dia",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.24.fecha"
+    },
+    {
+      "page": 0,
+      "x": 70,
+      "y": 110.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.24.mes",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.24.fecha"
+    },
+    {
+      "page": 0,
+      "x": 124,
+      "y": 110.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.24.inicio",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.24.fecha"
+    },
+    {
+      "page": 0,
+      "x": 226,
+      "y": 110.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.24.fin",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.24.fecha"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 86.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.25.dia",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.25.fecha"
+    },
+    {
+      "page": 0,
+      "x": 70,
+      "y": 86.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.25.mes",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.25.fecha"
+    },
+    {
+      "page": 0,
+      "x": 124,
+      "y": 86.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.25.inicio",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.25.fecha"
+    },
+    {
+      "page": 0,
+      "x": 226,
+      "y": 86.79999999999995,
+      "size": 10,
+      "source": "planilla.asistenciaDetallesFlat.25.fin",
+      "visibleIfSource": "planilla.asistenciaDetallesFlat.25.fecha"
+    }
+  ]
+}

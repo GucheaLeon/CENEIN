@@ -1,0 +1,106 @@
+{
+  "label": "OSMATA",
+  "_meta": {
+    "refHeight": 841.92
+  },
+  "fields": [
+    {
+      "page": 0,
+      "x": 401,
+      "y": 738.34,
+      "size": 10,
+      "source": "patient.nombreCompleto"
+    },
+    {
+      "page": 0,
+      "x": 401,
+      "y": 718.42,
+      "size": 10,
+      "source": "planilla.periodo"
+    },
+    {
+      "page": 0,
+      "x": 401,
+      "y": 698.5,
+      "size": 10,
+      "source": "patient.nroAfiliado"
+    },
+    {
+      "page": 0,
+      "x": 155,
+      "y": 581.92,
+      "size": 10,
+      "source": "planilla.tratamiento"
+    },
+    {
+      "page": 0,
+      "x": 88.54,
+      "y": 398.73,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaFlat.1"
+    },
+    {
+      "page": 0,
+      "x": 88.54,
+      "y": 375.27,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaFlat.2"
+    },
+    {
+      "page": 0,
+      "x": 88.54,
+      "y": 351.74,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaFlat.3"
+    },
+    {
+      "page": 0,
+      "x": 88.54,
+      "y": 328.21,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaFlat.4"
+    },
+    {
+      "page": 0,
+      "x": 88.54,
+      "y": 304.69,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaFlat.5"
+    },
+    {
+      "page": 0,
+      "x": 88.54,
+      "y": 281.17,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaFlat.6"
+    },
+    {
+      "page": 0,
+      "x": 88.54,
+      "y": 257.71,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaFlat.7"
+    },
+    {
+      "page": 0,
+      "x": 88.54,
+      "y": 234.25,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaFlat.8"
+    },
+    {
+      "page": 0,
+      "x": 88.54,
+      "y": 210.73,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaFlat.9"
+    },
+    {
+      "page": 0,
+      "x": 88.54,
+      "y": 187.21,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaFlat.10"
+    }
+  ]
+}

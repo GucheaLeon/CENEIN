@@ -1,0 +1,29 @@
+{
+    "label":  "OSUTHGRA",
+    "_meta":  {
+                  "refHeight":  842
+              },
+    "fields":  [
+                   {
+                       "page":  0,
+                       "x":  200,
+                       "y":  578,
+                       "size":  10,
+                       "source":  "patient.nombreCompleto"
+                   },
+                   {
+                       "page":  0,
+                       "x":  95,
+                       "y":  561,
+                       "size":  10,
+                       "source":  "planilla.periodo"
+                   },
+                   {
+                       "page":  0,
+                       "x":  326,
+                       "y":  561,
+                       "size":  10,
+                       "source":  "planilla.tratamiento"
+                   }
+               ]
+}
