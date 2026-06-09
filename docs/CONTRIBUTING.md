@@ -309,30 +309,6 @@ git merge development
 # Resolve conflicts if any
 ```
 
-### 📌 "I want to see what changed on the remote before pulling"
-
-```bash
-git fetch origin
-git log HEAD..origin/development --oneline
-```
-
-This shows you all the commits that exist on the remote `development` but not on your current branch.
-
-### 📌 "Two developers are working on the same feature"
-
-Both developers should work on the same feature branch. Coordinate by pushing and pulling frequently:
-
-```bash
-# Developer B pulls the latest from the shared feature branch
-git checkout feature/shared-feature
-git pull origin feature/shared-feature
-
-# ... make changes ...
-git add .
-git commit -m "My contribution"
-git push
-```
-
 
 ---
 
