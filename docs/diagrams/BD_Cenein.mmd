@@ -5,7 +5,7 @@ erDiagram
     PATIENTS ||--o{ PATIENT_TURNS : has
     PATIENTS ||--o{ ATTENDANCES : attends
     PATIENTS ||--o{ PATIENT_REQUESTS : requests
-
+    
     PATIENT_TURNS }o--|| TREATMENTS : applies_to
 
     PATIENT_TREATMENTS }o--|| TREATMENTS  : includes
@@ -26,11 +26,12 @@ erDiagram
     PATIENTS ||--o| TREATMENT_PLANS : has
     TREATMENT_PLANS ||--|| TREATMENT_PLAN_ITEMS : includes
     TREATMENT_PLAN_ITEMS ||--|| TREATMENTS : refers_to
-
+    
     USERS ||--o{ SESSIONS : owns
     USERS ||--o{ USER_ACTIVITY_LOGS : logs
-
-
+    PACIENT_REPORTS }|--o| REPORT_TYPES : categorizes
+    PATIENTS ||--o{ PACIENT_REPORTS : has
+    
     PATIENT_RECORDS {
         bigint id PK
         string patient_id FK
@@ -59,7 +60,19 @@ erDiagram
         string name
     }
 
-
+    PACIENT_REPORTS {
+        bigint id PK
+        bigint patient_id FK
+        bigint report_type_id FK
+        date report_date
+        string report_type
+        string content
+        timestamptz created_at
+    }
+    REPORT_TYPES {
+        bigint id PK
+        string name
+    }
 
 
 
