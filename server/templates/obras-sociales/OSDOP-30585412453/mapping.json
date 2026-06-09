@@ -1,0 +1,393 @@
+{
+  "label": "OSDOP",
+  "_meta": {
+    "refHeight": 842
+  },
+  "fields": [
+    {
+      "page": 0,
+      "x": 240,
+      "y": 694,
+      "size": 10,
+      "source": "patient.nombreCompleto"
+    },
+    {
+      "page": 0,
+      "x": 165,
+      "y": 671,
+      "size": 10,
+      "source": "patient.nroAfiliado"
+    },
+    {
+      "page": 0,
+      "x": 121,
+      "y": 644,
+      "size": 8,
+      "source": "planilla.tratamiento"
+    },
+    {
+      "page": 0,
+      "x": 121,
+      "y": 620,
+      "size": 10,
+      "source": "center.razonSocial"
+    },
+    {
+      "page": 0,
+      "x": 121,
+      "y": 596,
+      "size": 10,
+      "source": "planilla.periodo"
+    },
+    {
+      "page": 0,
+      "x": 80,
+      "y": 526,
+      "size": 9,
+      "source": "planilla.cuadrantes.1.fecha"
+    },
+    {
+      "page": 0,
+      "x": 138,
+      "y": 526,
+      "size": 8,
+      "source": "planilla.cuadrantes.1.horario"
+    },
+    {
+      "page": 0,
+      "x": 80,
+      "y": 512,
+      "size": 9,
+      "source": "planilla.cuadrantes.2.fecha"
+    },
+    {
+      "page": 0,
+      "x": 138,
+      "y": 512,
+      "size": 8,
+      "source": "planilla.cuadrantes.2.horario"
+    },
+    {
+      "page": 0,
+      "x": 80,
+      "y": 498,
+      "size": 9,
+      "source": "planilla.cuadrantes.3.fecha"
+    },
+    {
+      "page": 0,
+      "x": 138,
+      "y": 498,
+      "size": 8,
+      "source": "planilla.cuadrantes.3.horario"
+    },
+    {
+      "page": 0,
+      "x": 80,
+      "y": 484,
+      "size": 9,
+      "source": "planilla.cuadrantes.4.fecha"
+    },
+    {
+      "page": 0,
+      "x": 138,
+      "y": 484,
+      "size": 8,
+      "source": "planilla.cuadrantes.4.horario"
+    },
+    {
+      "page": 0,
+      "x": 80,
+      "y": 470,
+      "size": 9,
+      "source": "planilla.cuadrantes.5.fecha"
+    },
+    {
+      "page": 0,
+      "x": 138,
+      "y": 470,
+      "size": 8,
+      "source": "planilla.cuadrantes.5.horario"
+    },
+    {
+      "page": 0,
+      "x": 80,
+      "y": 456,
+      "size": 9,
+      "source": "planilla.cuadrantes.6.fecha"
+    },
+    {
+      "page": 0,
+      "x": 138,
+      "y": 456,
+      "size": 8,
+      "source": "planilla.cuadrantes.6.horario"
+    },
+    {
+      "page": 0,
+      "x": 80,
+      "y": 442,
+      "size": 9,
+      "source": "planilla.cuadrantes.7.fecha"
+    },
+    {
+      "page": 0,
+      "x": 138,
+      "y": 442,
+      "size": 8,
+      "source": "planilla.cuadrantes.7.horario"
+    },
+    {
+      "page": 0,
+      "x": 80,
+      "y": 428,
+      "size": 9,
+      "source": "planilla.cuadrantes.8.fecha"
+    },
+    {
+      "page": 0,
+      "x": 138,
+      "y": 428,
+      "size": 8,
+      "source": "planilla.cuadrantes.8.horario"
+    },
+    {
+      "page": 0,
+      "x": 80,
+      "y": 414,
+      "size": 9,
+      "source": "planilla.cuadrantes.9.fecha"
+    },
+    {
+      "page": 0,
+      "x": 138,
+      "y": 414,
+      "size": 8,
+      "source": "planilla.cuadrantes.9.horario"
+    },
+    {
+      "page": 0,
+      "x": 80,
+      "y": 400,
+      "size": 9,
+      "source": "planilla.cuadrantes.10.fecha"
+    },
+    {
+      "page": 0,
+      "x": 138,
+      "y": 400,
+      "size": 8,
+      "source": "planilla.cuadrantes.10.horario"
+    },
+    {
+      "page": 0,
+      "x": 80,
+      "y": 386,
+      "size": 9,
+      "source": "planilla.cuadrantes.11.fecha"
+    },
+    {
+      "page": 0,
+      "x": 138,
+      "y": 386,
+      "size": 8,
+      "source": "planilla.cuadrantes.11.horario"
+    },
+    {
+      "page": 0,
+      "x": 80,
+      "y": 372,
+      "size": 9,
+      "source": "planilla.cuadrantes.12.fecha"
+    },
+    {
+      "page": 0,
+      "x": 138,
+      "y": 372,
+      "size": 8,
+      "source": "planilla.cuadrantes.12.horario"
+    },
+    {
+      "page": 0,
+      "x": 80,
+      "y": 358,
+      "size": 9,
+      "source": "planilla.cuadrantes.13.fecha"
+    },
+    {
+      "page": 0,
+      "x": 138,
+      "y": 358,
+      "size": 8,
+      "source": "planilla.cuadrantes.13.horario"
+    },
+    {
+      "page": 0,
+      "x": 80,
+      "y": 344,
+      "size": 9,
+      "source": "planilla.cuadrantes.14.fecha"
+    },
+    {
+      "page": 0,
+      "x": 138,
+      "y": 344,
+      "size": 8,
+      "source": "planilla.cuadrantes.14.horario"
+    },
+    {
+      "page": 0,
+      "x": 80,
+      "y": 330,
+      "size": 9,
+      "source": "planilla.cuadrantes.15.fecha"
+    },
+    {
+      "page": 0,
+      "x": 138,
+      "y": 330,
+      "size": 8,
+      "source": "planilla.cuadrantes.15.horario"
+    },
+    {
+      "page": 0,
+      "x": 80,
+      "y": 316,
+      "size": 9,
+      "source": "planilla.cuadrantes.16.fecha"
+    },
+    {
+      "page": 0,
+      "x": 138,
+      "y": 316,
+      "size": 8,
+      "source": "planilla.cuadrantes.16.horario"
+    },
+    {
+      "page": 0,
+      "x": 80,
+      "y": 302,
+      "size": 9,
+      "source": "planilla.cuadrantes.17.fecha"
+    },
+    {
+      "page": 0,
+      "x": 138,
+      "y": 302,
+      "size": 8,
+      "source": "planilla.cuadrantes.17.horario"
+    },
+    {
+      "page": 0,
+      "x": 80,
+      "y": 288,
+      "size": 9,
+      "source": "planilla.cuadrantes.18.fecha"
+    },
+    {
+      "page": 0,
+      "x": 138,
+      "y": 288,
+      "size": 8,
+      "source": "planilla.cuadrantes.18.horario"
+    },
+    {
+      "page": 0,
+      "x": 80,
+      "y": 274,
+      "size": 9,
+      "source": "planilla.cuadrantes.19.fecha"
+    },
+    {
+      "page": 0,
+      "x": 138,
+      "y": 274,
+      "size": 8,
+      "source": "planilla.cuadrantes.19.horario"
+    },
+    {
+      "page": 0,
+      "x": 80,
+      "y": 260,
+      "size": 9,
+      "source": "planilla.cuadrantes.20.fecha"
+    },
+    {
+      "page": 0,
+      "x": 138,
+      "y": 260,
+      "size": 8,
+      "source": "planilla.cuadrantes.20.horario"
+    },
+    {
+      "page": 0,
+      "x": 80,
+      "y": 246,
+      "size": 9,
+      "source": "planilla.cuadrantes.21.fecha"
+    },
+    {
+      "page": 0,
+      "x": 138,
+      "y": 246,
+      "size": 8,
+      "source": "planilla.cuadrantes.21.horario"
+    },
+    {
+      "page": 0,
+      "x": 80,
+      "y": 232,
+      "size": 9,
+      "source": "planilla.cuadrantes.22.fecha"
+    },
+    {
+      "page": 0,
+      "x": 138,
+      "y": 232,
+      "size": 8,
+      "source": "planilla.cuadrantes.22.horario"
+    },
+    {
+      "page": 0,
+      "x": 80,
+      "y": 218,
+      "size": 9,
+      "source": "planilla.cuadrantes.23.fecha"
+    },
+    {
+      "page": 0,
+      "x": 138,
+      "y": 218,
+      "size": 8,
+      "source": "planilla.cuadrantes.23.horario"
+    },
+    {
+      "page": 0,
+      "x": 80,
+      "y": 204,
+      "size": 9,
+      "source": "planilla.cuadrantes.24.fecha"
+    },
+    {
+      "page": 0,
+      "x": 138,
+      "y": 204,
+      "size": 8,
+      "source": "planilla.cuadrantes.24.horario"
+    },
+    {
+      "page": 0,
+      "x": 80,
+      "y": 190,
+      "size": 9,
+      "source": "planilla.cuadrantes.25.fecha"
+    },
+    {
+      "page": 0,
+      "x": 138,
+      "y": 190,
+      "size": 8,
+      "source": "planilla.cuadrantes.25.horario"
+    }
+  ]
+}

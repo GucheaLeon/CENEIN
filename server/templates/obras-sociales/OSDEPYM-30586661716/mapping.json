@@ -1,0 +1,369 @@
+{
+  "label": "OSDEPYM",
+  "_meta": {
+    "refHeight": 595.56
+  },
+  "fields": [
+    {
+      "page": 0,
+      "x": 155,
+      "y": 505.54,
+      "size": 10,
+      "source": "patient.nombreCompleto"
+    },
+    {
+      "page": 0,
+      "x": 360,
+      "y": 505.54,
+      "size": 10,
+      "source": "patient.dni"
+    },
+    {
+      "page": 0,
+      "x": 468,
+      "y": 505.54,
+      "size": 8.5,
+      "source": "patient.nroAfiliado"
+    },
+    {
+      "page": 0,
+      "x": 605,
+      "y": 505.54,
+      "size": 10,
+      "source": "planilla.periodo"
+    },
+    {
+      "page": 0,
+      "x": 33,
+      "y": 425.71,
+      "size": 8,
+      "source": "planilla.fechasPorDiaPorSemanaFlat.1"
+    },
+    {
+      "page": 0,
+      "x": 98,
+      "y": 425.71,
+      "size": 8,
+      "source": "planilla.horariosIngresoPorDiaPorSemanaFlat.1"
+    },
+    {
+      "page": 0,
+      "x": 132,
+      "y": 425.71,
+      "size": 8,
+      "source": "planilla.horariosEgresoPorDiaPorSemanaFlat.1"
+    },
+    {
+      "page": 0,
+      "x": 172,
+      "y": 425.71,
+      "size": 6.5,
+      "source": "planilla.prestacionPorCuadrante.1",
+      "visibleIfSource": "planilla.fechasPorDiaPorSemanaFlat.1"
+    },
+    {
+      "page": 0,
+      "x": 260,
+      "y": 425.71,
+      "size": 5.2,
+      "source": "center.domicilio",
+      "visibleIfSource": "planilla.fechasPorDiaPorSemanaFlat.1"
+    },
+    {
+      "page": 0,
+      "x": 33,
+      "y": 401.23,
+      "size": 8,
+      "source": "planilla.fechasPorDiaPorSemanaFlat.2"
+    },
+    {
+      "page": 0,
+      "x": 98,
+      "y": 401.23,
+      "size": 8,
+      "source": "planilla.horariosIngresoPorDiaPorSemanaFlat.2"
+    },
+    {
+      "page": 0,
+      "x": 132,
+      "y": 401.23,
+      "size": 8,
+      "source": "planilla.horariosEgresoPorDiaPorSemanaFlat.2"
+    },
+    {
+      "page": 0,
+      "x": 172,
+      "y": 401.23,
+      "size": 6.5,
+      "source": "planilla.prestacionPorCuadrante.2",
+      "visibleIfSource": "planilla.fechasPorDiaPorSemanaFlat.2"
+    },
+    {
+      "page": 0,
+      "x": 260,
+      "y": 401.23,
+      "size": 5.2,
+      "source": "center.domicilio",
+      "visibleIfSource": "planilla.fechasPorDiaPorSemanaFlat.2"
+    },
+    {
+      "page": 0,
+      "x": 33,
+      "y": 376.75,
+      "size": 8,
+      "source": "planilla.fechasPorDiaPorSemanaFlat.3"
+    },
+    {
+      "page": 0,
+      "x": 98,
+      "y": 376.75,
+      "size": 8,
+      "source": "planilla.horariosIngresoPorDiaPorSemanaFlat.3"
+    },
+    {
+      "page": 0,
+      "x": 132,
+      "y": 376.75,
+      "size": 8,
+      "source": "planilla.horariosEgresoPorDiaPorSemanaFlat.3"
+    },
+    {
+      "page": 0,
+      "x": 172,
+      "y": 376.75,
+      "size": 6.5,
+      "source": "planilla.prestacionPorCuadrante.3",
+      "visibleIfSource": "planilla.fechasPorDiaPorSemanaFlat.3"
+    },
+    {
+      "page": 0,
+      "x": 260,
+      "y": 376.75,
+      "size": 5.2,
+      "source": "center.domicilio",
+      "visibleIfSource": "planilla.fechasPorDiaPorSemanaFlat.3"
+    },
+    {
+      "page": 0,
+      "x": 33,
+      "y": 353.35,
+      "size": 8,
+      "source": "planilla.fechasPorDiaPorSemanaFlat.4"
+    },
+    {
+      "page": 0,
+      "x": 98,
+      "y": 353.35,
+      "size": 8,
+      "source": "planilla.horariosIngresoPorDiaPorSemanaFlat.4"
+    },
+    {
+      "page": 0,
+      "x": 132,
+      "y": 353.35,
+      "size": 8,
+      "source": "planilla.horariosEgresoPorDiaPorSemanaFlat.4"
+    },
+    {
+      "page": 0,
+      "x": 172,
+      "y": 353.35,
+      "size": 6.5,
+      "source": "planilla.prestacionPorCuadrante.4",
+      "visibleIfSource": "planilla.fechasPorDiaPorSemanaFlat.4"
+    },
+    {
+      "page": 0,
+      "x": 260,
+      "y": 353.35,
+      "size": 5.2,
+      "source": "center.domicilio",
+      "visibleIfSource": "planilla.fechasPorDiaPorSemanaFlat.4"
+    },
+    {
+      "page": 0,
+      "x": 33,
+      "y": 328.75,
+      "size": 8,
+      "source": "planilla.fechasPorDiaPorSemanaFlat.5"
+    },
+    {
+      "page": 0,
+      "x": 98,
+      "y": 328.75,
+      "size": 8,
+      "source": "planilla.horariosIngresoPorDiaPorSemanaFlat.5"
+    },
+    {
+      "page": 0,
+      "x": 132,
+      "y": 328.75,
+      "size": 8,
+      "source": "planilla.horariosEgresoPorDiaPorSemanaFlat.5"
+    },
+    {
+      "page": 0,
+      "x": 172,
+      "y": 328.75,
+      "size": 6.5,
+      "source": "planilla.prestacionPorCuadrante.5",
+      "visibleIfSource": "planilla.fechasPorDiaPorSemanaFlat.5"
+    },
+    {
+      "page": 0,
+      "x": 260,
+      "y": 328.75,
+      "size": 5.2,
+      "source": "center.domicilio",
+      "visibleIfSource": "planilla.fechasPorDiaPorSemanaFlat.5"
+    },
+    {
+      "page": 0,
+      "x": 33,
+      "y": 304.25,
+      "size": 8,
+      "source": "planilla.fechasPorDiaPorSemanaFlat.6"
+    },
+    {
+      "page": 0,
+      "x": 98,
+      "y": 304.25,
+      "size": 8,
+      "source": "planilla.horariosIngresoPorDiaPorSemanaFlat.6"
+    },
+    {
+      "page": 0,
+      "x": 132,
+      "y": 304.25,
+      "size": 8,
+      "source": "planilla.horariosEgresoPorDiaPorSemanaFlat.6"
+    },
+    {
+      "page": 0,
+      "x": 172,
+      "y": 304.25,
+      "size": 6.5,
+      "source": "planilla.prestacionPorCuadrante.6",
+      "visibleIfSource": "planilla.fechasPorDiaPorSemanaFlat.6"
+    },
+    {
+      "page": 0,
+      "x": 260,
+      "y": 304.25,
+      "size": 5.2,
+      "source": "center.domicilio",
+      "visibleIfSource": "planilla.fechasPorDiaPorSemanaFlat.6"
+    },
+    {
+      "page": 0,
+      "x": 33,
+      "y": 279.77,
+      "size": 8,
+      "source": "planilla.fechasPorDiaPorSemanaFlat.7"
+    },
+    {
+      "page": 0,
+      "x": 98,
+      "y": 279.77,
+      "size": 8,
+      "source": "planilla.horariosIngresoPorDiaPorSemanaFlat.7"
+    },
+    {
+      "page": 0,
+      "x": 132,
+      "y": 279.77,
+      "size": 8,
+      "source": "planilla.horariosEgresoPorDiaPorSemanaFlat.7"
+    },
+    {
+      "page": 0,
+      "x": 172,
+      "y": 279.77,
+      "size": 6.5,
+      "source": "planilla.prestacionPorCuadrante.7",
+      "visibleIfSource": "planilla.fechasPorDiaPorSemanaFlat.7"
+    },
+    {
+      "page": 0,
+      "x": 260,
+      "y": 279.77,
+      "size": 5.2,
+      "source": "center.domicilio",
+      "visibleIfSource": "planilla.fechasPorDiaPorSemanaFlat.7"
+    },
+    {
+      "page": 0,
+      "x": 33,
+      "y": 255.29,
+      "size": 8,
+      "source": "planilla.fechasPorDiaPorSemanaFlat.8"
+    },
+    {
+      "page": 0,
+      "x": 98,
+      "y": 255.29,
+      "size": 8,
+      "source": "planilla.horariosIngresoPorDiaPorSemanaFlat.8"
+    },
+    {
+      "page": 0,
+      "x": 132,
+      "y": 255.29,
+      "size": 8,
+      "source": "planilla.horariosEgresoPorDiaPorSemanaFlat.8"
+    },
+    {
+      "page": 0,
+      "x": 172,
+      "y": 255.29,
+      "size": 6.5,
+      "source": "planilla.prestacionPorCuadrante.8",
+      "visibleIfSource": "planilla.fechasPorDiaPorSemanaFlat.8"
+    },
+    {
+      "page": 0,
+      "x": 260,
+      "y": 255.29,
+      "size": 5.2,
+      "source": "center.domicilio",
+      "visibleIfSource": "planilla.fechasPorDiaPorSemanaFlat.8"
+    },
+    {
+      "page": 0,
+      "x": 33,
+      "y": 230.93,
+      "size": 8,
+      "source": "planilla.fechasPorDiaPorSemanaFlat.9"
+    },
+    {
+      "page": 0,
+      "x": 98,
+      "y": 230.93,
+      "size": 8,
+      "source": "planilla.horariosIngresoPorDiaPorSemanaFlat.9"
+    },
+    {
+      "page": 0,
+      "x": 132,
+      "y": 230.93,
+      "size": 8,
+      "source": "planilla.horariosEgresoPorDiaPorSemanaFlat.9"
+    },
+    {
+      "page": 0,
+      "x": 172,
+      "y": 230.93,
+      "size": 6.5,
+      "source": "planilla.prestacionPorCuadrante.9",
+      "visibleIfSource": "planilla.fechasPorDiaPorSemanaFlat.9"
+    },
+    {
+      "page": 0,
+      "x": 260,
+      "y": 230.93,
+      "size": 5.2,
+      "source": "center.domicilio",
+      "visibleIfSource": "planilla.fechasPorDiaPorSemanaFlat.9"
+    }
+  ]
+}

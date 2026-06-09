@@ -1,0 +1,456 @@
+{
+  "label": "OSMEDICA",
+  "_meta": {
+    "refHeight": 841.861
+  },
+  "fields": [
+    {
+      "page": 0,
+      "x": 128,
+      "y": 763,
+      "size": 10,
+      "source": "patient.nombreCompleto"
+    },
+    {
+      "page": 0,
+      "x": 372,
+      "y": 761,
+      "size": 10,
+      "source": "patient.dni"
+    },
+    {
+      "page": 0,
+      "x": 132,
+      "y": 739,
+      "size": 10,
+      "source": "planilla.tratamiento"
+    },
+    {
+      "page": 0,
+      "x": 406,
+      "y": 739,
+      "size": 10,
+      "source": "planilla.periodo"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 689.65,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Lun.1"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 689.65,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Lun.1"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 666.3,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Mar.1"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 666.3,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Mar.1"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 646.95,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Mie.1"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 646.95,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Mie.1"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 627.6,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Jue.1"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 627.6,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Jue.1"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 608.25,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Vie.1"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 608.25,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Vie.1"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 588.9,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Sab.1"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 588.9,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Sab.1"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 569.4,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Lun.2"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 569.4,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Lun.2"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 549.8,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Mar.2"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 549.8,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Mar.2"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 530.35,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Mie.2"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 530.35,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Mie.2"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 511,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Jue.2"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 511,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Jue.2"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 491.65,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Vie.2"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 491.65,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Vie.2"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 472.3,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Sab.2"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 472.3,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Sab.2"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 452.8,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Lun.3"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 452.8,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Lun.3"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 433.2,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Mar.3"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 433.2,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Mar.3"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 413.75,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Mie.3"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 413.75,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Mie.3"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 394.4,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Jue.3"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 394.4,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Jue.3"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 375.05,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Vie.3"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 375.05,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Vie.3"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 355.7,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Sab.3"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 355.7,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Sab.3"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 336.2,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Lun.4"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 336.2,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Lun.4"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 316.6,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Mar.4"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 316.6,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Mar.4"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 297.15,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Mie.4"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 297.15,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Mie.4"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 277.8,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Jue.4"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 277.8,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Jue.4"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 258.45,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Vie.4"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 258.45,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Vie.4"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 239.1,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Sab.4"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 239.1,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Sab.4"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 219.75,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Lun.5"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 219.75,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Lun.5"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 200.15,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Mar.5"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 200.15,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Mar.5"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 180.7,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Mie.5"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 180.7,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Mie.5"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 161.35,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Jue.5"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 161.35,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Jue.5"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 142,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Vie.5"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 142,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Vie.5"
+    },
+    {
+      "page": 0,
+      "x": 91,
+      "y": 122.65,
+      "size": 10,
+      "source": "planilla.fechasPorDiaPorSemanaCalendario.Sab.5"
+    },
+    {
+      "page": 0,
+      "x": 136,
+      "y": 122.65,
+      "size": 10,
+      "source": "planilla.horariosIngresoEgresoPorDiaPorSemanaCalendario.Sab.5"
+    }
+  ]
+}

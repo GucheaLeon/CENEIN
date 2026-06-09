@@ -1,0 +1,288 @@
+{
+    "label":  "OSUTA",
+    "_meta":  {
+                  "refHeight":  841.92
+              },
+    "fields":  [
+                   {
+                       "page":  0,
+                       "x":  94,
+                       "y":  580.92,
+                       "size":  10,
+                       "source":  "center.razonSocial"
+                   },
+                   {
+                       "page":  0,
+                       "x":  94,
+                       "y":  568.92,
+                       "size":  10,
+                       "source":  "planilla.tratamiento"
+                   },
+                   {
+                       "page":  0,
+                       "x":  94,
+                       "y":  557.92,
+                       "size":  10,
+                       "source":  "center.domicilio"
+                   },
+                   {
+                       "page":  0,
+                       "x":  94,
+                       "y":  545.92,
+                       "size":  10,
+                       "source":  "center.cuit"
+                   },
+                   {
+                       "page":  0,
+                       "x":  94,
+                       "y":  533.92,
+                       "size":  10,
+                       "source":  "planilla.numeroFactura"
+                   },
+                   {
+                       "page":  0,
+                       "x":  94,
+                       "y":  510.92,
+                       "size":  10,
+                       "source":  "patient.nombreCompleto"
+                   },
+                   {
+                       "page":  0,
+                       "x":  94,
+                       "y":  498.92,
+                       "size":  10,
+                       "source":  "patient.dni"
+                   },
+                   {
+                       "page":  0,
+                       "x":  130,
+                       "y":  487.92,
+                       "size":  10,
+                       "source":  "planilla.periodo"
+                   },
+                   {
+                       "page":  0,
+                       "x":  27,
+                       "y":  431.92,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.1.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  27,
+                       "y":  416.42,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.2.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  27,
+                       "y":  400.92,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.3.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  27,
+                       "y":  385.42,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.4.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  27,
+                       "y":  369.92,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.5.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  27,
+                       "y":  354.42,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.6.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  27,
+                       "y":  338.92,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.7.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  27,
+                       "y":  323.42,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.8.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  27,
+                       "y":  307.92,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.9.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  27,
+                       "y":  292.42,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.10.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  27,
+                       "y":  276.92,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.11.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  27,
+                       "y":  261.42,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.12.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  27,
+                       "y":  245.92000000000002,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.13.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  27,
+                       "y":  230.42000000000002,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.14.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  27,
+                       "y":  214.92000000000002,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.15.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  27,
+                       "y":  199.42000000000002,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.16.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  292,
+                       "y":  432.92,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.17.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  292,
+                       "y":  417.42,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.18.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  292,
+                       "y":  401.92,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.19.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  292,
+                       "y":  386.42,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.20.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  292,
+                       "y":  370.92,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.21.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  292,
+                       "y":  355.42,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.22.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  292,
+                       "y":  339.92,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.23.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  292,
+                       "y":  324.42,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.24.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  292,
+                       "y":  308.92,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.25.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  292,
+                       "y":  293.42,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.26.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  292,
+                       "y":  277.92,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.27.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  292,
+                       "y":  262.42,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.28.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  292,
+                       "y":  246.92000000000002,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.29.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  292,
+                       "y":  231.42000000000002,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.30.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  292,
+                       "y":  215.92000000000002,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.31.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  292,
+                       "y":  200.42000000000002,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.32.fecha"
+                   }
+               ]
+}
