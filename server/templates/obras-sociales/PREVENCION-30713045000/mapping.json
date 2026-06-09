@@ -1,0 +1,211 @@
+{
+    "label":  "PREVENCION",
+    "_meta":  {
+                  "refHeight":  841.92
+              },
+    "fields":  [
+                   {
+                       "y":  734.92,
+                       "source":  "patient.nombreCompleto",
+                       "page":  0,
+                       "size":  10,
+                       "x":  71
+                   },
+                   {
+                       "y":  707.92,
+                       "source":  "patient.nroAfiliado",
+                       "page":  0,
+                       "size":  10,
+                       "x":  100
+                   },
+                   {
+                       "y":  680.92,
+                       "source":  "planilla.tratamiento",
+                       "page":  0,
+                       "size":  10,
+                       "x":  85
+                   },
+                   {
+                       "y":  655.92,
+                       "source":  "planilla.periodo",
+                       "page":  0,
+                       "size":  10,
+                       "x":  114
+                   },
+                   {
+                       "y":  581.92,
+                       "source":  "planilla.fechasPorDiaPorSemanaFlat.1",
+                       "page":  0,
+                       "size":  10,
+                       "x":  190
+                   },
+                   {
+                       "y":  554.92,
+                       "source":  "planilla.fechasPorDiaPorSemanaFlat.2",
+                       "page":  0,
+                       "size":  10,
+                       "x":  190
+                   },
+                   {
+                       "y":  527.92,
+                       "source":  "planilla.fechasPorDiaPorSemanaFlat.3",
+                       "page":  0,
+                       "size":  10,
+                       "x":  190
+                   },
+                   {
+                       "y":  500.92,
+                       "source":  "planilla.fechasPorDiaPorSemanaFlat.4",
+                       "page":  0,
+                       "size":  10,
+                       "x":  190
+                   },
+                   {
+                       "y":  473.92,
+                       "source":  "planilla.fechasPorDiaPorSemanaFlat.5",
+                       "page":  0,
+                       "size":  10,
+                       "x":  190
+                   },
+                   {
+                       "y":  446.92,
+                       "source":  "planilla.fechasPorDiaPorSemanaFlat.6",
+                       "page":  0,
+                       "size":  10,
+                       "x":  190
+                   },
+                   {
+                       "y":  419.92,
+                       "source":  "planilla.fechasPorDiaPorSemanaFlat.7",
+                       "page":  0,
+                       "size":  10,
+                       "x":  190
+                   },
+                   {
+                       "y":  392.92,
+                       "source":  "planilla.fechasPorDiaPorSemanaFlat.8",
+                       "page":  0,
+                       "size":  10,
+                       "x":  190
+                   },
+                   {
+                       "y":  365.92,
+                       "source":  "planilla.fechasPorDiaPorSemanaFlat.9",
+                       "page":  0,
+                       "size":  10,
+                       "x":  190
+                   },
+                   {
+                       "y":  338.92,
+                       "source":  "planilla.fechasPorDiaPorSemanaFlat.10",
+                       "page":  0,
+                       "size":  10,
+                       "x":  190
+                   },
+                   {
+                       "y":  311.92,
+                       "source":  "planilla.fechasPorDiaPorSemanaFlat.11",
+                       "page":  0,
+                       "size":  10,
+                       "x":  190
+                   },
+                   {
+                       "y":  284.92,
+                       "source":  "planilla.fechasPorDiaPorSemanaFlat.12",
+                       "page":  0,
+                       "size":  10,
+                       "x":  190
+                   },
+                   {
+                       "y":  257.92,
+                       "source":  "planilla.fechasPorDiaPorSemanaFlat.13",
+                       "page":  0,
+                       "size":  10,
+                       "x":  190
+                   },
+                   {
+                       "y":  230.92,
+                       "source":  "planilla.fechasPorDiaPorSemanaFlat.14",
+                       "page":  0,
+                       "size":  10,
+                       "x":  190
+                   },
+                   {
+                       "y":  203.92,
+                       "source":  "planilla.fechasPorDiaPorSemanaFlat.15",
+                       "page":  0,
+                       "size":  10,
+                       "x":  190
+                   },
+                   {
+                       "y":  176.92,
+                       "source":  "planilla.fechasPorDiaPorSemanaFlat.16",
+                       "page":  0,
+                       "size":  10,
+                       "x":  190
+                   },
+                   {
+                       "y":  149.92,
+                       "source":  "planilla.fechasPorDiaPorSemanaFlat.17",
+                       "page":  0,
+                       "size":  10,
+                       "x":  190
+                   },
+                   {
+                       "y":  122.92,
+                       "source":  "planilla.fechasPorDiaPorSemanaFlat.18",
+                       "page":  0,
+                       "size":  10,
+                       "x":  190
+                   },
+                   {
+                       "y":  95.92,
+                       "source":  "planilla.fechasPorDiaPorSemanaFlat.19",
+                       "page":  0,
+                       "size":  10,
+                       "x":  190
+                   },
+                   {
+                       "y":  68.92,
+                       "source":  "planilla.fechasPorDiaPorSemanaFlat.20",
+                       "page":  0,
+                       "size":  10,
+                       "x":  190
+                   },
+                   {
+                       "y":  41.92,
+                       "source":  "planilla.fechasPorDiaPorSemanaFlat.21",
+                       "page":  0,
+                       "size":  10,
+                       "x":  190
+                   },
+                   {
+                       "y":  14.92,
+                       "source":  "planilla.fechasPorDiaPorSemanaFlat.22",
+                       "page":  0,
+                       "size":  10,
+                       "x":  190
+                   },
+                   {
+                       "y":  -12.08,
+                       "source":  "planilla.fechasPorDiaPorSemanaFlat.23",
+                       "page":  0,
+                       "size":  10,
+                       "x":  190
+                   },
+                   {
+                       "y":  -39.08,
+                       "source":  "planilla.fechasPorDiaPorSemanaFlat.24",
+                       "page":  0,
+                       "size":  10,
+                       "x":  190
+                   },
+                   {
+                       "y":  -66.08,
+                       "source":  "planilla.fechasPorDiaPorSemanaFlat.25",
+                       "page":  0,
+                       "size":  10,
+                       "x":  190
+                   }
+               ]
+}

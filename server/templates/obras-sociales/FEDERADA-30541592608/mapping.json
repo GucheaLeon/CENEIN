@@ -1,0 +1,582 @@
+{
+  "label": "FEDERADA",
+  "_meta": {
+    "refHeight": 792
+  },
+  "fields": [
+    {
+      "page": 0,
+      "x": 45,
+      "y": 694,
+      "size": 9,
+      "source": "center.razonSocial"
+    },
+    {
+      "page": 0,
+      "x": 268,
+      "y": 694,
+      "size": 9,
+      "source": "planilla.tratamiento"
+    },
+    {
+      "page": 0,
+      "x": 460,
+      "y": 694,
+      "size": 9,
+      "source": "center.telefono"
+    },
+    {
+      "page": 0,
+      "x": 46,
+      "y": 673,
+      "size": 9,
+      "source": "center.correo"
+    },
+    {
+      "page": 0,
+      "x": 270,
+      "y": 673,
+      "size": 9,
+      "source": "patient.nombreCompleto"
+    },
+    {
+      "page": 0,
+      "x": 415,
+      "y": 673,
+      "size": 9,
+      "source": "patient.nroAfiliado"
+    },
+    {
+      "page": 0,
+      "x": 510,
+      "y": 674,
+      "size": 9,
+      "source": "planilla.periodo"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 622,
+      "size": 9,
+      "source": "planilla.cuadrantes.1.fecha"
+    },
+    {
+      "page": 0,
+      "x": 156,
+      "y": 622,
+      "size": 9,
+      "source": "planilla.cuadrantes.1.cantidadSesiones"
+    },
+    {
+      "page": 0,
+      "x": 221,
+      "y": 622,
+      "size": 9,
+      "source": "planilla.cuadrantes.1.horario"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 604,
+      "size": 9,
+      "source": "planilla.cuadrantes.2.fecha"
+    },
+    {
+      "page": 0,
+      "x": 156,
+      "y": 604,
+      "size": 9,
+      "source": "planilla.cuadrantes.2.cantidadSesiones"
+    },
+    {
+      "page": 0,
+      "x": 221,
+      "y": 604,
+      "size": 9,
+      "source": "planilla.cuadrantes.2.horario"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 586,
+      "size": 9,
+      "source": "planilla.cuadrantes.3.fecha"
+    },
+    {
+      "page": 0,
+      "x": 156,
+      "y": 586,
+      "size": 9,
+      "source": "planilla.cuadrantes.3.cantidadSesiones"
+    },
+    {
+      "page": 0,
+      "x": 221,
+      "y": 586,
+      "size": 9,
+      "source": "planilla.cuadrantes.3.horario"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 568,
+      "size": 9,
+      "source": "planilla.cuadrantes.4.fecha"
+    },
+    {
+      "page": 0,
+      "x": 156,
+      "y": 568,
+      "size": 9,
+      "source": "planilla.cuadrantes.4.cantidadSesiones"
+    },
+    {
+      "page": 0,
+      "x": 221,
+      "y": 568,
+      "size": 9,
+      "source": "planilla.cuadrantes.4.horario"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 550,
+      "size": 9,
+      "source": "planilla.cuadrantes.5.fecha"
+    },
+    {
+      "page": 0,
+      "x": 156,
+      "y": 550,
+      "size": 9,
+      "source": "planilla.cuadrantes.5.cantidadSesiones"
+    },
+    {
+      "page": 0,
+      "x": 221,
+      "y": 550,
+      "size": 9,
+      "source": "planilla.cuadrantes.5.horario"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 532,
+      "size": 9,
+      "source": "planilla.cuadrantes.6.fecha"
+    },
+    {
+      "page": 0,
+      "x": 156,
+      "y": 532,
+      "size": 9,
+      "source": "planilla.cuadrantes.6.cantidadSesiones"
+    },
+    {
+      "page": 0,
+      "x": 221,
+      "y": 532,
+      "size": 9,
+      "source": "planilla.cuadrantes.6.horario"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 514,
+      "size": 9,
+      "source": "planilla.cuadrantes.7.fecha"
+    },
+    {
+      "page": 0,
+      "x": 156,
+      "y": 514,
+      "size": 9,
+      "source": "planilla.cuadrantes.7.cantidadSesiones"
+    },
+    {
+      "page": 0,
+      "x": 221,
+      "y": 514,
+      "size": 9,
+      "source": "planilla.cuadrantes.7.horario"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 496,
+      "size": 9,
+      "source": "planilla.cuadrantes.8.fecha"
+    },
+    {
+      "page": 0,
+      "x": 156,
+      "y": 496,
+      "size": 9,
+      "source": "planilla.cuadrantes.8.cantidadSesiones"
+    },
+    {
+      "page": 0,
+      "x": 221,
+      "y": 496,
+      "size": 9,
+      "source": "planilla.cuadrantes.8.horario"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 479.5,
+      "size": 9,
+      "source": "planilla.cuadrantes.9.fecha"
+    },
+    {
+      "page": 0,
+      "x": 156,
+      "y": 479.5,
+      "size": 9,
+      "source": "planilla.cuadrantes.9.cantidadSesiones"
+    },
+    {
+      "page": 0,
+      "x": 221,
+      "y": 479.5,
+      "size": 9,
+      "source": "planilla.cuadrantes.9.horario"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 462,
+      "size": 9,
+      "source": "planilla.cuadrantes.10.fecha"
+    },
+    {
+      "page": 0,
+      "x": 156,
+      "y": 462,
+      "size": 9,
+      "source": "planilla.cuadrantes.10.cantidadSesiones"
+    },
+    {
+      "page": 0,
+      "x": 221,
+      "y": 462,
+      "size": 9,
+      "source": "planilla.cuadrantes.10.horario"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 445,
+      "size": 9,
+      "source": "planilla.cuadrantes.11.fecha"
+    },
+    {
+      "page": 0,
+      "x": 156,
+      "y": 445,
+      "size": 9,
+      "source": "planilla.cuadrantes.11.cantidadSesiones"
+    },
+    {
+      "page": 0,
+      "x": 221,
+      "y": 445,
+      "size": 9,
+      "source": "planilla.cuadrantes.11.horario"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 428,
+      "size": 9,
+      "source": "planilla.cuadrantes.12.fecha"
+    },
+    {
+      "page": 0,
+      "x": 156,
+      "y": 428,
+      "size": 9,
+      "source": "planilla.cuadrantes.12.cantidadSesiones"
+    },
+    {
+      "page": 0,
+      "x": 221,
+      "y": 428,
+      "size": 9,
+      "source": "planilla.cuadrantes.12.horario"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 411,
+      "size": 9,
+      "source": "planilla.cuadrantes.13.fecha"
+    },
+    {
+      "page": 0,
+      "x": 156,
+      "y": 411,
+      "size": 9,
+      "source": "planilla.cuadrantes.13.cantidadSesiones"
+    },
+    {
+      "page": 0,
+      "x": 221,
+      "y": 411,
+      "size": 9,
+      "source": "planilla.cuadrantes.13.horario"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 396,
+      "size": 9,
+      "source": "planilla.cuadrantes.14.fecha"
+    },
+    {
+      "page": 0,
+      "x": 156,
+      "y": 396,
+      "size": 9,
+      "source": "planilla.cuadrantes.14.cantidadSesiones"
+    },
+    {
+      "page": 0,
+      "x": 221,
+      "y": 396,
+      "size": 9,
+      "source": "planilla.cuadrantes.14.horario"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 382,
+      "size": 9,
+      "source": "planilla.cuadrantes.15.fecha"
+    },
+    {
+      "page": 0,
+      "x": 156,
+      "y": 382,
+      "size": 9,
+      "source": "planilla.cuadrantes.15.cantidadSesiones"
+    },
+    {
+      "page": 0,
+      "x": 221,
+      "y": 382,
+      "size": 9,
+      "source": "planilla.cuadrantes.15.horario"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 367,
+      "size": 9,
+      "source": "planilla.cuadrantes.16.fecha"
+    },
+    {
+      "page": 0,
+      "x": 156,
+      "y": 367,
+      "size": 9,
+      "source": "planilla.cuadrantes.16.cantidadSesiones"
+    },
+    {
+      "page": 0,
+      "x": 221,
+      "y": 367,
+      "size": 9,
+      "source": "planilla.cuadrantes.16.horario"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 350,
+      "size": 9,
+      "source": "planilla.cuadrantes.17.fecha"
+    },
+    {
+      "page": 0,
+      "x": 156,
+      "y": 350,
+      "size": 9,
+      "source": "planilla.cuadrantes.17.cantidadSesiones"
+    },
+    {
+      "page": 0,
+      "x": 221,
+      "y": 350,
+      "size": 9,
+      "source": "planilla.cuadrantes.17.horario"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 332,
+      "size": 9,
+      "source": "planilla.cuadrantes.18.fecha"
+    },
+    {
+      "page": 0,
+      "x": 156,
+      "y": 332,
+      "size": 9,
+      "source": "planilla.cuadrantes.18.cantidadSesiones"
+    },
+    {
+      "page": 0,
+      "x": 221,
+      "y": 332,
+      "size": 9,
+      "source": "planilla.cuadrantes.18.horario"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 311,
+      "size": 9,
+      "source": "planilla.cuadrantes.19.fecha"
+    },
+    {
+      "page": 0,
+      "x": 156,
+      "y": 311,
+      "size": 9,
+      "source": "planilla.cuadrantes.19.cantidadSesiones"
+    },
+    {
+      "page": 0,
+      "x": 221,
+      "y": 311,
+      "size": 9,
+      "source": "planilla.cuadrantes.19.horario"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 292,
+      "size": 9,
+      "source": "planilla.cuadrantes.20.fecha"
+    },
+    {
+      "page": 0,
+      "x": 156,
+      "y": 292,
+      "size": 9,
+      "source": "planilla.cuadrantes.20.cantidadSesiones"
+    },
+    {
+      "page": 0,
+      "x": 221,
+      "y": 292,
+      "size": 9,
+      "source": "planilla.cuadrantes.20.horario"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 277,
+      "size": 9,
+      "source": "planilla.cuadrantes.21.fecha"
+    },
+    {
+      "page": 0,
+      "x": 156,
+      "y": 277,
+      "size": 9,
+      "source": "planilla.cuadrantes.21.cantidadSesiones"
+    },
+    {
+      "page": 0,
+      "x": 221,
+      "y": 277,
+      "size": 9,
+      "source": "planilla.cuadrantes.21.horario"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 262,
+      "size": 9,
+      "source": "planilla.cuadrantes.22.fecha"
+    },
+    {
+      "page": 0,
+      "x": 156,
+      "y": 262,
+      "size": 9,
+      "source": "planilla.cuadrantes.22.cantidadSesiones"
+    },
+    {
+      "page": 0,
+      "x": 221,
+      "y": 262,
+      "size": 9,
+      "source": "planilla.cuadrantes.22.horario"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 247,
+      "size": 9,
+      "source": "planilla.cuadrantes.23.fecha"
+    },
+    {
+      "page": 0,
+      "x": 156,
+      "y": 247,
+      "size": 9,
+      "source": "planilla.cuadrantes.23.cantidadSesiones"
+    },
+    {
+      "page": 0,
+      "x": 221,
+      "y": 247,
+      "size": 9,
+      "source": "planilla.cuadrantes.23.horario"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 232,
+      "size": 9,
+      "source": "planilla.cuadrantes.24.fecha"
+    },
+    {
+      "page": 0,
+      "x": 156,
+      "y": 232,
+      "size": 9,
+      "source": "planilla.cuadrantes.24.cantidadSesiones"
+    },
+    {
+      "page": 0,
+      "x": 221,
+      "y": 232,
+      "size": 9,
+      "source": "planilla.cuadrantes.24.horario"
+    },
+    {
+      "page": 0,
+      "x": 50,
+      "y": 217,
+      "size": 9,
+      "source": "planilla.cuadrantes.25.fecha"
+    },
+    {
+      "page": 0,
+      "x": 156,
+      "y": 217,
+      "size": 9,
+      "source": "planilla.cuadrantes.25.cantidadSesiones"
+    },
+    {
+      "page": 0,
+      "x": 221,
+      "y": 217,
+      "size": 9,
+      "source": "planilla.cuadrantes.25.horario"
+    }
+  ]
+}

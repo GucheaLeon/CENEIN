@@ -1,0 +1,29 @@
+{
+  "label": "OSPECON",
+  "_meta": {
+    "refHeight": 842.04
+  },
+  "fields": [
+    {
+      "page": 0,
+      "x": 374,
+      "y": 776.04,
+      "size": 10,
+      "source": "planilla.periodo"
+    },
+    {
+      "page": 0,
+      "x": 113,
+      "y": 732.04,
+      "size": 10,
+      "source": "patient.nombreCompleto"
+    },
+    {
+      "page": 0,
+      "x": 410,
+      "y": 732.04,
+      "size": 10,
+      "source": "patient.nroAfiliado"
+    }
+  ]
+}

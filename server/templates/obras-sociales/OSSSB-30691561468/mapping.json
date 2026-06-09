@@ -1,0 +1,575 @@
+{
+    "label":  "OSSSB",
+    "_meta":  {
+                  "refHeight":  792
+              },
+    "fields":  [
+                   {
+                       "page":  0,
+                       "x":  205,
+                       "y":  665.6,
+                       "size":  10,
+                       "source":  "center.razonSocial"
+                   },
+                   {
+                       "page":  0,
+                       "x":  245,
+                       "y":  640.6,
+                       "size":  10,
+                       "source":  "center.domicilio"
+                   },
+                   {
+                       "page":  0,
+                       "x":  250,
+                       "y":  615.3,
+                       "size":  10,
+                       "source":  "patient.nombreCompleto"
+                   },
+                   {
+                       "page":  0,
+                       "x":  84,
+                       "y":  605,
+                       "size":  10,
+                       "source":  "planilla.tratamiento"
+                   },
+                   {
+                       "page":  0,
+                       "x":  355,
+                       "y":  603.5,
+                       "size":  10,
+                       "source":  "planilla.mesNombre"
+                   },
+                   {
+                       "page":  0,
+                       "x":  449,
+                       "y":  605,
+                       "size":  10,
+                       "source":  "planilla.anioCorto"
+                   },
+                   {
+                       "page":  0,
+                       "x":  77,
+                       "y":  543,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.1.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  146,
+                       "y":  543,
+                       "size":  10,
+                       "source":  "planilla.horariosIngresoPorDiaPorSemanaFlat.1"
+                   },
+                   {
+                       "page":  0,
+                       "x":  246,
+                       "y":  543,
+                       "size":  10,
+                       "source":  "planilla.horariosEgresoPorDiaPorSemanaFlat.1"
+                   },
+                   {
+                       "page":  0,
+                       "x":  77,
+                       "y":  509,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.2.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  146,
+                       "y":  509,
+                       "size":  10,
+                       "source":  "planilla.horariosIngresoPorDiaPorSemanaFlat.2"
+                   },
+                   {
+                       "page":  0,
+                       "x":  246,
+                       "y":  509,
+                       "size":  10,
+                       "source":  "planilla.horariosEgresoPorDiaPorSemanaFlat.2"
+                   },
+                   {
+                       "page":  0,
+                       "x":  77,
+                       "y":  475,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.3.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  146,
+                       "y":  475,
+                       "size":  10,
+                       "source":  "planilla.horariosIngresoPorDiaPorSemanaFlat.3"
+                   },
+                   {
+                       "page":  0,
+                       "x":  246,
+                       "y":  475,
+                       "size":  10,
+                       "source":  "planilla.horariosEgresoPorDiaPorSemanaFlat.3"
+                   },
+                   {
+                       "page":  0,
+                       "x":  77,
+                       "y":  447,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.4.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  146,
+                       "y":  447,
+                       "size":  10,
+                       "source":  "planilla.horariosIngresoPorDiaPorSemanaFlat.4"
+                   },
+                   {
+                       "page":  0,
+                       "x":  246,
+                       "y":  447,
+                       "size":  10,
+                       "source":  "planilla.horariosEgresoPorDiaPorSemanaFlat.4"
+                   },
+                   {
+                       "page":  0,
+                       "x":  77,
+                       "y":  419,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.5.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  146,
+                       "y":  419,
+                       "size":  10,
+                       "source":  "planilla.horariosIngresoPorDiaPorSemanaFlat.5"
+                   },
+                   {
+                       "page":  0,
+                       "x":  246,
+                       "y":  419,
+                       "size":  10,
+                       "source":  "planilla.horariosEgresoPorDiaPorSemanaFlat.5"
+                   },
+                   {
+                       "page":  0,
+                       "x":  77,
+                       "y":  391,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.6.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  146,
+                       "y":  391,
+                       "size":  10,
+                       "source":  "planilla.horariosIngresoPorDiaPorSemanaFlat.6"
+                   },
+                   {
+                       "page":  0,
+                       "x":  246,
+                       "y":  391,
+                       "size":  10,
+                       "source":  "planilla.horariosEgresoPorDiaPorSemanaFlat.6"
+                   },
+                   {
+                       "page":  0,
+                       "x":  77,
+                       "y":  363,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.7.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  146,
+                       "y":  363,
+                       "size":  10,
+                       "source":  "planilla.horariosIngresoPorDiaPorSemanaFlat.7"
+                   },
+                   {
+                       "page":  0,
+                       "x":  246,
+                       "y":  363,
+                       "size":  10,
+                       "source":  "planilla.horariosEgresoPorDiaPorSemanaFlat.7"
+                   },
+                   {
+                       "page":  0,
+                       "x":  77,
+                       "y":  332,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.8.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  146,
+                       "y":  332,
+                       "size":  10,
+                       "source":  "planilla.horariosIngresoPorDiaPorSemanaFlat.8"
+                   },
+                   {
+                       "page":  0,
+                       "x":  246,
+                       "y":  332,
+                       "size":  10,
+                       "source":  "planilla.horariosEgresoPorDiaPorSemanaFlat.8"
+                   },
+                   {
+                       "page":  0,
+                       "x":  77,
+                       "y":  301,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.9.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  146,
+                       "y":  301,
+                       "size":  10,
+                       "source":  "planilla.horariosIngresoPorDiaPorSemanaFlat.9"
+                   },
+                   {
+                       "page":  0,
+                       "x":  246,
+                       "y":  301,
+                       "size":  10,
+                       "source":  "planilla.horariosEgresoPorDiaPorSemanaFlat.9"
+                   },
+                   {
+                       "page":  0,
+                       "x":  77,
+                       "y":  270,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.10.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  146,
+                       "y":  270,
+                       "size":  10,
+                       "source":  "planilla.horariosIngresoPorDiaPorSemanaFlat.10"
+                   },
+                   {
+                       "page":  0,
+                       "x":  246,
+                       "y":  270,
+                       "size":  10,
+                       "source":  "planilla.horariosEgresoPorDiaPorSemanaFlat.10"
+                   },
+                   {
+                       "page":  0,
+                       "x":  77,
+                       "y":  239,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.11.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  146,
+                       "y":  239,
+                       "size":  10,
+                       "source":  "planilla.horariosIngresoPorDiaPorSemanaFlat.11"
+                   },
+                   {
+                       "page":  0,
+                       "x":  246,
+                       "y":  239,
+                       "size":  10,
+                       "source":  "planilla.horariosEgresoPorDiaPorSemanaFlat.11"
+                   },
+                   {
+                       "page":  0,
+                       "x":  77,
+                       "y":  208,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.12.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  146,
+                       "y":  208,
+                       "size":  10,
+                       "source":  "planilla.horariosIngresoPorDiaPorSemanaFlat.12"
+                   },
+                   {
+                       "page":  0,
+                       "x":  246,
+                       "y":  208,
+                       "size":  10,
+                       "source":  "planilla.horariosEgresoPorDiaPorSemanaFlat.12"
+                   },
+                   {
+                       "page":  0,
+                       "x":  77,
+                       "y":  177,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.13.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  146,
+                       "y":  177,
+                       "size":  10,
+                       "source":  "planilla.horariosIngresoPorDiaPorSemanaFlat.13"
+                   },
+                   {
+                       "page":  0,
+                       "x":  246,
+                       "y":  177,
+                       "size":  10,
+                       "source":  "planilla.horariosEgresoPorDiaPorSemanaFlat.13"
+                   },
+                   {
+                       "page":  0,
+                       "x":  77,
+                       "y":  146,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.14.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  146,
+                       "y":  146,
+                       "size":  10,
+                       "source":  "planilla.horariosIngresoPorDiaPorSemanaFlat.14"
+                   },
+                   {
+                       "page":  0,
+                       "x":  246,
+                       "y":  146,
+                       "size":  10,
+                       "source":  "planilla.horariosEgresoPorDiaPorSemanaFlat.14"
+                   },
+                   {
+                       "page":  0,
+                       "x":  77,
+                       "y":  115,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.15.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  146,
+                       "y":  115,
+                       "size":  10,
+                       "source":  "planilla.horariosIngresoPorDiaPorSemanaFlat.15"
+                   },
+                   {
+                       "page":  0,
+                       "x":  246,
+                       "y":  115,
+                       "size":  10,
+                       "source":  "planilla.horariosEgresoPorDiaPorSemanaFlat.15"
+                   },
+                   {
+                       "page":  0,
+                       "x":  77,
+                       "y":  84,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.16.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  146,
+                       "y":  84,
+                       "size":  10,
+                       "source":  "planilla.horariosIngresoPorDiaPorSemanaFlat.16"
+                   },
+                   {
+                       "page":  0,
+                       "x":  246,
+                       "y":  84,
+                       "size":  10,
+                       "source":  "planilla.horariosEgresoPorDiaPorSemanaFlat.16"
+                   },
+                   {
+                       "page":  0,
+                       "x":  77,
+                       "y":  53,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.17.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  146,
+                       "y":  53,
+                       "size":  10,
+                       "source":  "planilla.horariosIngresoPorDiaPorSemanaFlat.17"
+                   },
+                   {
+                       "page":  0,
+                       "x":  246,
+                       "y":  53,
+                       "size":  10,
+                       "source":  "planilla.horariosEgresoPorDiaPorSemanaFlat.17"
+                   },
+                   {
+                       "page":  0,
+                       "x":  77,
+                       "y":  22,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.18.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  146,
+                       "y":  22,
+                       "size":  10,
+                       "source":  "planilla.horariosIngresoPorDiaPorSemanaFlat.18"
+                   },
+                   {
+                       "page":  0,
+                       "x":  246,
+                       "y":  22,
+                       "size":  10,
+                       "source":  "planilla.horariosEgresoPorDiaPorSemanaFlat.18"
+                   },
+                   {
+                       "page":  0,
+                       "x":  77,
+                       "y":  -9,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.19.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  146,
+                       "y":  -9,
+                       "size":  10,
+                       "source":  "planilla.horariosIngresoPorDiaPorSemanaFlat.19"
+                   },
+                   {
+                       "page":  0,
+                       "x":  246,
+                       "y":  -9,
+                       "size":  10,
+                       "source":  "planilla.horariosEgresoPorDiaPorSemanaFlat.19"
+                   },
+                   {
+                       "page":  0,
+                       "x":  77,
+                       "y":  -40,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.20.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  146,
+                       "y":  -40,
+                       "size":  10,
+                       "source":  "planilla.horariosIngresoPorDiaPorSemanaFlat.20"
+                   },
+                   {
+                       "page":  0,
+                       "x":  246,
+                       "y":  -40,
+                       "size":  10,
+                       "source":  "planilla.horariosEgresoPorDiaPorSemanaFlat.20"
+                   },
+                   {
+                       "page":  0,
+                       "x":  77,
+                       "y":  -71,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.21.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  146,
+                       "y":  -71,
+                       "size":  10,
+                       "source":  "planilla.horariosIngresoPorDiaPorSemanaFlat.21"
+                   },
+                   {
+                       "page":  0,
+                       "x":  246,
+                       "y":  -71,
+                       "size":  10,
+                       "source":  "planilla.horariosEgresoPorDiaPorSemanaFlat.21"
+                   },
+                   {
+                       "page":  0,
+                       "x":  77,
+                       "y":  -102,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.22.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  146,
+                       "y":  -102,
+                       "size":  10,
+                       "source":  "planilla.horariosIngresoPorDiaPorSemanaFlat.22"
+                   },
+                   {
+                       "page":  0,
+                       "x":  246,
+                       "y":  -102,
+                       "size":  10,
+                       "source":  "planilla.horariosEgresoPorDiaPorSemanaFlat.22"
+                   },
+                   {
+                       "page":  0,
+                       "x":  77,
+                       "y":  -133,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.23.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  146,
+                       "y":  -133,
+                       "size":  10,
+                       "source":  "planilla.horariosIngresoPorDiaPorSemanaFlat.23"
+                   },
+                   {
+                       "page":  0,
+                       "x":  246,
+                       "y":  -133,
+                       "size":  10,
+                       "source":  "planilla.horariosEgresoPorDiaPorSemanaFlat.23"
+                   },
+                   {
+                       "page":  0,
+                       "x":  77,
+                       "y":  -164,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.24.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  146,
+                       "y":  -164,
+                       "size":  10,
+                       "source":  "planilla.horariosIngresoPorDiaPorSemanaFlat.24"
+                   },
+                   {
+                       "page":  0,
+                       "x":  246,
+                       "y":  -164,
+                       "size":  10,
+                       "source":  "planilla.horariosEgresoPorDiaPorSemanaFlat.24"
+                   },
+                   {
+                       "page":  0,
+                       "x":  77,
+                       "y":  -195,
+                       "size":  10,
+                       "source":  "planilla.cuadrantes.25.fecha"
+                   },
+                   {
+                       "page":  0,
+                       "x":  146,
+                       "y":  -195,
+                       "size":  10,
+                       "source":  "planilla.horariosIngresoPorDiaPorSemanaFlat.25"
+                   },
+                   {
+                       "page":  0,
+                       "x":  246,
+                       "y":  -195,
+                       "size":  10,
+                       "source":  "planilla.horariosEgresoPorDiaPorSemanaFlat.25"
+                   }
+               ]
+}
