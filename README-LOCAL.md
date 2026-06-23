@@ -1,45 +1,37 @@
-# CENEIN-FAT local
+# CENEIN-FAT local (Actualizado para PostgreSQL)
 
-Esta copia esta preparada para trabajar en local sin Render, Supabase, `DATABASE_URL`, API keys ni archivos `.env`.
+Esta copia está preparada para trabajar en local mediante **Docker**. Hemos migrado la base de datos de SQLite a **PostgreSQL** para garantizar estabilidad y rendimiento.
 
 ## Requisitos
 
-- Node.js
-- npm
+- **Docker** y **Docker Compose** instalados.
+- Node.js y npm (Solo para editar el frontend localmente).
 
-## Instalar
+## Ejecutar el Backend y Base de Datos
 
-Desde esta carpeta:
+Ya no necesitas hacer `npm install` ni `npm start` en la carpeta `server`. Todo el entorno del backend y la base de datos se levantan con un solo comando gracias a Docker:
 
-```powershell
-cd server
-npm install
+Desde la raíz del proyecto (donde está el archivo `docker-compose.yml`), abre una terminal y ejecuta:
 
-cd ..\app-cenein
-npm install
+```bash
+docker compose up -d db backend
 ```
 
-## Ejecutar
+Esto descargará PostgreSQL, instalará las dependencias del servidor Node.js y levantará la API automáticamente en `http://localhost:4000`. 
+*La base de datos se guardará internamente en un volumen de Docker, por lo que no perderás datos al apagar tu PC.*
 
-En una terminal:
+## Ejecutar el Frontend (Desarrollo)
 
-```powershell
-cd server
-npm start
-```
+Para trabajar visualmente en React con recarga automática:
 
-En otra terminal:
-
-```powershell
+```bash
 cd app-cenein
+npm install
 npm start
 ```
 
-La app abre en `http://localhost:3000` y la API local corre en `http://localhost:4000`.
+La app abrirá en `http://localhost:3000` y se conectará sola a tu backend Dockerizado.
 
-Usuario inicial local:
-
+### Usuario inicial local:
 - usuario: `admin`
 - password: `admin1234`
-
-La base local se crea automaticamente en `server/data/local.sqlite`.

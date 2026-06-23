@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # 1. Base de Datos PostgreSQL
+  db:
+    image: postgres:16-alpine
+    container_name: cenein-db
+    restart: always
+    environment:
+      POSTGRES_USER: cenein
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-supersecret}
+      POSTGRES_DB: cenein_db
+    volumes:
+      - cenein-db-data:/var/lib/postgresql/data
+    networks:
+      - cenein-net
+
+  # 2. Backend Node.js
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: cenein-backend
+    restart: always
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=development
+      - PORT=4000
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+      # Le pasamos la URL para conectarse al contenedor 'db'
+      - DATABASE_URL=postgres://cenein:${DB_PASSWORD:-supersecret}@db:5432/cenein_db
+      - JWT_SECRET=${JWT_SECRET:-cambiar_en_produccion}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin1234}
+    depends_on:
+      - db
+    networks:
+      - cenein-net
+
+  # 3. Frontend React (servido por Nginx)
+  frontend:
+    build:
+      context: ./app-cenein
+      dockerfile: Dockerfile
+    container_name: cenein-frontend
+    restart: always
+    networks:
+      - cenein-net
+
+  # 4. El Portero (Reverse Proxy Caddy)
+  caddy:
+    image: caddy:2-alpine
+    container_name: cenein-caddy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - cenein-net
+
+volumes:
+  # Volumen para que la base de datos no se borre al apagar Docker
+  cenein-db-data:
+  # Volúmenes para que Caddy guarde sus certificados HTTPS
+  caddy_data:
+  caddy_config:
+
+networks:
+  # Red privada virtual para que se hablen entre ellos (invisible desde afuera)
+  cenein-net:
+    driver: bridge
