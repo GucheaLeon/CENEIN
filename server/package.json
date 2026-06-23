@@ -4,7 +4,8 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "seed": "node scripts/seed.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -13,5 +14,8 @@
     "jsonwebtoken": "^9.0.2",
     "pdf-lib": "^1.17.1",
     "sql.js": "^1.13.0"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^10.5.0"
   }
 }
