@@ -18,7 +18,7 @@ services:
   # 2. Backend Node.js
   backend:
     build:
-      context: ./server
+      context: ./src/backend
       dockerfile: Dockerfile
     container_name: cenein-backend
     restart: always
@@ -41,7 +41,7 @@ services:
   # 3. Frontend React (servido por Nginx)
   frontend:
     build:
-      context: ./app-cenein
+      context: ./src/frontend
       dockerfile: Dockerfile
     container_name: cenein-frontend
     restart: always

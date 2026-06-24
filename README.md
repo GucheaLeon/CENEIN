@@ -57,7 +57,7 @@ Si vas a modificar el diseño y quieres ver los cambios en tiempo real, te convi
    ```
 2. En otra terminal, entra a la carpeta del Frontend e instala sus dependencias (solo la primera vez):
    ```bash
-   cd app-cenein
+   cd src/frontend
    npm install
    ```
 3. Inicia el servidor de desarrollo de React:
