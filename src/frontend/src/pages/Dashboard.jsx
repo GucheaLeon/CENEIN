@@ -277,18 +277,27 @@ export default function PanelPrincipal({ alAbrirPaciente }) {
                       </div>
                     </div>
 
-                    <div className="md:col-span-2">
-                      <span
-                        className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-tight ${
-                          dadoDeBaja
-                            ? 'bg-[#fff1cc] text-[#92400e]'
-                            : noAutorizado
-                            ? 'bg-[#ffe0df] text-[#a83836]'
-                            : 'bg-[#e4f9bd] text-[#4f6032]'
-                        }`}
-                      >
-                        {dadoDeBaja ? 'Baja' : noAutorizado ? 'Pendiente' : 'Autorizado'}
-                      </span>
+                    <div className="md:col-span-2 flex flex-col gap-1.5 items-start">
+                      {dadoDeBaja ? (
+                        <span className="rounded-full bg-[#fff1cc] px-3 py-1 text-[11px] font-bold uppercase tracking-tight text-[#92400e]">
+                          Baja
+                        </span>
+                      ) : (
+                        <>
+                          <span className="rounded-full bg-blue-100 px-3 py-1 text-[11px] font-bold uppercase tracking-tight text-blue-800">
+                            {String(p.patient_state_name || 'Nuevo').replace('_', ' ')}
+                          </span>
+                          <span
+                            className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-tight ${
+                              noAutorizado
+                                ? 'bg-[#ffe0df] text-[#a83836]'
+                                : 'bg-[#e4f9bd] text-[#4f6032]'
+                            }`}
+                          >
+                            {noAutorizado ? 'Pendiente' : 'Autorizado'}
+                          </span>
+                        </>
+                      )}
                     </div>
 
                     <div className="flex flex-wrap gap-2 md:col-span-2 md:justify-end">

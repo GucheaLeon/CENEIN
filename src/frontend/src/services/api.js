@@ -245,6 +245,19 @@ export async function cambiarBajaPacienteApi(pacienteId, dadoDeBaja) {
   }
 }
 
+export async function cambiarEstadoOperativoApi(pacienteId, newStateName, reason = '') {
+  try {
+    const data = await fetchJsonApi(`/api/patients/${pacienteId}/state`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ newStateName, reason }),
+    });
+    return data;
+  } catch (err) {
+    throw new Error(String(err?.message || 'No se pudo cambiar el estado operativo.'));
+  }
+}
+
 export async function crearSolicitudPacienteApi(pacienteId, payload = {}) {
   try {
     const data = await fetchJsonApi(`/api/patients/${pacienteId}/requests`, {

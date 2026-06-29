@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { usePacientes } from '../context/PatientsContext';
 import { obtenerToken, resolverApiUrl } from '../services/api';
 
@@ -326,12 +326,18 @@ export default function AltaPacientes({ alAbrirPaciente }) {
     moverFocoAlSiguienteCampo(e.currentTarget, objetivo);
   };
 
-  const ordenarObrasSociales = React.useMemo(() => {
-    return (obrasSociales || [])
-      .filter((o) => o?.id)
-      .slice()
-      .sort((a, b) => String(a.id).localeCompare(String(b.id)));
-  }, [obrasSociales]);
+  const obrasSocialesDisponibles = React.useMemo(() => {
+    const set = new Set();
+    (obrasSociales || []).forEach((o) => {
+      const valor = String(o?.id || '').trim();
+      if (valor) set.add(valor);
+    });
+    (pacientes || []).forEach((p) => {
+      const valor = String(p.obraSocial || '').trim();
+      if (valor) set.add(valor);
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [pacientes, obrasSociales]);
 
   const diagnosticosDisponibles = React.useMemo(() => {
     const set = new Set();
@@ -450,14 +456,37 @@ export default function AltaPacientes({ alAbrirPaciente }) {
     const apellidoLimpio = String(apellido || '').trim();
     const fechaNac = String(fechaNacimiento || '').trim();
     const dniLimpio = String(dni || '').trim();
+    const cuitLimpio = String(cuit || '').trim();
+    const telPadreLimpio = String(telefonoPadreTutor || '').trim();
+    const telMadreLimpio = String(telefonoMadreTutora || '').trim();
+
     if (!nombreLimpio || !apellidoLimpio || !fechaNac) {
       setErrorAlta('Nombre, apellido y fecha de nacimiento son obligatorios.');
       return;
     }
-    if (!/^\d{1,8}$/.test(dniLimpio)) {
-      setErrorAlta('El DNI es obligatorio, solo digitos, y maximo 8 caracteres.');
+    const regexNombreAp = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s\-\']+$/;
+    if (!regexNombreAp.test(nombreLimpio) || !regexNombreAp.test(apellidoLimpio)) {
+      setErrorAlta('El nombre y apellido solo pueden contener letras y espacios.');
       return;
     }
+    if (!/^\d{7,8}$/.test(dniLimpio)) {
+      setErrorAlta('El DNI debe tener 7 u 8 dígitos numéricos.');
+      return;
+    }
+    if (cuitLimpio && !/^\d{2}\-?\d{8}\-?\d{1}$/.test(cuitLimpio)) {
+      setErrorAlta('El CUIT debe tener 11 dígitos numéricos (ej: 20-12345678-9).');
+      return;
+    }
+    const regexTel = /^[\d\s\-\+\(\)]+$/;
+    if (telPadreLimpio && !regexTel.test(telPadreLimpio)) {
+      setErrorAlta('El teléfono del padre/tutor contiene caracteres no válidos.');
+      return;
+    }
+    if (telMadreLimpio && !regexTel.test(telMadreLimpio)) {
+      setErrorAlta('El teléfono de la madre/tutora contiene caracteres no válidos.');
+      return;
+    }
+
     const dniExiste = (pacientes || []).some(
       (p) => String(p?.dni || '').trim() === dniLimpio
     );
@@ -552,6 +581,21 @@ export default function AltaPacientes({ alAbrirPaciente }) {
     }
   };
 
+  const errorNombre = (nombre && !/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s\-\']+$/.test(nombre)) ? 'Solo se permiten letras y espacios.' : '';
+  const errorApellido = (apellido && !/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s\-\']+$/.test(apellido)) ? 'Solo se permiten letras y espacios.' : '';
+  const errorDni = (dni && !/^\d{7,8}$/.test(dni)) ? 'Debe tener 7 u 8 dígitos numéricos.' : '';
+  const errorCuit = (cuit && !/^\d{2}\-?\d{8}\-?\d{1}$/.test(cuit)) ? 'Debe tener 11 dígitos numéricos (ej: 20-12345678-9).' : '';
+  const errorTelPadre = (telefonoPadreTutor && !/^[\d\s\-\+\(\)]+$/.test(telefonoPadreTutor)) ? 'Solo se permiten números y símbolos telefónicos.' : '';
+  const errorTelMadre = (telefonoMadreTutora && !/^[\d\s\-\+\(\)]+$/.test(telefonoMadreTutora)) ? 'Solo se permiten números y símbolos telefónicos.' : '';
+
+  const labelObligatorio = (texto) => (
+    <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-on-surface-variant">
+      {texto} <span className="text-rose-500 font-bold ml-1">*</span>
+    </label>
+  );
+
+  const getInputClass = (err) => `w-full rounded-lg border-none bg-surface-container-low px-4 py-3 text-sm text-on-surface focus:ring-2 focus:ring-primary/40 ${err ? 'mb-1 ring-2 ring-rose-500/50' : 'mb-3'}`;
+
   return (
     <div className="mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
       <div className="mb-10 flex flex-col justify-between gap-6 rounded-[28px] border border-outline-variant/10 bg-gradient-to-r from-primary/5 via-transparent to-transparent p-5 md:flex-row md:items-end sm:p-6">
@@ -584,23 +628,27 @@ export default function AltaPacientes({ alAbrirPaciente }) {
       >
         <div className={sectionCardClass}>
           <h4 className="mb-6 text-sm font-bold uppercase tracking-[0.2em] text-primary/80">PACIENTE</h4>
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-on-surface-variant">Nombre</label>
+          {labelObligatorio('Nombre')}
           <input
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
             required
             placeholder="Ej: Juan"
-            className="w-full rounded-lg border-none bg-surface-container-low px-4 py-3 text-sm text-on-surface focus:ring-2 focus:ring-primary/40 mb-3"
+            className={getInputClass(errorNombre)}
           />
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-on-surface-variant">Apellido</label>
+          {errorNombre && <p className="text-xs text-rose-500 mb-3 ml-1 font-medium">{errorNombre}</p>}
+          
+          {labelObligatorio('Apellido')}
           <input
             value={apellido}
             onChange={(e) => setApellido(e.target.value)}
             required
             placeholder="Ej: Perez"
-            className="w-full rounded-lg border-none bg-surface-container-low px-4 py-3 text-sm text-on-surface focus:ring-2 focus:ring-primary/40 mb-3"
+            className={getInputClass(errorApellido)}
           />
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-on-surface-variant">Fecha de nacimiento</label>
+          {errorApellido && <p className="text-xs text-rose-500 mb-3 ml-1 font-medium">{errorApellido}</p>}
+          
+          {labelObligatorio('Fecha de nacimiento')}
           <input
             type="date"
             value={fechaNacimiento}
@@ -656,7 +704,7 @@ export default function AltaPacientes({ alAbrirPaciente }) {
               />
             </div>
           </div>
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-on-surface-variant">DNI</label>
+          {labelObligatorio('DNI')}
           <input
             value={dni}
             onChange={(e) =>
@@ -665,14 +713,17 @@ export default function AltaPacientes({ alAbrirPaciente }) {
             required
             inputMode="numeric"
             maxLength={8}
-            className="w-full rounded-lg border-none bg-surface-container-low px-4 py-3 text-sm text-on-surface focus:ring-2 focus:ring-primary/40 mb-3"
+            className={getInputClass(errorDni)}
           />
+          {errorDni && <p className="text-xs text-rose-500 mb-3 ml-1 font-medium">{errorDni}</p>}
+          
           <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-on-surface-variant">CUIT</label>
           <input
             value={cuit}
             onChange={(e) => setCuit(e.target.value)}
-            className="w-full rounded-lg border-none bg-surface-container-low px-4 py-3 text-sm text-on-surface focus:ring-2 focus:ring-primary/40 mb-3"
+            className={getInputClass(errorCuit)}
           />
+          {errorCuit && <p className="text-xs text-rose-500 mb-3 ml-1 font-medium">{errorCuit}</p>}
           <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-on-surface-variant">N° afiliado</label>
           <input
             value={nroAfiliado}
@@ -733,8 +784,10 @@ export default function AltaPacientes({ alAbrirPaciente }) {
           <input
             value={telefonoPadreTutor}
             onChange={(e) => setTelefonoPadreTutor(e.target.value)}
-            className="w-full rounded-lg border-none bg-surface-container-low px-4 py-3 text-sm text-on-surface focus:ring-2 focus:ring-primary/40 mb-3"
+            className={getInputClass(errorTelPadre)}
           />
+          {errorTelPadre && <p className="text-xs text-rose-500 mb-3 ml-1 font-medium">{errorTelPadre}</p>}
+          
           <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-on-surface-variant">Madre/Tutora</label>
           <input
             value={madreTutora}
@@ -747,8 +800,9 @@ export default function AltaPacientes({ alAbrirPaciente }) {
           <input
             value={telefonoMadreTutora}
             onChange={(e) => setTelefonoMadreTutora(e.target.value)}
-            className="w-full rounded-lg border-none bg-surface-container-low px-4 py-3 text-sm text-on-surface focus:ring-2 focus:ring-primary/40"
+            className={getInputClass(errorTelMadre)}
           />
+          {errorTelMadre && <p className="text-xs text-rose-500 mb-3 ml-1 font-medium">{errorTelMadre}</p>}
         </div>
         <div className={sectionCardClass}>
           <h4 className="mb-6 text-sm font-bold uppercase tracking-[0.2em] text-primary/80">DOMICILIO</h4>
@@ -786,10 +840,10 @@ export default function AltaPacientes({ alAbrirPaciente }) {
         <div className={sectionCardClass}>
           <h4 className="mb-6 text-sm font-bold uppercase tracking-[0.2em] text-primary/80">OBRA SOCIAL</h4>
           <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-on-surface-variant">
-            Lista de obras sociales (Nombre - CUIT)
+            Obra social
           </label>
           <select
-            value={String(obraSocialPdfId || obraSocial || '').trim()}
+            value={String(obraSocial || '').trim()}
             onChange={(e) => {
               const val = e.target.value;
               setObraSocial(val);
@@ -798,11 +852,16 @@ export default function AltaPacientes({ alAbrirPaciente }) {
             className="w-full rounded-lg border-none bg-surface-container-low px-4 py-3 text-sm text-on-surface focus:ring-2 focus:ring-primary/40 mb-3"
           >
             <option value="">(Seleccionar)</option>
-            {ordenarObrasSociales.map((o) => (
-              <option key={`os-${o.id}`} value={o.id}>
-                {o.id}
-              </option>
-            ))}
+            {obrasSocialesDisponibles.map((o) => {
+              const apiData = (obrasSociales || []).find(osObj => osObj.id === o);
+              const showSinPlantilla = apiData && apiData.hasTemplate === false;
+              const isMissing = !apiData;
+              return (
+                <option key={`os-${o}`} value={o}>
+                  {o}{(showSinPlantilla || isMissing) ? ' (sin plantilla)' : ''}
+                </option>
+              );
+            })}
           </select>
           <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-on-surface-variant">Tratamiento (planilla)</label>
           <select

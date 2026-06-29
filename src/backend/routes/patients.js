@@ -299,12 +299,23 @@ function registerPatientsRoutes(
       return;
     }
 
-    const obraSocial =
+    const obraSocialText = String(
       data.obraSocial ||
       data.obra_social ||
+      ''
+    ).trim();
+    const notesText = String(
       data.notas ||
       data.notes ||
-      '';
+      ''
+    ).trim();
+    
+    let osId = null;
+    if (obraSocialText) {
+      await db.run('INSERT INTO OS (name) VALUES ($1) ON CONFLICT (name) DO NOTHING', [obraSocialText]);
+      const osRow = await db.get('SELECT id FROM OS WHERE name = $1', [obraSocialText]);
+      if (osRow) osId = osRow.id;
+    }
     const normalizarFechaOpcional = (valor) => {
       const normalizada = normalizarFechaInput(valor);
       return normalizada || null;
@@ -472,8 +483,8 @@ function registerPatientsRoutes(
         : null;
       await db.run(
         `UPDATE PATIENTS
-         SET first_name = $1, last_name = $2, birth_date = $3, condition = $4, last_visit = $5, last_fisiatrico = $6, last_fisiatrico_alta = $7, last_fisiatrico_vencimiento = $8, last_trabajo_social = $9, last_trabajo_social_alta = $10, last_trabajo_social_vencimiento = $11, dni = $12, cuit = $13, affiliate_number = $14, integracion_horario = $15, diagnosis = $16, father_tutor_name = $17, father_tutor_phone = $18, mother_tutor_name = $19, mother_tutor_phone = $20, address_street = $21, address_number = $22, address_neighborhood = $23, address_floor = $24, address_sector = $25, school_name = $26, school_grade = $27, school_shift = $28, car_years = $29, ppi_years = $30, acta_acuerdo_years = $31, notes = $32, module_type = $33, authorization_expires_at = $34, is_active = $35, is_discharged = $36, discharged_at = $37, parametro = $38
-         WHERE patient_id = $39`,
+         SET first_name = $1, last_name = $2, birth_date = $3, condition = $4, last_visit = $5, last_fisiatrico = $6, last_fisiatrico_alta = $7, last_fisiatrico_vencimiento = $8, last_trabajo_social = $9, last_trabajo_social_alta = $10, last_trabajo_social_vencimiento = $11, dni = $12, cuit = $13, affiliate_number = $14, integracion_horario = $15, diagnosis = $16, father_tutor_name = $17, father_tutor_phone = $18, mother_tutor_name = $19, mother_tutor_phone = $20, address_street = $21, address_number = $22, address_neighborhood = $23, address_floor = $24, address_sector = $25, school_name = $26, school_grade = $27, school_shift = $28, car_years = $29, ppi_years = $30, acta_acuerdo_years = $31, os_id = $32, module_type = $33, authorization_expires_at = $34, is_active = $35, is_discharged = $36, discharged_at = $37, parametro = $38, notes = $39
+         WHERE patient_id = $40`,
         [
           nombre,
           apellido,
@@ -506,13 +517,14 @@ function registerPatientsRoutes(
           carAnios,
           ppiAnios,
           actaAcuerdoAnios,
-          obraSocial,
+          osId,
           moduloFinal,
           autorizadoHastaFinal,
           activoFinal,
           bajaFinal,
           fechaBajaFinal,
           parametro,
+          notesText,
           id
         ]
       );
@@ -539,9 +551,13 @@ function registerPatientsRoutes(
       const fechaBajaFinal = bajaFinal
         ? resolverFechaBaja(fechaBajaPayload, new Date().toISOString())
         : null;
+
+      const estadoNuevo = await db.get(`SELECT id FROM PATIENT_STATE WHERE name = 'Nuevo'`);
+      const patientStateId = estadoNuevo ? estadoNuevo.id : null;
+
       await db.run(
-        `INSERT INTO PATIENTS (patient_id, first_name, last_name, birth_date, condition, last_visit, last_fisiatrico, last_fisiatrico_alta, last_fisiatrico_vencimiento, last_trabajo_social, last_trabajo_social_alta, last_trabajo_social_vencimiento, dni, cuit, affiliate_number, integracion_horario, diagnosis, father_tutor_name, father_tutor_phone, mother_tutor_name, mother_tutor_phone, address_street, address_number, address_neighborhood, address_floor, address_sector, school_name, school_grade, school_shift, car_years, ppi_years, acta_acuerdo_years, notes, module_type, authorization_expires_at, is_active, is_discharged, discharged_at, parametro)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39)`,
+        `INSERT INTO PATIENTS (patient_id, first_name, last_name, birth_date, condition, last_visit, last_fisiatrico, last_fisiatrico_alta, last_fisiatrico_vencimiento, last_trabajo_social, last_trabajo_social_alta, last_trabajo_social_vencimiento, dni, cuit, affiliate_number, integracion_horario, diagnosis, father_tutor_name, father_tutor_phone, mother_tutor_name, mother_tutor_phone, address_street, address_number, address_neighborhood, address_floor, address_sector, school_name, school_grade, school_shift, car_years, ppi_years, acta_acuerdo_years, os_id, module_type, authorization_expires_at, is_active, is_discharged, discharged_at, parametro, patient_state_id, notes)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41)`,
         [
           id,
           nombre,
@@ -575,13 +591,15 @@ function registerPatientsRoutes(
           carAnios,
           ppiAnios,
           actaAcuerdoAnios,
-          obraSocial,
+          osId,
           moduloFinal,
           autorizadoHastaFinal,
           activoFinal,
           bajaFinal,
           fechaBajaFinal,
-          parametro
+          parametro,
+          patientStateId,
+          notesText
         ]
       );
       if (autorizadoDesdeFinal || autorizadoHastaFinal) {
@@ -592,21 +610,23 @@ function registerPatientsRoutes(
       }
     }
 
-    const tratamientos = Array.isArray(data.tratamientos)
-      ? data.tratamientos
-      : [];
-    for (const t of tratamientos) {
-      const tratamientoId = await obtenerTratamientoId(db, t);
-      if (tratamientoId) {
-        await db.run(
-          'INSERT INTO PATIENT_TREATMENTS (patient_id, treatment_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
-          [id, tratamientoId]
-        );
+    if (!esActualizacion) {
+      const tratamientos = Array.isArray(data.tratamientos)
+        ? data.tratamientos
+        : [];
+      for (const t of tratamientos) {
+        const tratamientoId = await obtenerTratamientoId(db, t);
+        if (tratamientoId) {
+          await db.run(
+            'INSERT INTO PATIENT_TREATMENTS (patient_id, treatment_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+            [id, tratamientoId]
+          );
+        }
       }
-    }
 
-    if (data.turnosBase) {
-      await guardarTurnosMensuales(db, id, data.turnosBase);
+      if (data.turnosBase) {
+        await guardarTurnosMensuales(db, id, data.turnosBase);
+      }
     }
 
     const fila = await obtenerFilaPacienteBase(id);
@@ -620,6 +640,41 @@ function registerPatientsRoutes(
         details: { dni },
       });
     }
+    res.json(paciente);
+  });
+
+  app.post('/api/patients/:id/state', async (req, res) => {
+    if (!(await validarPacienteOperable(req.params.id, res))) return;
+    const { newStateName, reason } = req.body;
+    
+    if (!newStateName) {
+      res.status(400).json({ error: 'Falta newStateName' });
+      return;
+    }
+
+    const stateRow = await db.get(`SELECT id FROM PATIENT_STATE WHERE name = $1`, [newStateName]);
+    if (!stateRow) {
+      res.status(400).json({ error: 'Estado invalido' });
+      return;
+    }
+
+    await db.run(`UPDATE PATIENTS SET patient_state_id = $1 WHERE patient_id = $2`, [stateRow.id, req.params.id]);
+    
+    await db.run(
+      `INSERT INTO PATIENT_STATE_HISTORY (patient_id, state_id, reason) VALUES ($1, $2, $3)`,
+      [req.params.id, stateRow.id, reason || null]
+    );
+
+    await logUserActivity(req, {
+      actionType: 'update_state',
+      entityType: 'patient',
+      entityId: req.params.id,
+      entityLabel: req.params.id,
+      details: { newStateName, reason },
+    });
+
+    const fila = await obtenerFilaPacienteBase(req.params.id);
+    const paciente = await construirPaciente(db, fila);
     res.json(paciente);
   });
 

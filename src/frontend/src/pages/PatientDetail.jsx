@@ -207,6 +207,7 @@ export default function DetallePaciente({ alVolver }) {
     alternarTurno,
     guardarExcepcionTurno,
     guardarSolicitudPaciente,
+    cambiarEstadoOperativo,
   } = usePacientes();
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
@@ -259,6 +260,10 @@ export default function DetallePaciente({ alVolver }) {
   const [mensajeSolicitud, setMensajeSolicitud] = useState('');
   const [errorSolicitud, setErrorSolicitud] = useState('');
   const [guardandoSolicitud, setGuardandoSolicitud] = useState(false);
+  
+  const [razonDesestimacion, setRazonDesestimacion] = useState('');
+  const [mostrandoModalDesestimar, setMostrandoModalDesestimar] = useState(false);
+  const estadoOperativo = pacienteSeleccionado?.patient_state_name || 'Nuevo';
 
   useEffect(() => {
     if (!pacienteSeleccionado) return;
@@ -470,6 +475,41 @@ export default function DetallePaciente({ alVolver }) {
     e.preventDefault();
     if (!pacienteSeleccionado) return;
     setErrorGuardado('');
+    const nombreLimpio = String(nombre || '').trim();
+    const apellidoLimpio = String(apellido || '').trim();
+    const fechaNac = String(fechaNacimiento || '').trim();
+    const dniLimpio = String(dni || '').trim();
+    const cuitLimpio = String(cuit || '').trim();
+    const telPadreLimpio = String(telefonoPadreTutor || '').trim();
+    const telMadreLimpio = String(telefonoMadreTutora || '').trim();
+
+    if (!nombreLimpio || !apellidoLimpio || !fechaNac) {
+      setErrorGuardado('Nombre, apellido y fecha de nacimiento son obligatorios.');
+      return;
+    }
+    const regexNombreAp = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s\-\']+$/;
+    if (!regexNombreAp.test(nombreLimpio) || !regexNombreAp.test(apellidoLimpio)) {
+      setErrorGuardado('El nombre y apellido solo pueden contener letras y espacios.');
+      return;
+    }
+    if (!/^\d{7,8}$/.test(dniLimpio)) {
+      setErrorGuardado('El DNI debe tener 7 u 8 dígitos numéricos.');
+      return;
+    }
+    if (cuitLimpio && !/^\d{2}\-?\d{8}\-?\d{1}$/.test(cuitLimpio)) {
+      setErrorGuardado('El CUIT debe tener 11 dígitos numéricos (ej: 20-12345678-9).');
+      return;
+    }
+    const regexTel = /^[\d\s\-\+\(\)]+$/;
+    if (telPadreLimpio && !regexTel.test(telPadreLimpio)) {
+      setErrorGuardado('El teléfono del padre/tutor contiene caracteres no válidos.');
+      return;
+    }
+    if (telMadreLimpio && !regexTel.test(telMadreLimpio)) {
+      setErrorGuardado('El teléfono de la madre/tutora contiene caracteres no válidos.');
+      return;
+    }
+
     try {
       await actualizarPaciente(pacienteSeleccionado.id, {
         nombre: nombre.trim(),
@@ -859,6 +899,21 @@ export default function DetallePaciente({ alVolver }) {
   const seccionBase = "rounded-[28px] border border-surface-200/80 bg-gradient-to-br from-white to-surface-50/60 p-5 mb-5 shadow-sm shadow-black/5";
   const tituloSeccion = "text-sm font-semibold text-primary-700 uppercase tracking-wide mb-4 mt-0";
 
+  const errorNombre = (nombre && !/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s\-\']+$/.test(nombre)) ? 'Solo se permiten letras y espacios.' : '';
+  const errorApellido = (apellido && !/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s\-\']+$/.test(apellido)) ? 'Solo se permiten letras y espacios.' : '';
+  const errorDni = (dni && !/^\d{7,8}$/.test(dni)) ? 'Debe tener 7 u 8 dígitos numéricos.' : '';
+  const errorCuit = (cuit && !/^\d{2}\-?\d{8}\-?\d{1}$/.test(cuit)) ? 'Debe tener 11 dígitos numéricos.' : '';
+  const errorTelPadre = (telefonoPadreTutor && !/^[\d\s\-\+\(\)]+$/.test(telefonoPadreTutor)) ? 'Solo se permiten números y símbolos telefónicos.' : '';
+  const errorTelMadre = (telefonoMadreTutora && !/^[\d\s\-\+\(\)]+$/.test(telefonoMadreTutora)) ? 'Solo se permiten números y símbolos telefónicos.' : '';
+
+  const labelObligatorio = (texto) => (
+    <label className={labelBase}>
+      {texto} <span className="text-rose-500 font-bold ml-1">*</span>
+    </label>
+  );
+
+  const getInputClass = (err) => `w-full px-4 py-2.5 rounded-lg border bg-white text-surface-800 placeholder:text-surface-400 focus:outline-none focus:ring-2 transition-all duration-200 ${err ? 'border-rose-500/50 focus:ring-rose-500/30 focus:border-rose-500' : 'border-surface-200 focus:ring-primary-500/30 focus:border-primary-500'}`;
+
   return (
     <div className="mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
       <div className="mb-10 flex flex-col gap-6 rounded-[28px] border border-surface-200/70 bg-gradient-to-r from-primary-50/80 via-white to-white p-5 md:flex-row md:items-end md:justify-between sm:p-6">
@@ -879,28 +934,118 @@ export default function DetallePaciente({ alVolver }) {
         </div>
       </div>
 
+      <div className={seccionBase}>
+        <h4 className={tituloSeccion}>Flujo Operativo (Máquina de Estados)</h4>
+        <div className="flex flex-col md:flex-row items-center justify-between bg-surface-100 p-4 rounded-xl border border-surface-200 gap-4">
+          <div className="flex items-center gap-3">
+            <div className={`px-4 py-2 rounded-full font-bold text-sm tracking-wide shadow-sm
+              ${estadoOperativo === 'Nuevo' ? 'bg-blue-100 text-blue-800' :
+                estadoOperativo === 'En_admision' ? 'bg-amber-100 text-amber-800' :
+                estadoOperativo === 'En_expediente' ? 'bg-indigo-100 text-indigo-800' :
+                estadoOperativo === 'Desestimado' ? 'bg-red-100 text-red-800' :
+                'bg-gray-100 text-gray-800'}`}>
+              {String(estadoOperativo).replace('_', ' ').toUpperCase()}
+            </div>
+            <p className="text-sm text-surface-600">
+              {estadoOperativo === 'Nuevo' && 'Paciente recién registrado.'}
+              {estadoOperativo === 'En_admision' && 'Validando obra social y datos.'}
+              {estadoOperativo === 'En_expediente' && 'Armando expediente para auditoría.'}
+              {estadoOperativo === 'Desestimado' && 'El paciente no cumple con los requisitos.'}
+            </p>
+          </div>
+          
+          <div className="flex flex-wrap gap-2">
+            {estadoOperativo === 'Nuevo' && (
+              <button
+                type="button"
+                onClick={() => cambiarEstadoOperativo(pacienteSeleccionado.id, 'En_admision')}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium shadow-sm hover:bg-blue-700 transition-colors"
+              >
+                Iniciar Admisión
+              </button>
+            )}
+            {estadoOperativo === 'En_admision' && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => cambiarEstadoOperativo(pacienteSeleccionado.id, 'En_expediente')}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium shadow-sm hover:bg-indigo-700 transition-colors"
+                >
+                  Validación Exitosa (Pasar a Expediente)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMostrandoModalDesestimar(true)}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium shadow-sm hover:bg-red-700 transition-colors"
+                >
+                  Desestimar
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {mostrandoModalDesestimar && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Desestimar Paciente</h3>
+            <p className="text-sm text-gray-600 mb-4">¿Por qué se desestima este paciente? (ej. falta CUD, obra social inválida)</p>
+            <textarea
+              className="w-full border border-gray-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-red-500 outline-none mb-4"
+              rows={3}
+              value={razonDesestimacion}
+              onChange={(e) => setRazonDesestimacion(e.target.value)}
+              placeholder="Motivo del rechazo..."
+            />
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setMostrandoModalDesestimar(false)}
+                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  cambiarEstadoOperativo(pacienteSeleccionado.id, 'Desestimado', razonDesestimacion);
+                  setMostrandoModalDesestimar(false);
+                  setRazonDesestimacion('');
+                }}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium shadow-sm"
+              >
+                Confirmar Desestimación
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <form onSubmit={guardarCambios} className="">
         <div className={seccionBase}>
           <h4 className={tituloSeccion}>Paciente</h4>
           <div className="space-y-4">
             <div>
-              <label className={labelBase}>Nombre</label>
+              {labelObligatorio('Nombre')}
               <input
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
-                className={inputBase}
+                className={getInputClass(errorNombre)}
               />
+              {errorNombre && <p className="text-xs text-rose-500 mt-1 ml-1 font-medium">{errorNombre}</p>}
             </div>
             <div>
-              <label className={labelBase}>Apellido</label>
+              {labelObligatorio('Apellido')}
               <input
                 value={apellido}
                 onChange={(e) => setApellido(e.target.value)}
-                className={inputBase}
+                className={getInputClass(errorApellido)}
               />
+              {errorApellido && <p className="text-xs text-rose-500 mt-1 ml-1 font-medium">{errorApellido}</p>}
             </div>
             <div>
-              <label className={labelBase}>Fecha de nacimiento</label>
+              {labelObligatorio('Fecha de nacimiento')}
               <input
                 type="date"
                 value={fechaNacimiento}
@@ -950,7 +1095,7 @@ export default function DetallePaciente({ alVolver }) {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className={labelBase}>DNI</label>
+                {labelObligatorio('DNI')}
                 <input
                   value={dni}
                   onChange={(e) =>
@@ -958,12 +1103,14 @@ export default function DetallePaciente({ alVolver }) {
                   }
                   inputMode="numeric"
                   maxLength={8}
-                  className={inputBase}
+                  className={getInputClass(errorDni)}
                 />
+                {errorDni && <p className="text-xs text-rose-500 mt-1 ml-1 font-medium">{errorDni}</p>}
               </div>
               <div>
                 <label className={labelBase}>CUIT</label>
-                <input value={cuit} onChange={(e) => setCuit(e.target.value)} className={inputBase} />
+                <input value={cuit} onChange={(e) => setCuit(e.target.value)} className={getInputClass(errorCuit)} />
+                {errorCuit && <p className="text-xs text-rose-500 mt-1 ml-1 font-medium">{errorCuit}</p>}
               </div>
               <div>
                 <label className={labelBase}>N° afiliado</label>
@@ -1160,8 +1307,9 @@ export default function DetallePaciente({ alVolver }) {
               <input
                 value={telefonoPadreTutor}
                 onChange={(e) => setTelefonoPadreTutor(e.target.value)}
-                className={inputBase}
+                className={getInputClass(errorTelPadre)}
               />
+              {errorTelPadre && <p className="text-xs text-rose-500 mt-1 ml-1 font-medium">{errorTelPadre}</p>}
             </div>
             <div>
               <label className={labelBase}>Madre/Tutora</label>
@@ -1176,8 +1324,9 @@ export default function DetallePaciente({ alVolver }) {
               <input
                 value={telefonoMadreTutora}
                 onChange={(e) => setTelefonoMadreTutora(e.target.value)}
-                className={inputBase}
+                className={getInputClass(errorTelMadre)}
               />
+              {errorTelMadre && <p className="text-xs text-rose-500 mt-1 ml-1 font-medium">{errorTelMadre}</p>}
             </div>
           </div>
         </div>
@@ -1232,22 +1381,8 @@ export default function DetallePaciente({ alVolver }) {
           <div className="space-y-4">
             <div>
               <label className={labelBase}>Obra social</label>
-              <input
-                value={obraSocial}
-                onChange={(e) => setObraSocial(e.target.value)}
-                list="obras-sociales"
-                className={inputBase}
-              />
-              <datalist id="obras-sociales">
-                {obrasSocialesDisponibles.map((o) => (
-                  <option key={`obra-${o}`} value={o} label={obrasSocialesPorId[o] || o} />
-                ))}
-              </datalist>
-            </div>
-            <div>
-              <label className={labelBase}>Lista de obras sociales (carpeta - CUIT)</label>
               <select
-                value={String(obraSocialPdfId || '').trim()}
+                value={String(obraSocial || '').trim()}
                 onChange={(e) => {
                   const val = e.target.value;
                   setObraSocial(val);
@@ -1256,11 +1391,16 @@ export default function DetallePaciente({ alVolver }) {
                 className={inputBase}
               >
                 <option value="">(Seleccionar)</option>
-                {ordenarObrasSociales.map((o) => (
-                <option key={`os-${o.id}`} value={o.id}>
-                    {o.id}{o.hasTemplate === false ? ' (sin plantilla)' : ''}
-                </option>
-                ))}
+                {obrasSocialesDisponibles.map((o) => {
+                  const apiData = obrasSociales.find(osObj => osObj.id === o);
+                  const showSinPlantilla = apiData && apiData.hasTemplate === false;
+                  const isMissing = !apiData;
+                  return (
+                    <option key={`os-${o}`} value={o}>
+                      {o}{(showSinPlantilla || isMissing) ? ' (sin plantilla)' : ''}
+                    </option>
+                  );
+                })}
               </select>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -1305,7 +1445,7 @@ export default function DetallePaciente({ alVolver }) {
             <button
               type="button"
               onClick={descargarObraSocial}
-              className="px-4 py-2.5 rounded-xl text-sm font-medium text-white border border-surface-200 hover:bg-surface-100 transition-colors duration-200"
+              className="px-4 py-2.5 rounded-xl text-sm font-medium bg-primary-600 text-white shadow-sm hover:bg-primary-500 active:bg-primary-600 transition-all duration-200"
             >
               Descargar PDF de obra social
             </button>
