@@ -12,6 +12,7 @@ const { registerObrasSocialesRoutes } = require('./routes/obrasSociales');
 const { registerPatientsRoutes } = require('./routes/patients');
 const { registerAttendancesExportRoute } = require('./routes/attendancesExport');
 const { registerCatalogsRoutes } = require('./routes/catalogs');
+const { registerAdmisionsRoutes } = require('./routes/admisiones');
 
 const PORT = process.env.PORT || 4000;
 const SCHEMA_SQL_PATH = path.join(__dirname, 'schema.sql');
@@ -1350,6 +1351,8 @@ async function main() {
   });
 
   registerApiAuthGuard(app, { authMiddleware });
+
+  registerAdmisionsRoutes(app, { db, authMiddleware });
 
   registerCatalogsRoutes(app, { db, adminMiddleware });
 

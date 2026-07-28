@@ -5,6 +5,7 @@ const NAV_ITEMS = [
   { key: 'patients', label: 'Buscador', icon: 'search_check' },
   { key: 'attendances', label: 'Asistencias', icon: 'calendar_today' },
   { key: 'alta', label: 'Alta Pacientes', icon: 'person_add' },
+  { key: 'admision', label: 'Admisión', icon: 'assignment_ind' },
 ];
 
 const ADMIN_ITEMS = [
@@ -17,6 +18,7 @@ const PAGE_TITLES = {
   patients: 'Buscador',
   attendances: 'Asistencias',
   alta: 'Alta Pacientes',
+  admision: 'Admisión',
   users: 'Usuarios',
   'user-history': 'Historial por usuario',
   patient: 'Paciente',
@@ -173,7 +175,7 @@ export default function Distribucion({
               </div>
             </header>
 
-            <main className="pb-6">{children}</main>
+            <main>{children}</main>
           </div>
         </>
       ) : (

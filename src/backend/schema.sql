@@ -244,3 +244,67 @@ CREATE TABLE IF NOT EXISTS PATIENT_REQUEST_TREATMENTS (
     request_id BIGINT REFERENCES PATIENT_REQUESTS(patient_req_id) ON DELETE CASCADE,
     treatment_id BIGINT REFERENCES TREATMENTS(id) ON DELETE CASCADE
 );
+
+-- ============================================================
+-- Módulo de Admisión de Pacientes
+-- ============================================================
+
+-- Etapa 1: Datos básicos + checkboxes (Obra Social / CUD)
+CREATE TABLE IF NOT EXISTS ADMISSIONS (
+    id BIGSERIAL PRIMARY KEY,
+    -- Datos básicos del paciente
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    birth_date DATE,
+    dni TEXT,
+    phone TEXT,
+    address TEXT,
+    -- Checkboxes de documentación
+    tiene_obra_social BOOLEAN DEFAULT FALSE,
+    obra_social_nombre TEXT,
+    tiene_cud BOOLEAN DEFAULT FALSE,
+    -- Estado del proceso de admisión
+    -- 'pendiente_turno': esperando turno con fisiatra
+    -- 'en_revision': turno asignado, esperando devolución
+    -- 'aprobado': fisiatra aprobó, pasar a expediente
+    -- 'desestimado': fisiatra rechazó
+    estado TEXT DEFAULT 'pendiente_turno',
+    -- Referencia al paciente si fue dado de alta formalmente
+    patient_id TEXT REFERENCES PATIENTS(patient_id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Etapa 2: Revisión / devolución de la fisiatra
+CREATE TABLE IF NOT EXISTS ADMISSION_FISIATRIC_REVIEW (
+    id BIGSERIAL PRIMARY KEY,
+    admission_id BIGINT NOT NULL REFERENCES ADMISSIONS(id) ON DELETE CASCADE,
+    -- Fecha del turno con la fisiatra
+    fecha_turno DATE,
+    -- Resultado: 'aprobado' o 'desestimado'
+    resultado TEXT,
+    -- Texto de devolución / observaciones de la fisiatra
+    devolucion TEXT,
+    reviewed_by TEXT,  -- username del profesional que registró la revisión
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Etapa 3: Armado de expediente (documentos PDF y campos de texto)
+CREATE TABLE IF NOT EXISTS ADMISSION_DOCUMENTS (
+    id BIGSERIAL PRIMARY KEY,
+    admission_id BIGINT NOT NULL REFERENCES ADMISSIONS(id) ON DELETE CASCADE,
+    -- Campos de texto
+    dni_numero TEXT,
+    numero_afiliado TEXT,
+    -- Documentos PDF: se guarda la ruta o nombre del archivo subido
+    carnet_pdf TEXT,
+    cud_pdf TEXT,
+    consentimiento_padres_pdf TEXT,
+    presupuesto_pdf TEXT,
+    informe_inicial_pdf TEXT,
+    plan_trabajo_pdf TEXT,
+    resumen_historial_pdf TEXT,
+    pedidos_medicos_pdf TEXT,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);

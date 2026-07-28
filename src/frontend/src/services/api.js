@@ -534,3 +534,119 @@ export async function cambiarPasswordActualApi({ currentPassword, newPassword })
     body: JSON.stringify({ currentPassword, newPassword }),
   });
 }
+
+// ============================================================
+// MÓDULO DE ADMISIÓN DE PACIENTES
+// ============================================================
+
+export async function obtenerAdmisionesApi(opciones = {}) {
+  try {
+    const data = await fetchJsonApi('/api/admisiones', opciones);
+    return Array.isArray(data) ? data : [];
+  } catch (err) {
+    throw new Error('No se pudieron cargar las admisiones.');
+  }
+}
+
+export async function obtenerAdmisionApi(id, opciones = {}) {
+  try {
+    return await fetchJsonApi(`/api/admisiones/${id}`, opciones);
+  } catch (err) {
+    return null;
+  }
+}
+
+export async function crearAdmisionApi(datos) {
+  try {
+    return await fetchJsonApi('/api/admisiones', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(datos),
+    });
+  } catch (err) {
+    throw new Error(String(err?.message || 'No se pudo crear la admisión.'));
+  }
+}
+
+export async function actualizarAdmisionApi(id, datos) {
+  try {
+    return await fetchJsonApi(`/api/admisiones/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(datos),
+    });
+  } catch (err) {
+    throw new Error(String(err?.message || 'No se pudo actualizar la admisión.'));
+  }
+}
+
+export async function eliminarAdmisionApi(id) {
+  try {
+    return await fetchJsonApi(`/api/admisiones/${id}`, { method: 'DELETE' });
+  } catch (err) {
+    throw new Error(String(err?.message || 'No se pudo eliminar la admisión.'));
+  }
+}
+
+export async function obtenerRevisionAdmisionApi(admisionId, opciones = {}) {
+  try {
+    return await fetchJsonApi(`/api/admisiones/${admisionId}/revision`, opciones);
+  } catch (err) {
+    return null;
+  }
+}
+
+export async function guardarRevisionAdmisionApi(admisionId, datos) {
+  try {
+    return await fetchJsonApi(`/api/admisiones/${admisionId}/revision`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(datos),
+    });
+  } catch (err) {
+    throw new Error(String(err?.message || 'No se pudo guardar la revisión.'));
+  }
+}
+
+export async function obtenerExpedienteAdmisionApi(admisionId, opciones = {}) {
+  try {
+    return await fetchJsonApi(`/api/admisiones/${admisionId}/expediente`, opciones);
+  } catch (err) {
+    return null;
+  }
+}
+
+export async function guardarExpedienteAdmisionApi(admisionId, formData) {
+  const apiBaseUrl = obtenerApiBaseUrl();
+  const url = apiBaseUrl
+    ? `${apiBaseUrl}/api/admisiones/${admisionId}/expediente`
+    : `/api/admisiones/${admisionId}/expediente`;
+
+  const headers = new Headers();
+  const token = obtenerToken();
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+
+  const respuesta = await fetch(url, {
+    method: 'POST',
+    headers,
+    credentials: 'include',
+    body: formData,
+  });
+
+  if (!respuesta.ok) {
+    let detalle = '';
+    try {
+      const data = await respuesta.json();
+      if (data?.error) detalle = data.error;
+    } catch {}
+    throw new Error(detalle || `HTTP ${respuesta.status}`);
+  }
+  return await respuesta.json();
+}
+
+export function urlArchivoExpediente(admisionId, campo) {
+  const apiBaseUrl = obtenerApiBaseUrl();
+  const path = `/api/admisiones/${admisionId}/expediente/${campo}/archivo`;
+  return apiBaseUrl ? `${apiBaseUrl}${path}` : path;
+}
+

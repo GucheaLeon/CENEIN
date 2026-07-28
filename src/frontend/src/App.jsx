@@ -10,6 +10,7 @@ import AltaPacientes from './pages/AltaPacientes';
 import Asistencias from './pages/Attendances';
 import Users from './pages/Users';
 import UserHistory from './pages/UserHistory';
+import Admision from './pages/Admision';
 
 function CapaApp() {
   const { usuario, cargando, cerrarSesion } = useAutenticacion();
@@ -42,6 +43,7 @@ function CapaApp() {
     if (pagina === 'attendances') return <Asistencias />;
     if (pagina === 'users' && usuario?.isAdmin) return <Users />;
     if (pagina === 'user-history' && usuario?.isAdmin) return <UserHistory />;
+    if (pagina === 'admision') return <Admision />;
     if (pagina === 'patient') return <DetallePaciente alVolver={volver} />;
     return <PanelPrincipal />;
   }, [usuario, cargando, pagina]);
