@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { usePacientes } from '../context/PatientsContext';
 
 const TRATAMIENTOS = [
@@ -1265,21 +1265,27 @@ export default function Pacientes({ alAbrirPaciente }) {
                             </p>
                           </div>
                         </div>
-                        <div className="flex flex-wrap gap-1.5">
-                          <span
-                            className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-tight ${
-                              p.activo === false
-                                ? 'bg-error-container/20 text-error-dim'
-                                : 'bg-tertiary-container text-on-tertiary-container'
-                            }`}
-                          >
-                            {p.activo === false ? 'No autorizado' : 'Autorizado'}
-                          </span>
+                        <div className="flex flex-col gap-1.5 items-end">
                           {p.dadoDeBaja ? (
                             <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-tight text-amber-700">
                               Baja
                             </span>
-                          ) : null}
+                          ) : (
+                            <>
+                              <span className="rounded-full bg-blue-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-tight text-blue-800">
+                                {String(p.patient_state_name || 'Nuevo').replace('_', ' ')}
+                              </span>
+                              <span
+                                className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-tight ${
+                                  p.activo === false
+                                    ? 'bg-error-container/20 text-error-dim'
+                                    : 'bg-tertiary-container text-on-tertiary-container'
+                                }`}
+                              >
+                                {p.activo === false ? 'No autorizado' : 'Autorizado'}
+                              </span>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1385,25 +1391,27 @@ export default function Pacientes({ alAbrirPaciente }) {
                 </p>
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                <span
-                  className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-tight ${
-                    pacienteActual.activo === false
-                      ? 'bg-error-container/20 text-error-dim'
-                      : 'bg-tertiary-container text-on-tertiary-container'
-                  }`}
-                >
-                  {pacienteActual.activo === false ? 'No autorizado' : 'Autorizado'}
-                </span>
-                <span
-                  className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-tight ${
-                    pacienteActual.dadoDeBaja
-                      ? 'bg-amber-100 text-amber-700'
-                      : 'bg-surface-container text-on-surface-variant'
-                  }`}
-                >
-                  {pacienteActual.dadoDeBaja ? 'Dado de baja' : 'Activo'}
-                </span>
+              <div className="flex flex-col gap-2 items-start">
+                {pacienteActual.dadoDeBaja ? (
+                  <span className="rounded-full bg-amber-100 px-3 py-1 text-[10px] font-bold uppercase tracking-tight text-amber-700">
+                    Dado de baja
+                  </span>
+                ) : (
+                  <>
+                    <span className="rounded-full bg-blue-100 px-3 py-1 text-[10px] font-bold uppercase tracking-tight text-blue-800">
+                      {String(pacienteActual.patient_state_name || 'Nuevo').replace('_', ' ')}
+                    </span>
+                    <span
+                      className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-tight ${
+                        pacienteActual.activo === false
+                          ? 'bg-error-container/20 text-error-dim'
+                          : 'bg-tertiary-container text-on-tertiary-container'
+                      }`}
+                    >
+                      {pacienteActual.activo === false ? 'No autorizado' : 'Autorizado'}
+                    </span>
+                  </>
+                )}
               </div>
 
               {pacienteBloqueado ? (

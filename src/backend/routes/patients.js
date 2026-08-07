@@ -186,8 +186,8 @@ function registerPatientsRoutes(
 
   const validarPacienteOperable = async (patientId, res) => {
     const fila = await db.get(
-      'SELECT id, is_discharged FROM patients WHERE id = ?',
-      patientId
+      'SELECT patient_id, is_discharged FROM PATIENTS WHERE patient_id = $1',
+      [patientId]
     );
     if (!fila) {
       res.status(404).json({ error: 'Paciente no encontrado' });
@@ -200,13 +200,35 @@ function registerPatientsRoutes(
     return fila;
   };
 
+  const obtenerFilaPacienteBase = async (id) => {
+    return await db.get(
+      `SELECT
+         p.*,
+         o.name AS obra_social_name,
+         s.name AS patient_state_name,
+         auth.authorization_date AS authorized_at
+       FROM PATIENTS p
+       LEFT JOIN OS o ON p.os_id = o.id
+       LEFT JOIN PATIENT_STATE s ON p.patient_state_id = s.id
+       LEFT JOIN LATERAL (
+           SELECT authorization_date
+           FROM AUTHORIZATIONS
+           WHERE patient_id = p.patient_id
+           ORDER BY created_at DESC
+           LIMIT 1
+       ) auth ON true
+       WHERE p.patient_id = $1`,
+      [id]
+    );
+  };
+
   app.get('/api/patients', async (req, res) => {
     const lista = await listarPacientes(db);
     res.json(lista);
   });
 
   app.get('/api/patients/:id', async (req, res) => {
-    const fila = await db.get('SELECT * FROM patients WHERE id = ?', req.params.id);
+    const fila = await obtenerFilaPacienteBase(req.params.id);
     const paciente = await construirPaciente(db, fila);
     if (!paciente) {
       res.status(404).json({ error: 'Paciente no encontrado' });
@@ -236,10 +258,10 @@ function registerPatientsRoutes(
     }
 
     const filaExistente = await db.get(
-      `SELECT id, birth_date, dni, diagnosis, is_active, is_discharged, discharged_at, module_type, authorized_at, authorization_expires_at, car_years, ppi_years, acta_acuerdo_years
-       FROM patients
-       WHERE id = ?`,
-      id
+      `SELECT patient_id, birth_date, dni, diagnosis, is_active, is_discharged, discharged_at, module_type, authorization_expires_at, car_years, ppi_years, acta_acuerdo_years
+       FROM PATIENTS
+       WHERE patient_id = $1`,
+      [id]
     );
     const esActualizacion = Boolean(filaExistente);
 
@@ -266,23 +288,34 @@ function registerPatientsRoutes(
     }
 
     const existentePorDni = await db.get(
-      `SELECT id
-       FROM patients
-       WHERE trim(dni) = trim(?)
+      `SELECT patient_id
+       FROM PATIENTS
+       WHERE trim(dni) = trim($1)
        LIMIT 1`,
-      dniNormalizado
+      [dniNormalizado]
     );
-    if (existentePorDni?.id && existentePorDni.id !== id) {
+    if (existentePorDni?.patient_id && existentePorDni.patient_id !== id) {
       res.status(409).json({ error: 'Ya existe un paciente con ese DNI.' });
       return;
     }
 
-    const obraSocial =
+    const obraSocialText = String(
       data.obraSocial ||
       data.obra_social ||
+      ''
+    ).trim();
+    const notesText = String(
       data.notas ||
       data.notes ||
-      '';
+      ''
+    ).trim();
+    
+    let osId = null;
+    if (obraSocialText) {
+      await db.run('INSERT INTO OS (name) VALUES ($1) ON CONFLICT (name) DO NOTHING', [obraSocialText]);
+      const osRow = await db.get('SELECT id FROM OS WHERE name = $1', [obraSocialText]);
+      if (osRow) osId = osRow.id;
+    }
     const normalizarFechaOpcional = (valor) => {
       const normalizada = normalizarFechaInput(valor);
       return normalizada || null;
@@ -449,52 +482,58 @@ function registerPatientsRoutes(
         ? resolverFechaBaja(fechaBajaPayload, filaExistente?.discharged_at || new Date().toISOString())
         : null;
       await db.run(
-        `UPDATE patients
-         SET full_name = ?, first_name = ?, last_name = ?, age = ?, birth_date = ?, condition = ?, last_visit = ?, last_fisiatrico = ?, last_fisiatrico_alta = ?, last_fisiatrico_vencimiento = ?, last_trabajo_social = ?, last_trabajo_social_alta = ?, last_trabajo_social_vencimiento = ?, dni = ?, cuit = ?, affiliate_number = ?, integracion_horario = ?, diagnosis = ?, father_tutor_name = ?, father_tutor_phone = ?, mother_tutor_name = ?, mother_tutor_phone = ?, address_street = ?, address_number = ?, address_neighborhood = ?, address_floor = ?, address_sector = ?, school_name = ?, school_grade = ?, school_shift = ?, car_years = ?, ppi_years = ?, acta_acuerdo_years = ?, notes = ?, module_type = ?, authorized_at = ?, authorization_expires_at = ?, is_active = ?, is_discharged = ?, discharged_at = ?, parametro = ?
-         WHERE id = ?`,
-        nombreCompleto,
-        nombre,
-        apellido,
-        edadFinal,
-        fechaNacimientoNormalizada,
-        data.condicion || data.condition || '-',
-        ultimaVisita,
-        ultimoControlFisiatrico,
-        fechaAltaControlFisiatrico,
-        fechaVencimientoControlFisiatrico,
-        ultimoControlTrabajoSocial,
-        fechaAltaControlTrabajoSocial,
-        fechaVencimientoControlTrabajoSocial,
-        dni,
-        cuit,
-        nroAfiliado,
-        integracionHorario,
-        diagnosticoFinal,
-        padreTutor,
-        telefonoPadreTutor,
-        madreTutora,
-        telefonoMadreTutora,
-        calle,
-        numeracion,
-        barrio,
-        piso,
-        sector,
-        escuela,
-        anioGrado,
-        turnoEscolar,
-        carAnios,
-        ppiAnios,
-        actaAcuerdoAnios,
-        obraSocial,
-        moduloFinal,
-        autorizadoDesdeFinal,
-        autorizadoHastaFinal,
-        activoFinal,
-        bajaFinal,
-        fechaBajaFinal,
-        parametro,
-        id
+        `UPDATE PATIENTS
+         SET first_name = $1, last_name = $2, birth_date = $3, condition = $4, last_visit = $5, last_fisiatrico = $6, last_fisiatrico_alta = $7, last_fisiatrico_vencimiento = $8, last_trabajo_social = $9, last_trabajo_social_alta = $10, last_trabajo_social_vencimiento = $11, dni = $12, cuit = $13, affiliate_number = $14, integracion_horario = $15, diagnosis = $16, father_tutor_name = $17, father_tutor_phone = $18, mother_tutor_name = $19, mother_tutor_phone = $20, address_street = $21, address_number = $22, address_neighborhood = $23, address_floor = $24, address_sector = $25, school_name = $26, school_grade = $27, school_shift = $28, car_years = $29, ppi_years = $30, acta_acuerdo_years = $31, os_id = $32, module_type = $33, authorization_expires_at = $34, is_active = $35, is_discharged = $36, discharged_at = $37, parametro = $38, notes = $39
+         WHERE patient_id = $40`,
+        [
+          nombre,
+          apellido,
+          fechaNacimientoNormalizada,
+          data.condicion || data.condition || '-',
+          ultimaVisita,
+          ultimoControlFisiatrico,
+          fechaAltaControlFisiatrico,
+          fechaVencimientoControlFisiatrico,
+          ultimoControlTrabajoSocial,
+          fechaAltaControlTrabajoSocial,
+          fechaVencimientoControlTrabajoSocial,
+          dni,
+          cuit,
+          nroAfiliado,
+          integracionHorario,
+          diagnosticoFinal,
+          padreTutor,
+          telefonoPadreTutor,
+          madreTutora,
+          telefonoMadreTutora,
+          calle,
+          numeracion,
+          barrio,
+          piso,
+          sector,
+          escuela,
+          anioGrado,
+          turnoEscolar,
+          carAnios,
+          ppiAnios,
+          actaAcuerdoAnios,
+          osId,
+          moduloFinal,
+          autorizadoHastaFinal,
+          activoFinal,
+          bajaFinal,
+          fechaBajaFinal,
+          parametro,
+          notesText,
+          id
+        ]
       );
+      if (autorizadoDesdeFinal || autorizadoHastaFinal) {
+        await db.run(
+          `INSERT INTO AUTHORIZATIONS (patient_id, authorization_date) VALUES ($1, $2)`,
+          [id, autorizadoDesdeFinal]
+        );
+      }
     } else {
       const diagnosticoFinal = String(diagnosticoRecibido || '').trim();
       const moduloFinal = serializarModulos(moduloRecibido, []);
@@ -512,73 +551,85 @@ function registerPatientsRoutes(
       const fechaBajaFinal = bajaFinal
         ? resolverFechaBaja(fechaBajaPayload, new Date().toISOString())
         : null;
-      await db.run(
-        `INSERT INTO patients (id, full_name, first_name, last_name, age, birth_date, condition, last_visit, last_fisiatrico, last_fisiatrico_alta, last_fisiatrico_vencimiento, last_trabajo_social, last_trabajo_social_alta, last_trabajo_social_vencimiento, dni, cuit, affiliate_number, integracion_horario, diagnosis, father_tutor_name, father_tutor_phone, mother_tutor_name, mother_tutor_phone, address_street, address_number, address_neighborhood, address_floor, address_sector, school_name, school_grade, school_shift, car_years, ppi_years, acta_acuerdo_years, notes, module_type, authorized_at, authorization_expires_at, is_active, is_discharged, discharged_at, parametro)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        id,
-        nombreCompleto,
-        nombre,
-        apellido,
-        edadFinal,
-        fechaNacimientoNormalizada,
-        data.condicion || data.condition || '-',
-        ultimaVisita,
-        ultimoControlFisiatrico,
-        fechaAltaControlFisiatrico,
-        fechaVencimientoControlFisiatrico,
-        ultimoControlTrabajoSocial,
-        fechaAltaControlTrabajoSocial,
-        fechaVencimientoControlTrabajoSocial,
-        dni,
-        cuit,
-        nroAfiliado,
-        integracionHorario,
-        diagnosticoFinal,
-        padreTutor,
-        telefonoPadreTutor,
-        madreTutora,
-        telefonoMadreTutora,
-        calle,
-        numeracion,
-        barrio,
-        piso,
-        sector,
-        escuela,
-        anioGrado,
-        turnoEscolar,
-        carAnios,
-        ppiAnios,
-        actaAcuerdoAnios,
-        obraSocial,
-        moduloFinal,
-        autorizadoDesdeFinal,
-        autorizadoHastaFinal,
-        activoFinal,
-        bajaFinal,
-        fechaBajaFinal,
-        parametro
-      );
-    }
 
-    const tratamientos = Array.isArray(data.tratamientos)
-      ? data.tratamientos
-      : [];
-    for (const t of tratamientos) {
-      const tratamientoId = await obtenerTratamientoId(db, t);
-      if (tratamientoId) {
-        await db.run(
-          'INSERT OR IGNORE INTO patient_treatments (patient_id, treatment_id) VALUES (?, ?)',
+      const estadoNuevo = await db.get(`SELECT id FROM PATIENT_STATE WHERE name = 'Nuevo'`);
+      const patientStateId = estadoNuevo ? estadoNuevo.id : null;
+
+      await db.run(
+        `INSERT INTO PATIENTS (patient_id, first_name, last_name, birth_date, condition, last_visit, last_fisiatrico, last_fisiatrico_alta, last_fisiatrico_vencimiento, last_trabajo_social, last_trabajo_social_alta, last_trabajo_social_vencimiento, dni, cuit, affiliate_number, integracion_horario, diagnosis, father_tutor_name, father_tutor_phone, mother_tutor_name, mother_tutor_phone, address_street, address_number, address_neighborhood, address_floor, address_sector, school_name, school_grade, school_shift, car_years, ppi_years, acta_acuerdo_years, os_id, module_type, authorization_expires_at, is_active, is_discharged, discharged_at, parametro, patient_state_id, notes)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41)`,
+        [
           id,
-          tratamientoId
+          nombre,
+          apellido,
+          fechaNacimientoNormalizada,
+          data.condicion || data.condition || '-',
+          ultimaVisita,
+          ultimoControlFisiatrico,
+          fechaAltaControlFisiatrico,
+          fechaVencimientoControlFisiatrico,
+          ultimoControlTrabajoSocial,
+          fechaAltaControlTrabajoSocial,
+          fechaVencimientoControlTrabajoSocial,
+          dni,
+          cuit,
+          nroAfiliado,
+          integracionHorario,
+          diagnosticoFinal,
+          padreTutor,
+          telefonoPadreTutor,
+          madreTutora,
+          telefonoMadreTutora,
+          calle,
+          numeracion,
+          barrio,
+          piso,
+          sector,
+          escuela,
+          anioGrado,
+          turnoEscolar,
+          carAnios,
+          ppiAnios,
+          actaAcuerdoAnios,
+          osId,
+          moduloFinal,
+          autorizadoHastaFinal,
+          activoFinal,
+          bajaFinal,
+          fechaBajaFinal,
+          parametro,
+          patientStateId,
+          notesText
+        ]
+      );
+      if (autorizadoDesdeFinal || autorizadoHastaFinal) {
+        await db.run(
+          `INSERT INTO AUTHORIZATIONS (patient_id, authorization_date) VALUES ($1, $2)`,
+          [id, autorizadoDesdeFinal]
         );
       }
     }
 
-    if (data.turnosBase) {
-      await guardarTurnosMensuales(db, id, data.turnosBase);
+    if (!esActualizacion) {
+      const tratamientos = Array.isArray(data.tratamientos)
+        ? data.tratamientos
+        : [];
+      for (const t of tratamientos) {
+        const tratamientoId = await obtenerTratamientoId(db, t);
+        if (tratamientoId) {
+          await db.run(
+            'INSERT INTO PATIENT_TREATMENTS (patient_id, treatment_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+            [id, tratamientoId]
+          );
+        }
+      }
+
+      if (data.turnosBase) {
+        await guardarTurnosMensuales(db, id, data.turnosBase);
+      }
     }
 
-    const fila = await db.get('SELECT * FROM patients WHERE id = ?', id);
+    const fila = await obtenerFilaPacienteBase(id);
     const paciente = await construirPaciente(db, fila);
     if (!esActualizacion) {
       await logUserActivity(req, {
@@ -592,6 +643,41 @@ function registerPatientsRoutes(
     res.json(paciente);
   });
 
+  app.post('/api/patients/:id/state', async (req, res) => {
+    if (!(await validarPacienteOperable(req.params.id, res))) return;
+    const { newStateName, reason } = req.body;
+    
+    if (!newStateName) {
+      res.status(400).json({ error: 'Falta newStateName' });
+      return;
+    }
+
+    const stateRow = await db.get(`SELECT id FROM PATIENT_STATE WHERE name = $1`, [newStateName]);
+    if (!stateRow) {
+      res.status(400).json({ error: 'Estado invalido' });
+      return;
+    }
+
+    await db.run(`UPDATE PATIENTS SET patient_state_id = $1 WHERE patient_id = $2`, [stateRow.id, req.params.id]);
+    
+    await db.run(
+      `INSERT INTO PATIENT_STATE_HISTORY (patient_id, state_id, reason) VALUES ($1, $2, $3)`,
+      [req.params.id, stateRow.id, reason || null]
+    );
+
+    await logUserActivity(req, {
+      actionType: 'update_state',
+      entityType: 'patient',
+      entityId: req.params.id,
+      entityLabel: req.params.id,
+      details: { newStateName, reason },
+    });
+
+    const fila = await obtenerFilaPacienteBase(req.params.id);
+    const paciente = await construirPaciente(db, fila);
+    res.json(paciente);
+  });
+
   app.put('/api/patients/:id/treatments', async (req, res) => {
     if (!(await validarPacienteOperable(req.params.id, res))) return;
     const tratamientos = Array.isArray(req.body?.tratamientos)
@@ -601,9 +687,8 @@ function registerPatientsRoutes(
       const tratamientoId = await obtenerTratamientoId(db, t);
       if (tratamientoId) {
         await db.run(
-          'INSERT OR IGNORE INTO patient_treatments (patient_id, treatment_id) VALUES (?, ?)',
-          req.params.id,
-          tratamientoId
+          'INSERT INTO PATIENT_TREATMENTS (patient_id, treatment_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+          [req.params.id, tratamientoId]
         );
       }
     }
@@ -616,7 +701,7 @@ function registerPatientsRoutes(
         details: { tratamientos },
       });
     }
-    const fila = await db.get('SELECT * FROM patients WHERE id = ?', req.params.id);
+    const fila = await obtenerFilaPacienteBase(req.params.id);
     const paciente = await construirPaciente(db, fila);
     res.json(paciente);
   });
@@ -634,22 +719,19 @@ function registerPatientsRoutes(
       return;
     }
     await db.run(
-      `DELETE FROM patient_treatments
-       WHERE patient_id = ? AND treatment_id = ?`,
-      req.params.id,
-      tratamientoId
+      `DELETE FROM PATIENT_TREATMENTS
+       WHERE patient_id = $1 AND treatment_id = $2`,
+      [req.params.id, tratamientoId]
     );
     await db.run(
-      `DELETE FROM patient_turns
-       WHERE patient_id = ? AND treatment_id = ?`,
-      req.params.id,
-      tratamientoId
+      `DELETE FROM PATIENT_TURNS
+       WHERE patient_id = $1 AND treatment_id = $2`,
+      [req.params.id, tratamientoId]
     );
     await db.run(
-      `DELETE FROM patient_turns_monthly
-       WHERE patient_id = ? AND treatment_id = ?`,
-      req.params.id,
-      tratamientoId
+      `DELETE FROM PATIENT_TURNS_MONTHLY
+       WHERE patient_id = $1 AND treatment_id = $2`,
+      [req.params.id, tratamientoId]
     );
     await logUserActivity(req, {
       actionType: 'delete',
@@ -658,7 +740,7 @@ function registerPatientsRoutes(
       entityLabel: req.params.id,
       details: { tratamiento: String(tratamiento || '') },
     });
-    const fila = await db.get('SELECT * FROM patients WHERE id = ?', req.params.id);
+    const fila = await obtenerFilaPacienteBase(req.params.id);
     const paciente = await construirPaciente(db, fila);
     res.json(paciente);
   });
@@ -688,45 +770,30 @@ function registerPatientsRoutes(
     }
     const existe = await db.get(
       `SELECT 1
-       FROM patient_turns_monthly
-       WHERE patient_id = ? AND treatment_id = ? AND month = ? AND day_of_week = ? AND time = ?`,
-      req.params.id,
-      tratamientoId,
-      mes,
-      dia,
-      hora
+       FROM PATIENT_TURNS_MONTHLY
+       WHERE patient_id = $1 AND treatment_id = $2 AND month = $3 AND day_of_week = $4 AND time = $5`,
+      [req.params.id, tratamientoId, mes, dia, hora]
     );
     if (existe) {
       await db.run(
-        `DELETE FROM patient_turns_monthly
-         WHERE patient_id = ? AND treatment_id = ? AND month = ? AND day_of_week = ? AND time = ?`,
-        req.params.id,
-        tratamientoId,
-        mes,
-        dia,
-        hora
+        `DELETE FROM PATIENT_TURNS_MONTHLY
+         WHERE patient_id = $1 AND treatment_id = $2 AND month = $3 AND day_of_week = $4 AND time = $5`,
+        [req.params.id, tratamientoId, mes, dia, hora]
       );
     } else {
       // Regla de negocio: un solo horario por dia para cada tratamiento/mes.
       await db.run(
-        `DELETE FROM patient_turns_monthly
-         WHERE patient_id = ? AND treatment_id = ? AND month = ? AND day_of_week = ?`,
-        req.params.id,
-        tratamientoId,
-        mes,
-        dia
+        `DELETE FROM PATIENT_TURNS_MONTHLY
+         WHERE patient_id = $1 AND treatment_id = $2 AND month = $3 AND day_of_week = $4`,
+        [req.params.id, tratamientoId, mes, dia]
       );
       await db.run(
-        `INSERT INTO patient_turns_monthly (patient_id, treatment_id, month, day_of_week, time)
-         VALUES (?, ?, ?, ?, ?)`,
-        req.params.id,
-        tratamientoId,
-        mes,
-        dia,
-        hora
+        `INSERT INTO PATIENT_TURNS_MONTHLY (patient_id, treatment_id, month, day_of_week, time)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [req.params.id, tratamientoId, mes, dia, hora]
       );
     }
-    const fila = await db.get('SELECT * FROM patients WHERE id = ?', req.params.id);
+    const fila = await obtenerFilaPacienteBase(req.params.id);
     const paciente = await construirPaciente(db, fila);
     res.json(paciente);
   });
@@ -747,18 +814,14 @@ function registerPatientsRoutes(
       return;
     }
     await db.run(
-      `INSERT INTO patient_turns_overrides
+      `INSERT INTO PATIENT_TURNS_OVERRIDES
        (patient_id, treatment_id, date, time, active)
-       VALUES (?, ?, ?, ?, ?)
+       VALUES ($1, $2, $3, $4, $5)
        ON CONFLICT (patient_id, treatment_id, date, time)
        DO UPDATE SET active = EXCLUDED.active`,
-      req.params.id,
-      tratamientoId,
-      fecha,
-      hora,
-      activo
+      [req.params.id, tratamientoId, fecha, hora, activo]
     );
-    const fila = await db.get('SELECT * FROM patients WHERE id = ?', req.params.id);
+    const fila = await obtenerFilaPacienteBase(req.params.id);
     const paciente = await construirPaciente(db, fila);
     res.json(paciente);
   });
@@ -791,11 +854,11 @@ function registerPatientsRoutes(
     let actualizados = 0;
     try {
       const query = `SELECT patient_id, treatment_id, month
-         FROM patient_turns_monthly
-         WHERE day_of_week = ?${wherePaciente}${whereMes}
+         FROM PATIENT_TURNS_MONTHLY
+         WHERE day_of_week = $1${wherePaciente}${whereMes}
            AND EXISTS (
-             SELECT 1 FROM patients p
-             WHERE p.id = patient_turns_monthly.patient_id
+             SELECT 1 FROM PATIENTS p
+             WHERE p.patient_id = PATIENT_TURNS_MONTHLY.patient_id
                AND COALESCE(p.is_discharged, FALSE) = FALSE
            )`;
       let filas = [];
@@ -811,45 +874,29 @@ function registerPatientsRoutes(
       for (const fila of filas) {
         const horas = await db.all(
           `SELECT time
-           FROM patient_turns_monthly
-           WHERE patient_id = ? AND treatment_id = ? AND month = ? AND day_of_week = ?`,
-          fila.patient_id,
-          fila.treatment_id,
-          fila.month,
-          fromDay
+           FROM PATIENT_TURNS_MONTHLY
+           WHERE patient_id = $1 AND treatment_id = $2 AND month = $3 AND day_of_week = $4`,
+          [fila.patient_id, fila.treatment_id, fila.month, fromDay]
         );
         for (const h of horas) {
           const existe = await db.get(
             `SELECT 1
-             FROM patient_turns_monthly
-             WHERE patient_id = ? AND treatment_id = ? AND month = ? AND day_of_week = ? AND time = ?`,
-            fila.patient_id,
-            fila.treatment_id,
-            fila.month,
-            toDay,
-            h.time
+             FROM PATIENT_TURNS_MONTHLY
+             WHERE patient_id = $1 AND treatment_id = $2 AND month = $3 AND day_of_week = $4 AND time = $5`,
+            [fila.patient_id, fila.treatment_id, fila.month, toDay, h.time]
           );
           if (existe) {
             await db.run(
-              `DELETE FROM patient_turns_monthly
-               WHERE patient_id = ? AND treatment_id = ? AND month = ? AND day_of_week = ? AND time = ?`,
-              fila.patient_id,
-              fila.treatment_id,
-              fila.month,
-              fromDay,
-              h.time
+              `DELETE FROM PATIENT_TURNS_MONTHLY
+               WHERE patient_id = $1 AND treatment_id = $2 AND month = $3 AND day_of_week = $4 AND time = $5`,
+              [fila.patient_id, fila.treatment_id, fila.month, fromDay, h.time]
             );
           } else {
             await db.run(
-              `UPDATE patient_turns_monthly
-               SET day_of_week = ?
-               WHERE patient_id = ? AND treatment_id = ? AND month = ? AND day_of_week = ? AND time = ?`,
-              toDay,
-              fila.patient_id,
-              fila.treatment_id,
-              fila.month,
-              fromDay,
-              h.time
+              `UPDATE PATIENT_TURNS_MONTHLY
+               SET day_of_week = $1
+               WHERE patient_id = $2 AND treatment_id = $3 AND month = $4 AND day_of_week = $5 AND time = $6`,
+              [toDay, fila.patient_id, fila.treatment_id, fila.month, fromDay, h.time]
             );
           }
           actualizados += 1;
@@ -928,11 +975,11 @@ function registerPatientsRoutes(
       }
       const baseRows = await db.all(
         `SELECT ptm.patient_id, ptm.treatment_id, ptm.time
-         FROM patient_turns_monthly ptm
-         WHERE ptm.month = ? AND ptm.day_of_week = ?${filtrosBase.join('')}
+         FROM PATIENT_TURNS_MONTHLY ptm
+         WHERE ptm.month = $1 AND ptm.day_of_week = $2${filtrosBase.join('')}
            AND EXISTS (
-             SELECT 1 FROM patients p
-             WHERE p.id = ptm.patient_id
+             SELECT 1 FROM PATIENTS p
+             WHERE p.patient_id = ptm.patient_id
                AND COALESCE(p.is_discharged, FALSE) = FALSE
            )`,
         ...paramsBase
@@ -950,11 +997,11 @@ function registerPatientsRoutes(
       }
       const overrideRows = await db.all(
         `SELECT o.patient_id, o.treatment_id, o.time, o.active
-         FROM patient_turns_overrides o
-         WHERE o.date = ?${filtrosOverrides.join('')}
+         FROM PATIENT_TURNS_OVERRIDES o
+         WHERE o.date = $1${filtrosOverrides.join('')}
            AND EXISTS (
-             SELECT 1 FROM patients p
-             WHERE p.id = o.patient_id
+             SELECT 1 FROM PATIENTS p
+             WHERE p.patient_id = o.patient_id
                AND COALESCE(p.is_discharged, FALSE) = FALSE
            )`,
         ...paramsOverrides
@@ -992,40 +1039,29 @@ function registerPatientsRoutes(
         const claveAnulacion = `${fila.patient_id}|${fila.treatment_id}`;
         if (!fechasAnuladas.has(claveAnulacion)) {
           await db.run(
-            `UPDATE patient_turns_overrides
-             SET active = ?
-             WHERE patient_id = ? AND treatment_id = ? AND date = ?`,
-            0,
-            fila.patient_id,
-            fila.treatment_id,
-            fromDate
+            `UPDATE PATIENT_TURNS_OVERRIDES
+             SET active = $1
+             WHERE patient_id = $2 AND treatment_id = $3 AND date = $4`,
+            [0, fila.patient_id, fila.treatment_id, fromDate]
           );
           fechasAnuladas.add(claveAnulacion);
         }
         await db.run(
-          `INSERT INTO patient_turns_overrides
+          `INSERT INTO PATIENT_TURNS_OVERRIDES
            (patient_id, treatment_id, date, time, active)
-           VALUES (?, ?, ?, ?, ?)
+           VALUES ($1, $2, $3, $4, $5)
            ON CONFLICT (patient_id, treatment_id, date, time)
            DO UPDATE SET active = EXCLUDED.active`,
-          fila.patient_id,
-          fila.treatment_id,
-          fromDate,
-          fila.time,
-          0
+          [fila.patient_id, fila.treatment_id, fromDate, fila.time, 0]
         );
         if (!onlyDisable && toDate) {
           await db.run(
-            `INSERT INTO patient_turns_overrides
+            `INSERT INTO PATIENT_TURNS_OVERRIDES
              (patient_id, treatment_id, date, time, active)
-             VALUES (?, ?, ?, ?, ?)
+             VALUES ($1, $2, $3, $4, $5)
              ON CONFLICT (patient_id, treatment_id, date, time)
              DO UPDATE SET active = EXCLUDED.active`,
-            fila.patient_id,
-            fila.treatment_id,
-            toDate,
-            fila.time,
-            1
+            [fila.patient_id, fila.treatment_id, toDate, fila.time, 1]
           );
         }
         actualizados += 1;
@@ -1164,12 +1200,9 @@ function registerPatientsRoutes(
       tratamientoId = await obtenerTratamientoId(db, asistencia.tratamiento);
     }
     await db.run(
-      `INSERT INTO attendances (patient_id, date, treatment_id, note)
-       VALUES (?, ?, ?, ?)`,
-      req.params.id,
-      asistencia.fecha,
-      tratamientoId,
-      asistencia.nota || ''
+      `INSERT INTO ATTENDANCES (patient_id, date, treatment_id, note)
+       VALUES ($1, $2, $3, $4)`,
+      [req.params.id, asistencia.fecha, tratamientoId, asistencia.nota || '']
     );
     await logUserActivity(req, {
       actionType: 'create',
@@ -1187,8 +1220,17 @@ function registerPatientsRoutes(
   app.patch('/api/patients/:id/status', async (req, res) => {
     if (!(await validarPacienteOperable(req.params.id, res))) return;
     const filaActual = await db.get(
-      'SELECT id, authorized_at, authorization_expires_at FROM patients WHERE id = ?',
-      req.params.id
+      `SELECT p.patient_id, p.authorization_expires_at, auth.authorization_date AS authorized_at
+       FROM PATIENTS p
+       LEFT JOIN LATERAL (
+           SELECT authorization_date
+           FROM AUTHORIZATIONS
+           WHERE patient_id = p.patient_id
+           ORDER BY created_at DESC
+           LIMIT 1
+       ) auth ON true
+       WHERE p.patient_id = $1`,
+      [req.params.id]
     );
     if (!filaActual) {
       res.status(404).json({ error: 'Paciente no encontrado' });
@@ -1223,13 +1265,17 @@ function registerPatientsRoutes(
       autorizadoDesde = obtenerFechaActualIso();
     }
     await db.run(
-      'UPDATE patients SET is_active = ?, authorized_at = ?, authorization_expires_at = ? WHERE id = ?',
-      activo,
-      autorizadoDesde,
-      autorizadoHasta,
-      req.params.id
+      'UPDATE PATIENTS SET is_active = $1, authorization_expires_at = $2 WHERE patient_id = $3',
+      [activo, autorizadoHasta, req.params.id]
     );
-    const fila = await db.get('SELECT * FROM patients WHERE id = ?', req.params.id);
+    if (autorizadoDesde && autorizadoDesde !== filaActual.authorized_at) {
+      await db.run(
+        `INSERT INTO AUTHORIZATIONS (patient_id, authorization_date)
+         VALUES ($1, $2)`,
+        [req.params.id, autorizadoDesde]
+      );
+    }
+    const fila = await obtenerFilaPacienteBase(req.params.id);
     const paciente = await construirPaciente(db, fila);
     if (!paciente) {
       res.status(404).json({ error: 'Paciente no encontrado' });
@@ -1240,8 +1286,8 @@ function registerPatientsRoutes(
 
   app.patch('/api/patients/:id/discharge', async (req, res) => {
     const fila = await db.get(
-      'SELECT id, is_discharged, discharged_at FROM patients WHERE id = ?',
-      req.params.id
+      'SELECT patient_id, is_discharged, discharged_at FROM PATIENTS WHERE patient_id = $1',
+      [req.params.id]
     );
     if (!fila) {
       res.status(404).json({ error: 'Paciente no encontrado' });
@@ -1257,18 +1303,16 @@ function registerPatientsRoutes(
       ? resolverFechaBaja(req.body?.fechaBaja, fila.discharged_at || new Date().toISOString())
       : null;
     await db.run(
-      'UPDATE patients SET is_discharged = ?, discharged_at = ? WHERE id = ?',
-      dadoDeBaja,
-      fechaBaja,
-      req.params.id
+      'UPDATE PATIENTS SET is_discharged = $1, discharged_at = $2 WHERE patient_id = $3',
+      [dadoDeBaja, fechaBaja, req.params.id]
     );
-    const actualizada = await db.get('SELECT * FROM patients WHERE id = ?', req.params.id);
+    const actualizada = await obtenerFilaPacienteBase(req.params.id);
     const paciente = await construirPaciente(db, actualizada);
     res.json(paciente);
   });
 
   app.get('/api/patients/:id/requests', async (req, res) => {
-    const paciente = await db.get('SELECT id FROM patients WHERE id = ?', req.params.id);
+    const paciente = await db.get('SELECT patient_id FROM PATIENTS WHERE patient_id = $1', [req.params.id]);
     if (!paciente) {
       res.status(404).json({ error: 'Paciente no encontrado' });
       return;
@@ -1276,25 +1320,21 @@ function registerPatientsRoutes(
     const historyMonths = Number(req.query?.historyMonths || 12);
     const cutoff = obtenerFechaCorteSolicitudes(historyMonths);
     const solicitudes = await db.all(
-      `SELECT id, start_date, end_date, apply_treatments, applied_at, created_at, updated_at
-       FROM patient_requests
-       WHERE patient_id = ?
-         AND (end_date >= ? OR start_date >= ?)
-       ORDER BY start_date DESC, id DESC`,
-      req.params.id,
-      cutoff,
-      cutoff
+      `SELECT patient_req_id AS id, start_date, end_date, apply_treatments, applied_at, created_at, updated_at
+       FROM PATIENT_REQUESTS
+       WHERE patient_id = $1
+         AND (end_date >= $2 OR start_date >= $3)
+       ORDER BY start_date DESC, patient_req_id DESC`,
+      [req.params.id, cutoff, cutoff]
     );
     const filasTratamientos = await db.all(
       `SELECT prt.request_id, t.name
-       FROM patient_request_treatments prt
-       JOIN patient_requests pr ON pr.id = prt.request_id
-       JOIN treatments t ON t.id = prt.treatment_id
-       WHERE pr.patient_id = ?
-         AND (pr.end_date >= ? OR pr.start_date >= ?)`,
-      req.params.id,
-      cutoff,
-      cutoff
+       FROM PATIENT_REQUEST_TREATMENTS prt
+       JOIN PATIENT_REQUESTS pr ON pr.patient_req_id = prt.request_id
+       JOIN TREATMENTS t ON t.id = prt.treatment_id
+       WHERE pr.patient_id = $1
+         AND (pr.end_date >= $2 OR pr.start_date >= $3)`,
+      [req.params.id, cutoff, cutoff]
     );
     const tratamientosPorSolicitud = new Map();
     for (const row of filasTratamientos) {
@@ -1369,39 +1409,32 @@ function registerPatientsRoutes(
     try {
       await db.run('BEGIN');
       const inserted = await db.get(
-        `INSERT INTO patient_requests (patient_id, start_date, end_date, apply_treatments, updated_at)
-         VALUES (?, ?, ?, ?, now())
-         RETURNING id`,
-        req.params.id,
-        fechaInicio,
-        fechaFin,
-        aplicarTratamientos
+        `INSERT INTO PATIENT_REQUESTS (patient_id, start_date, end_date, apply_treatments, updated_at)
+         VALUES ($1, $2, $3, $4, now())
+         RETURNING patient_req_id`,
+        [req.params.id, fechaInicio, fechaFin, aplicarTratamientos]
       );
       const requestId =
-        inserted?.id ||
+        inserted?.patient_req_id ||
         (
           await db.get(
-            `SELECT id
-             FROM patient_requests
-             WHERE patient_id = ? AND start_date = ? AND end_date = ? AND apply_treatments = ?
-             ORDER BY id DESC
+            `SELECT patient_req_id
+             FROM PATIENT_REQUESTS
+             WHERE patient_id = $1 AND start_date = $2 AND end_date = $3 AND apply_treatments = $4
+             ORDER BY patient_req_id DESC
              LIMIT 1`,
-            req.params.id,
-            fechaInicio,
-            fechaFin,
-            aplicarTratamientos
+            [req.params.id, fechaInicio, fechaFin, aplicarTratamientos]
           )
-        )?.id;
+        )?.patient_req_id;
       if (!requestId) {
         throw new Error('No se pudo crear la solicitud.');
       }
       for (const treatmentId of tratamientoIds) {
         await db.run(
-          `INSERT INTO patient_request_treatments (request_id, treatment_id)
-           VALUES (?, ?)
+          `INSERT INTO PATIENT_REQUEST_TREATMENTS (request_id, treatment_id)
+           VALUES ($1, $2)
            ON CONFLICT DO NOTHING`,
-          requestId,
-          treatmentId
+          [requestId, treatmentId]
         );
       }
       await db.run('COMMIT');
@@ -1420,7 +1453,7 @@ function registerPatientsRoutes(
       res.status(500).json({ error: 'No se pudo guardar la solicitud.' });
       return;
     }
-    const fila = await db.get('SELECT * FROM patients WHERE id = ?', req.params.id);
+    const fila = await obtenerFilaPacienteBase(req.params.id);
     const paciente = await construirPaciente(db, fila);
     res.json(paciente);
   });
@@ -1431,14 +1464,14 @@ function registerPatientsRoutes(
       return;
     }
     const target = await db.get(
-      'SELECT id, full_name, first_name, last_name FROM patients WHERE id = ?',
-      req.params.id
+      'SELECT patient_id AS id, first_name, last_name FROM PATIENTS WHERE patient_id = $1',
+      [req.params.id]
     );
     if (!target) {
       res.status(404).json({ error: 'Paciente no encontrado' });
       return;
     }
-    await db.run('DELETE FROM patients WHERE id = ?', req.params.id);
+    await db.run('DELETE FROM PATIENTS WHERE patient_id = $1', [req.params.id]);
     await logUserActivity(req, {
       actionType: 'delete',
       entityType: 'patient',

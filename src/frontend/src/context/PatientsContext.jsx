@@ -15,6 +15,7 @@ import {
   eliminarPacienteApi,
   cambiarEstadoPacienteApi,
   cambiarBajaPacienteApi,
+  cambiarEstadoOperativoApi,
   crearSolicitudPacienteApi,
   agregarTratamientosApi,
   eliminarTratamientoApi,
@@ -93,7 +94,10 @@ export function ProveedorPacientes({ children }) {
 
   const refrescarPacientes = useCallback(async (signal) => {
     const lista = await obtenerPacientes({ signal });
-    setPacientes(Array.isArray(lista) ? lista : []);
+    const deduplicada = Array.isArray(lista)
+      ? lista.map(p => ({ ...p, tratamientos: Array.from(new Set(p.tratamientos || [])) }))
+      : [];
+    setPacientes(deduplicada);
   }, []);
 
   useEffect(() => {
@@ -296,6 +300,28 @@ export function ProveedorPacientes({ children }) {
       .catch((err) => {
         console.error('No se pudo actualizar la baja del paciente en DB.', err);
         refrescarPacientes().catch(() => {});
+      });
+  };
+
+  const cambiarEstadoOperativo = (pacienteId, newStateName, reason = '') => {
+    return cambiarEstadoOperativoApi(pacienteId, newStateName, reason)
+      .then(async (pacienteActualizado) => {
+        setPacientes((prev) =>
+          prev.map((p) => (p.id === pacienteId ? { 
+            ...p, 
+            ...pacienteActualizado, 
+            patient_state_name: newStateName,
+            tratamientos: Array.from(new Set(pacienteActualizado.tratamientos || p.tratamientos || []))
+          } : p))
+        );
+        try {
+          await refrescarPacientes();
+        } catch (e) {}
+        return pacienteActualizado;
+      })
+      .catch((err) => {
+        console.error('No se pudo actualizar el estado operativo del paciente.', err);
+        throw err;
       });
   };
 
@@ -559,6 +585,7 @@ export function ProveedorPacientes({ children }) {
       eliminarPaciente,
       cambiarEstadoPaciente,
       cambiarBajaPaciente,
+      cambiarEstadoOperativo,
       alternarTurno,
       guardarExcepcionTurno,
       moverTurnosHorario,

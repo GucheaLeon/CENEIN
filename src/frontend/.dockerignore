@@ -1,0 +1,6 @@
+# Archivos que Docker debe ignorar al construir la imagen
+node_modules/
+build/
+.env
+.git/
+.DS_Store

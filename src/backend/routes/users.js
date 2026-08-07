@@ -97,6 +97,24 @@ function registerUsersRoutes(
         hash,
         isAdmin
       );
+      
+      const userId = result.lastID;
+      
+      if (userId) {
+        if (isAdmin) {
+          await db.run('INSERT INTO roles (name) VALUES ($1) ON CONFLICT DO NOTHING', 'ADMIN');
+          const role = await db.get('SELECT id FROM roles WHERE name = $1', 'ADMIN');
+          if (role) {
+            await db.run('INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2)', userId, role.id);
+          }
+        } else {
+          await db.run('INSERT INTO roles (name) VALUES ($1) ON CONFLICT DO NOTHING', 'USER');
+          const role = await db.get('SELECT id FROM roles WHERE name = $1', 'USER');
+          if (role) {
+            await db.run('INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2)', userId, role.id);
+          }
+        }
+      }
       const created = await db.get(
         'SELECT id, username, is_admin, created_at FROM users WHERE username = ?',
         username
@@ -146,6 +164,22 @@ function registerUsersRoutes(
           }
         }
         await db.run('UPDATE users SET is_admin = ? WHERE id = ?', nextIsAdmin, userId);
+        
+        if (nextIsAdmin) {
+          await db.run('INSERT INTO roles (name) VALUES ($1) ON CONFLICT DO NOTHING', 'ADMIN');
+          const role = await db.get('SELECT id FROM roles WHERE name = $1', 'ADMIN');
+          if (role) {
+             await db.run('DELETE FROM user_roles WHERE user_id = $1', userId);
+             await db.run('INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2)', userId, role.id);
+          }
+        } else {
+          await db.run('INSERT INTO roles (name) VALUES ($1) ON CONFLICT DO NOTHING', 'USER');
+          const role = await db.get('SELECT id FROM roles WHERE name = $1', 'USER');
+          if (role) {
+             await db.run('DELETE FROM user_roles WHERE user_id = $1', userId);
+             await db.run('INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2)', userId, role.id);
+          }
+        }
       }
 
       if (Object.prototype.hasOwnProperty.call(req.body || {}, 'password')) {

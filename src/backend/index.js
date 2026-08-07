@@ -5,17 +5,18 @@ const express = require('express');
 const cors = require('cors');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
-const initSqlJs = require('sql.js');
+const { Pool } = require('pg');
 const { registerApiAuthGuard, registerAuthRoutes } = require('./routes/auth');
 const { registerUsersRoutes } = require('./routes/users');
 const { registerObrasSocialesRoutes } = require('./routes/obrasSociales');
 const { registerPatientsRoutes } = require('./routes/patients');
 const { registerAttendancesExportRoute } = require('./routes/attendancesExport');
+const { registerCatalogsRoutes } = require('./routes/catalogs');
+const { registerAdmisionsRoutes } = require('./routes/admisiones');
 
 const PORT = process.env.PORT || 4000;
 const SCHEMA_SQL_PATH = path.join(__dirname, 'schema.sql');
-const LOCAL_DATA_DIR = path.join(__dirname, 'data');
-const LOCAL_DB_PATH = path.join(LOCAL_DATA_DIR, 'local.sqlite');
+
 const NODE_ENV = String(process.env.NODE_ENV || '').trim().toLowerCase() || 'development';
 const IS_PROD = NODE_ENV === 'production';
 const SESSION_TTL_HOURS = Number(process.env.SESSION_TTL_HOURS || 12);
@@ -32,8 +33,8 @@ const JWT_COOKIE_SECURE =
   JWT_COOKIE_SECURE_RAW === '1' || JWT_COOKIE_SECURE_RAW === 'true'
     ? true
     : JWT_COOKIE_SECURE_RAW === '0' || JWT_COOKIE_SECURE_RAW === 'false'
-    ? false
-    : IS_PROD;
+      ? false
+      : IS_PROD;
 const JWT_SECRET =
   String(process.env.JWT_SECRET || '').trim() ||
   (IS_PROD ? '' : 'dev-only-change-this-jwt-secret');
@@ -87,58 +88,37 @@ function parseDbArgs(sql, argsLike) {
   };
 }
 
-function normalizeSqlForLocal(sql) {
-  return String(sql || '')
-    .replace(/\bnow\(\)/gi, 'CURRENT_TIMESTAMP')
-    .replace(/\bTRUE\b/g, '1')
-    .replace(/\bFALSE\b/g, '0');
-}
-
-function createLocalDb(database, persist) {
+function createPostgresDb(pool) {
   return {
     async exec(sql) {
-      const text = normalizeSqlForLocal(sql);
+      const text = normalizeSqlForPostgres(sql);
       if (!text.trim()) return;
-      database.exec(text);
-      persist();
+      await pool.query(text);
     },
     async get(sql, ...params) {
       const parsed = parseDbArgs(sql, params);
-      const text = normalizeSqlForLocal(parsed.sql);
-      const stmt = database.prepare(text);
-      try {
-        stmt.bind(parsed.params);
-        if (!stmt.step()) return null;
-        return stmt.getAsObject();
-      } finally {
-        stmt.free();
-      }
+      const text = convertPlaceholdersForPostgres(normalizeSqlForPostgres(parsed.sql));
+      const res = await pool.query(text, parsed.params);
+      return res.rows[0] || null;
     },
     async all(sql, ...params) {
       const parsed = parseDbArgs(sql, params);
-      const text = normalizeSqlForLocal(parsed.sql);
-      const stmt = database.prepare(text);
-      const rows = [];
-      try {
-        stmt.bind(parsed.params);
-        while (stmt.step()) {
-          rows.push(stmt.getAsObject());
-        }
-        return rows;
-      } finally {
-        stmt.free();
-      }
+      const text = convertPlaceholdersForPostgres(normalizeSqlForPostgres(parsed.sql));
+      const res = await pool.query(text, parsed.params);
+      return res.rows;
     },
     async run(sql, ...params) {
       const parsed = parseDbArgs(sql, params);
-      const text = normalizeSqlForLocal(parsed.sql);
-      database.run(text, parsed.params);
-      if (!/^\s*BEGIN\b/i.test(text)) persist();
-      const changes = database.getRowsModified();
-      const lastIdRes = database.exec('SELECT last_insert_rowid() AS id');
-      const lastID = lastIdRes?.[0]?.values?.[0]?.[0] || null;
+      const text = convertPlaceholdersForPostgres(normalizeSqlForPostgres(parsed.sql));
+      let queryText = text;
+      if (/^\s*INSERT\b/i.test(queryText) && !/\bRETURNING\b/i.test(queryText)) {
+        queryText += ' RETURNING *';
+      }
+      const res = await pool.query(queryText, parsed.params);
+      const changes = res.rowCount || 0;
+      const lastID = res.rows[0]?.id || null;
       return {
-        changes: Number(changes || 0),
+        changes,
         lastID,
       };
     },
@@ -282,8 +262,8 @@ function createLoginRateLimiter(db) {
         nextFailedCount += 1;
         nextBlocked =
           isPrimaryUserKey &&
-          LOGIN_MAX_FAILED_ATTEMPTS > 0 &&
-          nextFailedCount >= LOGIN_MAX_FAILED_ATTEMPTS
+            LOGIN_MAX_FAILED_ATTEMPTS > 0 &&
+            nextFailedCount >= LOGIN_MAX_FAILED_ATTEMPTS
             ? nextBlockedUntil
             : null;
       }
@@ -395,19 +375,13 @@ function createAuditLogger(db) {
         entry?.details && typeof entry.details === 'object'
           ? JSON.stringify(entry.details)
           : entry?.details == null
-          ? null
-          : String(entry.details);
+            ? null
+            : String(entry.details);
       await db.run(
-        `INSERT INTO user_activity_logs
+        `INSERT INTO USER_ACTIVITY_LOGS
          (actor_user_id, actor_username, action_type, entity_type, entity_id, entity_label, details)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        actorUserId,
-        actorUsername,
-        actionType,
-        entityType,
-        entityId,
-        entityLabel,
-        details
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [actorUserId, actorUsername, actionType, entityType, entityId, entityLabel, details]
       );
     } catch (err) {
       console.error('[AUDIT] Error guardando actividad', err);
@@ -417,9 +391,9 @@ function createAuditLogger(db) {
   async function listUserActivity() {
     return db.all(
       `SELECT id, actor_user_id, actor_username, action_type, entity_type, entity_id, entity_label, details, created_at
-       FROM user_activity_logs
+       FROM USER_ACTIVITY_LOGS
        ORDER BY created_at DESC
-       LIMIT 200`
+       LIMIT 100`
     );
   }
 
@@ -509,9 +483,9 @@ function parsearModulos(valor) {
   const lista = Array.isArray(valor)
     ? valor
     : String(valor || '')
-        .split(',')
-        .map((item) => String(item || '').trim().toUpperCase())
-        .filter(Boolean);
+      .split(',')
+      .map((item) => String(item || '').trim().toUpperCase())
+      .filter(Boolean);
   return Array.from(new Set(lista.filter((item) => ['MII', 'MIS', 'MIE'].includes(item))));
 }
 
@@ -523,9 +497,9 @@ function parsearAniosEscolares(valor) {
   const lista = Array.isArray(valor)
     ? valor
     : String(valor || '')
-        .split(',')
-        .map((item) => String(item || '').trim())
-        .filter(Boolean);
+      .split(',')
+      .map((item) => String(item || '').trim())
+      .filter(Boolean);
   return Array.from(
     new Set(
       lista.filter((item) => ['2026', '2027', '2028', '2029', '2030'].includes(item))
@@ -538,40 +512,72 @@ function formatearAniosEscolares(valor) {
 }
 
 async function initDb() {
-  fs.mkdirSync(LOCAL_DATA_DIR, { recursive: true });
-  const SQL = await initSqlJs();
-  const database = fs.existsSync(LOCAL_DB_PATH)
-    ? new SQL.Database(fs.readFileSync(LOCAL_DB_PATH))
-    : new SQL.Database();
-  const persist = () => {
-    const data = database.export();
-    fs.writeFileSync(LOCAL_DB_PATH, Buffer.from(data));
-  };
-  const db = createLocalDb(database, persist);
-  await db.exec('PRAGMA foreign_keys = ON');
-  await db.exec(fs.readFileSync(SCHEMA_SQL_PATH, 'utf8'));
+  if (!process.env.DATABASE_URL) {
+    throw new Error('[DB] FATAL ERROR: DATABASE_URL no está definida. PostgreSQL es requerido.');
+  }
+  console.log(`[DB] Usando PostgreSQL: ${process.env.DATABASE_URL.split('@')[1] || 'DB_URL'}`);
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  const db = createPostgresDb(pool);
+  const schemaSql = fs.readFileSync(SCHEMA_SQL_PATH, 'utf8');
+  await db.exec(schemaSql);
   for (const nombre of TRATAMIENTOS_BASE) {
-    await db.run('INSERT OR IGNORE INTO treatments (name) VALUES (?)', nombre);
+    await db.run('INSERT INTO treatments (name) VALUES ($1) ON CONFLICT DO NOTHING', nombre);
   }
+  // Correr migraciones pendientes automáticamente
+  await runMigrations(db, pool);
   try {
-    await db.run(`DELETE FROM sessions WHERE expires_at <= datetime('now')`);
-  } catch (err) {
-    // La tabla puede no existir en DBs viejas.
-  }
+    await db.run(`DELETE FROM sessions WHERE expires_at <= now()`);
+  } catch (err) {}
   try {
     const cutoffIso = new Date(
       Date.now() - Math.max(1, LOGIN_RATE_LIMIT_RETENTION_HOURS) * 60 * 60 * 1000
     ).toISOString();
     await db.run(
-      'DELETE FROM login_rate_limits WHERE updated_at < ? AND (blocked_until IS NULL OR blocked_until < ?)',
+      'DELETE FROM login_rate_limits WHERE updated_at < $1 AND (blocked_until IS NULL OR blocked_until < $2)',
       cutoffIso,
       cutoffIso
     );
-  } catch (err) {
-    // La tabla puede no existir en DBs viejas.
-  }
-  console.log(`[DB] Usando SQLite local: ${LOCAL_DB_PATH}`);
+  } catch (err) {}
   return db;
+}
+
+async function runMigrations(db, pool) {
+  const MIGRATIONS_DIR = path.join(__dirname, 'migrations');
+  try {
+    // Crear tabla de control de migraciones si no existe
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS _schema_migrations (
+        name TEXT PRIMARY KEY,
+        applied_at TIMESTAMPTZ DEFAULT now()
+      )
+    `);
+    if (!fs.existsSync(MIGRATIONS_DIR)) return;
+    const files = fs.readdirSync(MIGRATIONS_DIR)
+      .filter((f) => f.endsWith('.sql'))
+      .sort();
+    for (const file of files) {
+      const existing = await pool.query(
+        'SELECT name FROM _schema_migrations WHERE name = $1',
+        [file]
+      );
+      if (existing.rows.length > 0) continue;
+      const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, file), 'utf8');
+      console.log(`[DB] Aplicando migración: ${file}`);
+      try {
+        await pool.query(sql);
+        await pool.query(
+          'INSERT INTO _schema_migrations (name) VALUES ($1)',
+          [file]
+        );
+        console.log(`[DB] Migración aplicada: ${file}`);
+      } catch (err) {
+        console.error(`[DB] Error en migración ${file}:`, err.message);
+        // No lanzar error — migraciones parciales no deben frenar el boot
+      }
+    }
+  } catch (err) {
+    console.error('[DB] Error al correr migraciones:', err.message);
+  }
 }
 
 function hashPassword(password) {
@@ -629,11 +635,19 @@ async function ensureAdminUser(db) {
     return;
   }
   const hash = hashPassword(password);
-  await db.run(
+  const { lastID } = await db.run(
     'INSERT INTO users (username, password_hash, is_admin) VALUES (?, ?, TRUE)',
     username,
     hash
   );
+  if (lastID) {
+    await db.run('INSERT INTO roles (name) VALUES ($1) ON CONFLICT DO NOTHING', 'ADMIN');
+    const role = await db.get('SELECT id FROM roles WHERE name = $1', 'ADMIN');
+    if (role) {
+       await db.run('INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2)', lastID, role.id);
+    }
+  }
+  console.log(`[AUTH] Usuario admin creado por defecto`);
   if (password === 'admin') {
     console.warn(
       '[AUTH] Se creo el usuario admin con password "admin". Cambialo con ADMIN_PASSWORD.'
@@ -860,14 +874,11 @@ async function guardarTurnosMensuales(db, patientId, turnosBase) {
         const [dia, hora] = String(clave).split('-');
         if (!dia || !hora) continue;
         await db.run(
-          `INSERT OR IGNORE INTO patient_turns_monthly
+          `INSERT INTO PATIENT_TURNS_MONTHLY
            (patient_id, treatment_id, month, day_of_week, time)
-           VALUES (?, ?, ?, ?, ?)`,
-          patientId,
-          tratamientoId,
-          mes,
-          dia,
-          hora
+           VALUES ($1, $2, $3, $4, $5)
+           ON CONFLICT DO NOTHING`,
+          [patientId, tratamientoId, mes, dia, hora]
         );
       }
     }
@@ -914,9 +925,9 @@ function construirSolicitud(row, tratamientos = []) {
 async function aplicarSolicitudATratamientosPaciente(db, patientId, requestId) {
   const requestTreatments = await db.all(
     `SELECT treatment_id
-     FROM patient_request_treatments
-     WHERE request_id = ?`,
-    requestId
+     FROM PATIENT_REQUEST_TREATMENTS
+     WHERE request_id = $1`,
+    [requestId]
   );
   const desired = new Set(
     requestTreatments
@@ -925,9 +936,9 @@ async function aplicarSolicitudATratamientosPaciente(db, patientId, requestId) {
   );
   const currentRows = await db.all(
     `SELECT treatment_id
-     FROM patient_treatments
-     WHERE patient_id = ?`,
-    patientId
+     FROM PATIENT_TREATMENTS
+     WHERE patient_id = $1`,
+    [patientId]
   );
   const current = new Set(
     currentRows
@@ -946,60 +957,55 @@ async function aplicarSolicitudATratamientosPaciente(db, patientId, requestId) {
 
   for (const treatmentId of toRemove) {
     await db.run(
-      `DELETE FROM patient_treatments
-       WHERE patient_id = ? AND treatment_id = ?`,
-      patientId,
-      treatmentId
+      `DELETE FROM PATIENT_TREATMENTS
+       WHERE patient_id = $1 AND treatment_id = $2`,
+      [patientId, treatmentId]
     );
     await db.run(
-      `DELETE FROM patient_turns
-       WHERE patient_id = ? AND treatment_id = ?`,
-      patientId,
-      treatmentId
+      `DELETE FROM PATIENT_TURNS
+       WHERE patient_id = $1 AND treatment_id = $2`,
+      [patientId, treatmentId]
     );
     await db.run(
-      `DELETE FROM patient_turns_monthly
-       WHERE patient_id = ? AND treatment_id = ?`,
-      patientId,
-      treatmentId
+      `DELETE FROM PATIENT_TURNS_MONTHLY
+       WHERE patient_id = $1 AND treatment_id = $2`,
+      [patientId, treatmentId]
     );
     await db.run(
-      `DELETE FROM patient_turns_overrides
-       WHERE patient_id = ? AND treatment_id = ?`,
-      patientId,
-      treatmentId
+      `DELETE FROM PATIENT_TURNS_OVERRIDES
+       WHERE patient_id = $1 AND treatment_id = $2`,
+      [patientId, treatmentId]
     );
   }
 
   for (const treatmentId of toAdd) {
     await db.run(
-      `INSERT OR IGNORE INTO patient_treatments (patient_id, treatment_id)
-       VALUES (?, ?)`,
-      patientId,
-      treatmentId
+      `INSERT INTO PATIENT_TREATMENTS (patient_id, treatment_id)
+       VALUES ($1, $2)
+       ON CONFLICT DO NOTHING`,
+      [patientId, treatmentId]
     );
   }
 
   await db.run(
-    `UPDATE patient_requests
+    `UPDATE PATIENT_REQUESTS
      SET applied_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
-     WHERE id = ?`,
-    requestId
+     WHERE patient_req_id = $1`,
+    [requestId]
   );
 }
 
 async function aplicarSolicitudesPendientesPaciente(db, patientId) {
   const hoy = new Date().toISOString().slice(0, 10);
   const pendientes = await db.all(
-    `SELECT id
-     FROM patient_requests
-     WHERE patient_id = ?
-       AND start_date <= ?
+    `SELECT patient_req_id AS id
+     FROM PATIENT_REQUESTS
+     WHERE patient_id = $1
+       AND start_date <= $2
        AND applied_at IS NULL
        AND apply_treatments = TRUE
-     ORDER BY start_date ASC, id ASC`,
-    patientId,
-    hoy
+     ORDER BY start_date ASC, patient_req_id ASC`,
+    [patientId, hoy]
   );
   if (!pendientes.length) return;
   for (const row of pendientes) {
@@ -1009,61 +1015,57 @@ async function aplicarSolicitudesPendientesPaciente(db, patientId) {
 
 async function construirPaciente(db, fila) {
   if (!fila) return null;
-  await aplicarSolicitudesPendientesPaciente(db, fila.id);
+  await aplicarSolicitudesPendientesPaciente(db, fila.patient_id);
   const nombrePrimario = fila.first_name || '';
   const apellidoPrimario = fila.last_name || '';
-  const nombreFallback = separarNombreCompleto(fila.full_name);
+  const nombreFallback = separarNombreCompleto(fila.full_name || '');
   const nombre = nombrePrimario || nombreFallback.nombre;
   const apellido = apellidoPrimario || nombreFallback.apellido;
   const tratamientos = await db.all(
     `SELECT t.name
-     FROM patient_treatments pt
-     JOIN treatments t ON t.id = pt.treatment_id
-     WHERE pt.patient_id = ?`,
-    fila.id
+     FROM PATIENT_TREATMENTS pt
+     JOIN TREATMENTS t ON t.id = pt.treatment_id
+     WHERE pt.patient_id = $1`,
+    [fila.patient_id]
   );
   const turnos = await db.all(
-    `SELECT t.name AS tratamiento, month, day_of_week, time
-     FROM patient_turns_monthly pt
-     JOIN treatments t ON t.id = pt.treatment_id
-     WHERE pt.patient_id = ?`,
-    fila.id
+    `SELECT t.name AS tratamiento, pt.month, pt.day_of_week, pt.time
+     FROM PATIENT_TURNS_MONTHLY pt
+     JOIN TREATMENTS t ON t.id = pt.treatment_id
+     WHERE pt.patient_id = $1`,
+    [fila.patient_id]
   );
   const asistencias = await db.all(
     `SELECT date, note, treatment_id
-     FROM attendances
-     WHERE patient_id = ?
+     FROM ATTENDANCES
+     WHERE patient_id = $1
      ORDER BY date DESC`,
-    fila.id
+    [fila.patient_id]
   );
   const overrides = await db.all(
-    `SELECT t.name AS tratamiento, date, time, active
-     FROM patient_turns_overrides o
-     JOIN treatments t ON t.id = o.treatment_id
-     WHERE o.patient_id = ?`,
-    fila.id
+    `SELECT t.name AS tratamiento, o.date, o.time, o.active
+     FROM PATIENT_TURNS_OVERRIDES o
+     JOIN TREATMENTS t ON t.id = o.treatment_id
+     WHERE o.patient_id = $1`,
+    [fila.patient_id]
   );
   const cutoffSolicitudes = obtenerFechaCorteSolicitudes(12);
   const solicitudes = await db.all(
-    `SELECT id, patient_id, start_date, end_date, apply_treatments, applied_at, created_at, updated_at
-     FROM patient_requests
-     WHERE patient_id = ?
-       AND (end_date >= ? OR start_date >= ?)
-     ORDER BY start_date DESC, id DESC`,
-    fila.id,
-    cutoffSolicitudes,
-    cutoffSolicitudes
+    `SELECT patient_req_id AS id, patient_id, start_date, end_date, apply_treatments, applied_at
+     FROM PATIENT_REQUESTS
+     WHERE patient_id = $1
+       AND (end_date >= $2 OR start_date >= $3)
+     ORDER BY start_date DESC, patient_req_id DESC`,
+    [fila.patient_id, cutoffSolicitudes, cutoffSolicitudes]
   );
   const solicitudesTratamientosRows = await db.all(
     `SELECT prt.request_id, t.name
-     FROM patient_request_treatments prt
-     JOIN patient_requests pr ON pr.id = prt.request_id
-     JOIN treatments t ON t.id = prt.treatment_id
-     WHERE pr.patient_id = ?
-       AND (pr.end_date >= ? OR pr.start_date >= ?)`,
-    fila.id,
-    cutoffSolicitudes,
-    cutoffSolicitudes
+     FROM PATIENT_REQUEST_TREATMENTS prt
+     JOIN PATIENT_REQUESTS pr ON pr.patient_req_id = prt.request_id
+     JOIN TREATMENTS t ON t.id = prt.treatment_id
+     WHERE pr.patient_id = $1
+       AND (pr.end_date >= $2 OR pr.start_date >= $3)`,
+    [fila.patient_id, cutoffSolicitudes, cutoffSolicitudes]
   );
   const tratamientosPorSolicitud = new Map();
   for (const row of solicitudesTratamientosRows) {
@@ -1087,10 +1089,10 @@ async function construirPaciente(db, fila) {
     );
   }
   return {
-    id: fila.id,
+    id: fila.patient_id,
     nombre,
     apellido,
-    edad: calcularEdadDesdeNacimiento(fila.birth_date) || fila.age || '-',
+    edad: calcularEdadDesdeNacimiento(fila.birth_date) || '-',
     fechaNacimiento: fila.birth_date || '',
     condicion: fila.condition || '-',
     ultimaVisita: fila.last_visit || '-',
@@ -1120,18 +1122,22 @@ async function construirPaciente(db, fila) {
     carAnios: parsearAniosEscolares(fila.car_years),
     ppiAnios: parsearAniosEscolares(fila.ppi_years),
     actaAcuerdoAnios: parsearAniosEscolares(fila.acta_acuerdo_years),
-    obraSocial: fila.notes || '',
+    os_id: fila.os_id || null,
+    obraSocial: fila.obra_social_name || '',
     autorizadoDesde: fila.authorized_at || '',
     autorizadoHasta: fila.authorization_expires_at || '',
     activo: normalizarActivo(fila.is_active, true),
     estado: normalizarActivo(fila.is_active, true) ? 'autorizado' : 'no_autorizado',
     dadoDeBaja: Boolean(fila.is_discharged),
     fechaBaja: fila.discharged_at || '',
-    estadoPaciente: Boolean(fila.is_discharged) ? 'baja' : 'activo',
+    patient_state_id: fila.patient_state_id || null,
+    patient_state_name: fila.patient_state_name || null,
+    estadoPaciente: fila.patient_state_name || (Boolean(fila.is_discharged) ? 'baja' : 'activo'),
     parametro: Boolean(fila.parametro),
     modulo: formatearModulos(fila.module_type),
     modulos: parsearModulos(fila.module_type),
-    tratamientos: tratamientos.map((t) => t.name),
+    notes: fila.notes || '',
+    tratamientos: Array.from(new Set(tratamientos.map((t) => t.name))),
     turnosPorMes,
     turnosOverrides: overrides.map((o) => ({
       tratamiento: o.tratamiento,
@@ -1155,43 +1161,54 @@ async function construirPaciente(db, fila) {
 
 async function listarPacientes(db) {
   const filas = await db.all(
-    'SELECT * FROM patients ORDER BY created_at DESC'
+    `SELECT
+       p.*,
+       o.name AS obra_social_name,
+       s.name AS patient_state_name,
+       auth.authorization_date AS authorized_at
+     FROM PATIENTS p
+     LEFT JOIN OS o ON p.os_id = o.id
+     LEFT JOIN PATIENT_STATE s ON p.patient_state_id = s.id
+     LEFT JOIN LATERAL (
+         SELECT authorization_date
+         FROM AUTHORIZATIONS
+         WHERE patient_id = p.patient_id
+         ORDER BY created_at DESC
+         LIMIT 1
+     ) auth ON true
+     ORDER BY p.created_at DESC`
   );
-  // Importante para performance: el listado no debe recalcular/aplicar solicitudes
-  // pendientes por cada paciente en tiempo real, porque degrada mucho el refresh.
-  // Las solicitudes se aplican al construir el paciente individual (detalle/operaciones).
+  
   const tratamientos = await db.all(
     `SELECT pt.patient_id, t.name
-     FROM patient_treatments pt
-     JOIN treatments t ON t.id = pt.treatment_id`
+     FROM PATIENT_TREATMENTS pt
+     JOIN TREATMENTS t ON t.id = pt.treatment_id`
   );
   const turnos = await db.all(
-    `SELECT pt.patient_id, t.name AS tratamiento, month, day_of_week, time
-     FROM patient_turns_monthly pt
-     JOIN treatments t ON t.id = pt.treatment_id`
+    `SELECT pt.patient_id, t.name AS tratamiento, pt.month, pt.day_of_week, pt.time
+     FROM PATIENT_TURNS_MONTHLY pt
+     JOIN TREATMENTS t ON t.id = pt.treatment_id`
   );
   const overrides = await db.all(
-    `SELECT o.patient_id, t.name AS tratamiento, date, time, active
-     FROM patient_turns_overrides o
-     JOIN treatments t ON t.id = o.treatment_id`
+    `SELECT o.patient_id, t.name AS tratamiento, o.date, o.time, o.active
+     FROM PATIENT_TURNS_OVERRIDES o
+     JOIN TREATMENTS t ON t.id = o.treatment_id`
   );
   const cutoffSolicitudes = obtenerFechaCorteSolicitudes(12);
   const solicitudes = await db.all(
-    `SELECT id, patient_id, start_date, end_date, apply_treatments, applied_at, created_at, updated_at
-     FROM patient_requests
-     WHERE end_date >= ? OR start_date >= ?
-     ORDER BY start_date DESC, id DESC`,
-    cutoffSolicitudes,
-    cutoffSolicitudes
+    `SELECT patient_req_id AS id, patient_id, start_date, end_date, apply_treatments, applied_at
+     FROM PATIENT_REQUESTS
+     WHERE end_date >= $1 OR start_date >= $2
+     ORDER BY start_date DESC, patient_req_id DESC`,
+    [cutoffSolicitudes, cutoffSolicitudes]
   );
   const solicitudesTratamientosRows = await db.all(
     `SELECT prt.request_id, pr.patient_id, t.name
-     FROM patient_request_treatments prt
-     JOIN patient_requests pr ON pr.id = prt.request_id
-     JOIN treatments t ON t.id = prt.treatment_id
-     WHERE pr.end_date >= ? OR pr.start_date >= ?`,
-    cutoffSolicitudes,
-    cutoffSolicitudes
+     FROM PATIENT_REQUEST_TREATMENTS prt
+     JOIN PATIENT_REQUESTS pr ON pr.patient_req_id = prt.request_id
+     JOIN TREATMENTS t ON t.id = prt.treatment_id
+     WHERE pr.end_date >= $1 OR pr.start_date >= $2`,
+    [cutoffSolicitudes, cutoffSolicitudes]
   );
   const tratamientosPorPaciente = new Map();
   for (const t of tratamientos) {
@@ -1255,54 +1272,58 @@ async function listarPacientes(db) {
       .replace(/[\u0300-\u036f]/g, '');
 
   const pacientesMapeados = filas.map((fila) => ({
-		    id: fila.id,
-		    nombre: fila.first_name || separarNombreCompleto(fila.full_name).nombre,
-		    apellido: fila.last_name || separarNombreCompleto(fila.full_name).apellido,
-		    edad: calcularEdadDesdeNacimiento(fila.birth_date) || fila.age || '-',
-		    fechaNacimiento: fila.birth_date || '',
-		    condicion: fila.condition || '-',
-	    ultimaVisita: fila.last_visit || '-',
-	    ultimoControlFisiatrico: fila.last_fisiatrico || '',
-      fechaAltaControlFisiatrico: fila.last_fisiatrico_alta || '',
-      fechaVencimientoControlFisiatrico: fila.last_fisiatrico_vencimiento || '',
-      ultimoControlTrabajoSocial: fila.last_trabajo_social || '',
-      fechaAltaControlTrabajoSocial: fila.last_trabajo_social_alta || '',
-      fechaVencimientoControlTrabajoSocial: fila.last_trabajo_social_vencimiento || '',
-	    dni: fila.dni || '',
-	    cuit: fila.cuit || '',
-	    nroAfiliado: fila.affiliate_number || '',
-	    integracionHorario: fila.integracion_horario || '',
-	    diagnostico: fila.diagnosis || '',
-	    padreTutor: fila.father_tutor_name || '',
-	    telefonoPadreTutor: fila.father_tutor_phone || '',
-	    madreTutora: fila.mother_tutor_name || '',
-	    telefonoMadreTutora: fila.mother_tutor_phone || '',
-	    calle: fila.address_street || '',
-	    numeracion: fila.address_number || '',
-	    barrio: fila.address_neighborhood || '',
-	    piso: fila.address_floor || '',
-	    sector: fila.address_sector || '',
-	    escuela: fila.school_name || '',
-	    anioGrado: fila.school_grade || '',
-	    turnoEscolar: fila.school_shift || '',
-      carAnios: parsearAniosEscolares(fila.car_years),
-      ppiAnios: parsearAniosEscolares(fila.ppi_years),
-      actaAcuerdoAnios: parsearAniosEscolares(fila.acta_acuerdo_years),
-		    obraSocial: fila.notes || '',
-        autorizadoDesde: fila.authorized_at || '',
-        autorizadoHasta: fila.authorization_expires_at || '',
-		    activo: normalizarActivo(fila.is_active, true),
-		    estado: normalizarActivo(fila.is_active, true) ? 'autorizado' : 'no_autorizado',
-		    dadoDeBaja: Boolean(fila.is_discharged),
-		    fechaBaja: fila.discharged_at || '',
-		    estadoPaciente: Boolean(fila.is_discharged) ? 'baja' : 'activo',
-		    parametro: Boolean(fila.parametro),
-	    modulo: formatearModulos(fila.module_type),
-      modulos: parsearModulos(fila.module_type),
-	    tratamientos: tratamientosPorPaciente.get(fila.id) || [],
-	    turnosPorMes: turnosPorPaciente.get(fila.id) || {},
-    turnosOverrides: overridesPorPaciente.get(fila.id) || [],
-    solicitudes: solicitudesPorPaciente.get(fila.id) || [],
+    id: fila.patient_id,
+    nombre: fila.first_name || '',
+    apellido: fila.last_name || '',
+    edad: calcularEdadDesdeNacimiento(fila.birth_date) || '-',
+    fechaNacimiento: fila.birth_date || '',
+    condicion: fila.condition || '-',
+    ultimaVisita: fila.last_visit || '-',
+    ultimoControlFisiatrico: fila.last_fisiatrico || '',
+    fechaAltaControlFisiatrico: fila.last_fisiatrico_alta || '',
+    fechaVencimientoControlFisiatrico: fila.last_fisiatrico_vencimiento || '',
+    ultimoControlTrabajoSocial: fila.last_trabajo_social || '',
+    fechaAltaControlTrabajoSocial: fila.last_trabajo_social_alta || '',
+    fechaVencimientoControlTrabajoSocial: fila.last_trabajo_social_vencimiento || '',
+    dni: fila.dni || '',
+    cuit: fila.cuit || '',
+    nroAfiliado: fila.affiliate_number || '',
+    integracionHorario: fila.integracion_horario || '',
+    diagnostico: fila.diagnosis || '',
+    padreTutor: fila.father_tutor_name || '',
+    telefonoPadreTutor: fila.father_tutor_phone || '',
+    madreTutora: fila.mother_tutor_name || '',
+    telefonoMadreTutora: fila.mother_tutor_phone || '',
+    calle: fila.address_street || '',
+    numeracion: fila.address_number || '',
+    barrio: fila.address_neighborhood || '',
+    piso: fila.address_floor || '',
+    sector: fila.address_sector || '',
+    escuela: fila.school_name || '',
+    anioGrado: fila.school_grade || '',
+    turnoEscolar: fila.school_shift || '',
+    carAnios: parsearAniosEscolares(fila.car_years),
+    ppiAnios: parsearAniosEscolares(fila.ppi_years),
+    actaAcuerdoAnios: parsearAniosEscolares(fila.acta_acuerdo_years),
+    os_id: fila.os_id || null,
+    obraSocial: fila.obra_social_name || '',
+    autorizadoDesde: fila.authorized_at || '',
+    autorizadoHasta: fila.authorization_expires_at || '',
+    activo: normalizarActivo(fila.is_active, true),
+    estado: normalizarActivo(fila.is_active, true) ? 'autorizado' : 'no_autorizado',
+    dadoDeBaja: Boolean(fila.is_discharged),
+    fechaBaja: fila.discharged_at || '',
+    patient_state_id: fila.patient_state_id || null,
+    patient_state_name: fila.patient_state_name || null,
+    estadoPaciente: fila.patient_state_name || (Boolean(fila.is_discharged) ? 'baja' : 'activo'),
+    parametro: Boolean(fila.parametro),
+    modulo: formatearModulos(fila.module_type),
+    modulos: parsearModulos(fila.module_type),
+    notes: fila.notes || '',
+    tratamientos: Array.from(new Set(tratamientosPorPaciente.get(fila.patient_id) || [])),
+    turnosPorMes: turnosPorPaciente.get(fila.patient_id) || {},
+    turnosOverrides: overridesPorPaciente.get(fila.patient_id) || [],
+    solicitudes: solicitudesPorPaciente.get(fila.patient_id) || [],
     asistencias: [],
   }));
 
@@ -1348,6 +1369,19 @@ async function main() {
   });
   app.use(cors(buildCorsOptions()));
   app.use(express.json({ limit: '200kb' }));
+  // Aumentar límite para uploads de archivos binarios (PDFs) via multipart/form-data
+  // Los archivos van directamente a la base de datos como BYTEA
+  app.use((req, res, next) => {
+    const ct = req.headers['content-type'] || '';
+    if (ct.includes('multipart/form-data')) {
+      // Para multipart no aplica express.json, pero necesitamos el límite del request
+      // El máximo es 20 MB por admisión
+      req.setMaxBodyLength && req.setMaxBodyLength(20 * 1024 * 1024);
+      next();
+    } else {
+      next();
+    }
+  });
   const authMiddleware = crearAuthMiddleware(db);
   const adminMiddleware = crearAdminMiddleware();
 
@@ -1371,6 +1405,10 @@ async function main() {
   });
 
   registerApiAuthGuard(app, { authMiddleware });
+
+  registerAdmisionsRoutes(app, { db, authMiddleware });
+
+  registerCatalogsRoutes(app, { db, adminMiddleware });
 
   registerUsersRoutes(app, {
     db,
