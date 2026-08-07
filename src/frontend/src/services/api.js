@@ -650,3 +650,15 @@ export function urlArchivoExpediente(admisionId, campo) {
   return apiBaseUrl ? `${apiBaseUrl}${path}` : path;
 }
 
+export async function obtenerInfoArchivoExpedienteApi(admisionId, campo) {
+  try {
+    return await fetchJsonApi(`/api/admisiones/${admisionId}/expediente/${campo}/info`);
+  } catch (err) {
+    return null;
+  }
+}
+
+export async function descargarArchivoExpedienteApi(admisionId, campo) {
+  const path = `/api/admisiones/${admisionId}/expediente/${campo}/archivo`;
+  return fetchBlobApi(path, { method: 'GET' });
+}

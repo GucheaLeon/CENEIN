@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Copiamos package.json primero para aprovechar el caché de Docker
 COPY package*.json ./
-RUN npm ci
+RUN npm install --legacy-peer-deps
 
 # Copiamos el resto del código y construimos la versión optimizada
 COPY . .

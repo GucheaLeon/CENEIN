@@ -8,17 +8,8 @@ const { randomUUID } = require('crypto');
  *
  * Etapa 1: Registrar / listar admisiones (datos básicos + checkboxes)
  * Etapa 2: Revisión de la fisiatra (aprobar / desestimar + devolución)
- * Etapa 3: Armado del expediente (DNI, afiliado, PDFs)
+ * Etapa 3: Armado del expediente (DNI, afiliado, PDFs almacenados en DB como BYTEA)
  */
-
-// Carpeta donde se guardan los PDFs subidos
-const UPLOADS_DIR = path.join(__dirname, '..', 'uploads', 'admisiones');
-
-function ensureUploadsDir() {
-  if (!fs.existsSync(UPLOADS_DIR)) {
-    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-  }
-}
 
 // Parsea multipart/form-data de forma nativa (sin multer, sin dependencias extra)
 // Devuelve { fields: {}, files: { fieldName: { filename, mimetype, data: Buffer } } }
@@ -131,24 +122,47 @@ function formatReview(row) {
   };
 }
 
+// Mapeo de claves de campo a nombres de columna en DB
+const CAMPO_MAP = {
+  carnet:         { dbField: 'carnet_pdf',                  dataCol: 'carnet_data',         filenameCol: 'carnet_filename',         mimetypeCol: 'carnet_mimetype' },
+  cud:            { dbField: 'cud_pdf',                     dataCol: 'cud_data',             filenameCol: 'cud_filename',             mimetypeCol: 'cud_mimetype' },
+  consentimiento: { dbField: 'consentimiento_padres_pdf',   dataCol: 'consentimiento_data',  filenameCol: 'consentimiento_filename',  mimetypeCol: 'consentimiento_mimetype' },
+  presupuesto:    { dbField: 'presupuesto_pdf',             dataCol: 'presupuesto_data',     filenameCol: 'presupuesto_filename',     mimetypeCol: 'presupuesto_mimetype' },
+  informe:        { dbField: 'informe_inicial_pdf',         dataCol: 'informe_data',         filenameCol: 'informe_filename',         mimetypeCol: 'informe_mimetype' },
+  plan:           { dbField: 'plan_trabajo_pdf',            dataCol: 'plan_data',            filenameCol: 'plan_filename',            mimetypeCol: 'plan_mimetype' },
+  historial:      { dbField: 'resumen_historial_pdf',       dataCol: 'historial_data',       filenameCol: 'historial_filename',       mimetypeCol: 'historial_mimetype' },
+  pedidos:        { dbField: 'pedidos_medicos_pdf',         dataCol: 'pedidos_data',         filenameCol: 'pedidos_filename',         mimetypeCol: 'pedidos_mimetype' },
+};
+
+// Claves de campo de formulario → clave de CAMPO_MAP
+const FORM_FIELD_MAP = {
+  carnet_pdf:               'carnet',
+  cud_pdf:                  'cud',
+  consentimiento_pdf:       'consentimiento',
+  presupuesto_pdf:          'presupuesto',
+  informe_pdf:              'informe',
+  plan_pdf:                 'plan',
+  historial_pdf:            'historial',
+  pedidos_pdf:              'pedidos',
+};
+
 function formatDocuments(row) {
   if (!row) return null;
-  return {
+  const result = {
     id: row.id,
     admissionId: row.admission_id,
     dniNumero: row.dni_numero || '',
     numeroAfiliado: row.numero_afiliado || '',
-    carnetPdf: row.carnet_pdf || '',
-    cudPdf: row.cud_pdf || '',
-    consentimientoPadresPdf: row.consentimiento_padres_pdf || '',
-    presupuestoPdf: row.presupuesto_pdf || '',
-    informeInicialPdf: row.informe_inicial_pdf || '',
-    planTrabajoPdf: row.plan_trabajo_pdf || '',
-    resumenHistorialPdf: row.resumen_historial_pdf || '',
-    pedidosMedicosPdf: row.pedidos_medicos_pdf || '',
     creadoEn: row.created_at,
     actualizadoEn: row.updated_at,
   };
+  // Para cada documento, indicar si existe (true/false) y el nombre de archivo
+  for (const [key, meta] of Object.entries(CAMPO_MAP)) {
+    result[`${key}Pdf`] = row[meta.dbField] || (row[meta.dataCol] ? meta.dbField : '') || '';
+    result[`${key}Filename`] = row[meta.filenameCol] || '';
+    result[`${key}Tiene`] = Boolean(row[meta.dataCol] || row[meta.dbField]);
+  }
+  return result;
 }
 
 function registerAdmisionsRoutes(app, { db, authMiddleware }) {
@@ -318,7 +332,7 @@ function registerAdmisionsRoutes(app, { db, authMiddleware }) {
   app.post('/api/admisiones/:id/revision', authMiddleware, async (req, res) => {
     try {
       const { fechaTurno, resultado, devolucion } = req.body || {};
-      const reviewedBy = req.session?.username || req.user?.username || '';
+      const reviewedBy = req.session?.username || req.user?.username || req.auth?.username || '';
 
       if (!resultado || !['aprobado', 'desestimado'].includes(resultado)) {
         return res.status(400).json({ error: "El resultado debe ser 'aprobado' o 'desestimado'." });
@@ -354,14 +368,24 @@ function registerAdmisionsRoutes(app, { db, authMiddleware }) {
   });
 
   // -----------------------------------------------------------------------
-  // ETAPA 3 – EXPEDIENTE / DOCUMENTOS
+  // ETAPA 3 – EXPEDIENTE / DOCUMENTOS (archivos guardados en DB como BYTEA)
   // -----------------------------------------------------------------------
 
-  // GET /api/admisiones/:id/expediente – obtener expediente
+  // GET /api/admisiones/:id/expediente – obtener expediente (sin datos binarios)
   app.get('/api/admisiones/:id/expediente', authMiddleware, async (req, res) => {
     try {
       const row = await db.get(
-        `SELECT * FROM admission_documents WHERE admission_id = ?`,
+        `SELECT id, admission_id, dni_numero, numero_afiliado,
+                carnet_pdf, carnet_filename, carnet_mimetype,
+                cud_pdf, cud_filename, cud_mimetype,
+                consentimiento_padres_pdf, consentimiento_filename, consentimiento_mimetype,
+                presupuesto_pdf, presupuesto_filename, presupuesto_mimetype,
+                informe_inicial_pdf, informe_filename, informe_mimetype,
+                plan_trabajo_pdf, plan_filename, plan_mimetype,
+                resumen_historial_pdf, historial_filename, historial_mimetype,
+                pedidos_medicos_pdf, pedidos_filename, pedidos_mimetype,
+                created_at, updated_at
+         FROM admission_documents WHERE admission_id = ?`,
         req.params.id
       );
       res.json(formatDocuments(row));
@@ -371,13 +395,12 @@ function registerAdmisionsRoutes(app, { db, authMiddleware }) {
     }
   });
 
-  // POST /api/admisiones/:id/expediente – crear/actualizar expediente con subida de PDFs
+  // POST /api/admisiones/:id/expediente – crear/actualizar expediente con subida de archivos a DB
   app.post('/api/admisiones/:id/expediente', authMiddleware, async (req, res) => {
     try {
-      ensureUploadsDir();
       const admissionId = req.params.id;
 
-      // Verificar que la admisión esté aprobada
+      // Verificar que la admisión exista y esté en estado válido para expediente
       const admission = await db.get(
         `SELECT * FROM admissions WHERE id = ?`,
         admissionId
@@ -385,87 +408,95 @@ function registerAdmisionsRoutes(app, { db, authMiddleware }) {
       if (!admission) {
         return res.status(404).json({ error: 'Admisión no encontrada.' });
       }
-      if (admission.estado !== 'aprobado') {
+      if (admission.estado !== 'aprobado' && admission.estado !== 'completado') {
         return res.status(400).json({ error: 'La admisión debe estar aprobada para armar el expediente.' });
       }
 
       const { fields, files } = await parseMultipart(req);
 
       const existing = await db.get(
-        `SELECT * FROM admission_documents WHERE admission_id = ?`,
+        `SELECT id FROM admission_documents WHERE admission_id = ?`,
         admissionId
       );
 
-      // Procesar archivos PDF subidos
-      const pdfFields = [
-        'carnet_pdf', 'cud_pdf', 'consentimiento_padres_pdf',
-        'presupuesto_pdf', 'informe_inicial_pdf', 'plan_trabajo_pdf',
-        'resumen_historial_pdf', 'pedidos_medicos_pdf',
-      ];
-      const savedFiles = {};
-      for (const field of pdfFields) {
-        if (files[field] && files[field].data && files[field].filename) {
-          const ext = path.extname(files[field].filename) || '.pdf';
-          const fileName = `${admissionId}_${field}_${randomUUID()}${ext}`;
-          const filePath = path.join(UPLOADS_DIR, fileName);
-          fs.writeFileSync(filePath, files[field].data);
-          savedFiles[field] = fileName;
+      // Construir actualizaciones para archivos recibidos
+      const fileUpdates = {};
+      for (const [formField, campoKey] of Object.entries(FORM_FIELD_MAP)) {
+        if (files[formField] && files[formField].data && files[formField].data.length > 0) {
+          const meta = CAMPO_MAP[campoKey];
+          fileUpdates[campoKey] = {
+            data: files[formField].data,
+            filename: files[formField].filename || formField,
+            mimetype: files[formField].mimetype || 'application/pdf',
+            meta,
+          };
         }
       }
 
       if (existing) {
-        // Actualizar
+        // Actualizar campos de texto
         await db.run(
           `UPDATE admission_documents SET
             dni_numero = COALESCE(?, dni_numero),
             numero_afiliado = COALESCE(?, numero_afiliado),
-            carnet_pdf = COALESCE(?, carnet_pdf),
-            cud_pdf = COALESCE(?, cud_pdf),
-            consentimiento_padres_pdf = COALESCE(?, consentimiento_padres_pdf),
-            presupuesto_pdf = COALESCE(?, presupuesto_pdf),
-            informe_inicial_pdf = COALESCE(?, informe_inicial_pdf),
-            plan_trabajo_pdf = COALESCE(?, plan_trabajo_pdf),
-            resumen_historial_pdf = COALESCE(?, resumen_historial_pdf),
-            pedidos_medicos_pdf = COALESCE(?, pedidos_medicos_pdf),
             updated_at = now()
            WHERE admission_id = ?`,
           fields.dniNumero || null,
           fields.numeroAfiliado || null,
-          savedFiles.carnet_pdf || null,
-          savedFiles.cud_pdf || null,
-          savedFiles.consentimiento_padres_pdf || null,
-          savedFiles.presupuesto_pdf || null,
-          savedFiles.informe_inicial_pdf || null,
-          savedFiles.plan_trabajo_pdf || null,
-          savedFiles.resumen_historial_pdf || null,
-          savedFiles.pedidos_medicos_pdf || null,
           admissionId
         );
+        // Actualizar archivos binarios uno por uno (BYTEA)
+        for (const [campoKey, update] of Object.entries(fileUpdates)) {
+          const { meta, data, filename, mimetype } = update;
+          await db.run(
+            `UPDATE admission_documents SET
+              ${meta.dataCol} = $1,
+              ${meta.filenameCol} = $2,
+              ${meta.mimetypeCol} = $3,
+              ${meta.dbField} = $4,
+              updated_at = now()
+             WHERE admission_id = $5`,
+            [data, filename, mimetype, filename, admissionId]
+          );
+        }
       } else {
-        // Crear
+        // Crear registro base
         await db.run(
           `INSERT INTO admission_documents
-            (admission_id, dni_numero, numero_afiliado,
-             carnet_pdf, cud_pdf, consentimiento_padres_pdf,
-             presupuesto_pdf, informe_inicial_pdf, plan_trabajo_pdf,
-             resumen_historial_pdf, pedidos_medicos_pdf)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            (admission_id, dni_numero, numero_afiliado)
+           VALUES (?, ?, ?)`,
           admissionId,
           fields.dniNumero || null,
-          fields.numeroAfiliado || null,
-          savedFiles.carnet_pdf || null,
-          savedFiles.cud_pdf || null,
-          savedFiles.consentimiento_padres_pdf || null,
-          savedFiles.presupuesto_pdf || null,
-          savedFiles.informe_inicial_pdf || null,
-          savedFiles.plan_trabajo_pdf || null,
-          savedFiles.resumen_historial_pdf || null,
-          savedFiles.pedidos_medicos_pdf || null
+          fields.numeroAfiliado || null
         );
+        // Agregar archivos binarios
+        for (const [campoKey, update] of Object.entries(fileUpdates)) {
+          const { meta, data, filename, mimetype } = update;
+          await db.run(
+            `UPDATE admission_documents SET
+              ${meta.dataCol} = $1,
+              ${meta.filenameCol} = $2,
+              ${meta.mimetypeCol} = $3,
+              ${meta.dbField} = $4,
+              updated_at = now()
+             WHERE admission_id = $5`,
+            [data, filename, mimetype, filename, admissionId]
+          );
+        }
       }
 
       const updated = await db.get(
-        `SELECT * FROM admission_documents WHERE admission_id = ?`,
+        `SELECT id, admission_id, dni_numero, numero_afiliado,
+                carnet_pdf, carnet_filename, carnet_mimetype,
+                cud_pdf, cud_filename, cud_mimetype,
+                consentimiento_padres_pdf, consentimiento_filename, consentimiento_mimetype,
+                presupuesto_pdf, presupuesto_filename, presupuesto_mimetype,
+                informe_inicial_pdf, informe_filename, informe_mimetype,
+                plan_trabajo_pdf, plan_filename, plan_mimetype,
+                resumen_historial_pdf, historial_filename, historial_mimetype,
+                pedidos_medicos_pdf, pedidos_filename, pedidos_mimetype,
+                created_at, updated_at
+         FROM admission_documents WHERE admission_id = ?`,
         admissionId
       );
       res.status(200).json(formatDocuments(updated));
@@ -475,41 +506,69 @@ function registerAdmisionsRoutes(app, { db, authMiddleware }) {
     }
   });
 
-  // GET /api/admisiones/:id/expediente/:campo/archivo – descargar un PDF específico
+  // GET /api/admisiones/:id/expediente/:campo/archivo – descargar un archivo específico desde DB
   app.get('/api/admisiones/:id/expediente/:campo/archivo', authMiddleware, async (req, res) => {
     try {
-      const doc = await db.get(
-        `SELECT * FROM admission_documents WHERE admission_id = ?`,
+      const campoKey = req.params.campo;
+      const meta = CAMPO_MAP[campoKey];
+      if (!meta) return res.status(400).json({ error: 'Campo no válido.' });
+
+      // Traer solo las columnas del campo solicitado
+      const row = await db.get(
+        `SELECT ${meta.dataCol}, ${meta.filenameCol}, ${meta.mimetypeCol}
+         FROM admission_documents WHERE admission_id = ?`,
         req.params.id
       );
-      if (!doc) return res.status(404).json({ error: 'Expediente no encontrado.' });
 
-      const campoMap = {
-        carnet: 'carnet_pdf',
-        cud: 'cud_pdf',
-        consentimiento: 'consentimiento_padres_pdf',
-        presupuesto: 'presupuesto_pdf',
-        informe: 'informe_inicial_pdf',
-        plan: 'plan_trabajo_pdf',
-        historial: 'resumen_historial_pdf',
-        pedidos: 'pedidos_medicos_pdf',
-      };
+      if (!row) return res.status(404).json({ error: 'Expediente no encontrado.' });
 
-      const dbField = campoMap[req.params.campo];
-      if (!dbField) return res.status(400).json({ error: 'Campo no válido.' });
+      const fileData = row[meta.dataCol];
+      if (!fileData) return res.status(404).json({ error: 'Archivo no encontrado.' });
 
-      const fileName = doc[dbField];
-      if (!fileName) return res.status(404).json({ error: 'Archivo no encontrado.' });
+      const mimetype = row[meta.mimetypeCol] || 'application/pdf';
+      const filename = row[meta.filenameCol] || `${campoKey}.pdf`;
 
-      const filePath = path.join(UPLOADS_DIR, fileName);
-      if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Archivo no encontrado en disco.' });
+      // fileData puede ser un Buffer o un Uint8Array desde pg
+      const buffer = Buffer.isBuffer(fileData) ? fileData : Buffer.from(fileData);
 
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
-      fs.createReadStream(filePath).pipe(res);
+      res.setHeader('Content-Type', mimetype);
+      res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(filename)}"`);
+      res.setHeader('Content-Length', buffer.length);
+      res.end(buffer);
     } catch (err) {
       console.error('[ADMISIONES] GET /api/admisiones/:id/expediente/:campo/archivo', err);
       res.status(500).json({ error: 'No se pudo descargar el archivo.' });
+    }
+  });
+
+  // GET /api/admisiones/:id/expediente/:campo/info – metadata del archivo (sin binario)
+  app.get('/api/admisiones/:id/expediente/:campo/info', authMiddleware, async (req, res) => {
+    try {
+      const campoKey = req.params.campo;
+      const meta = CAMPO_MAP[campoKey];
+      if (!meta) return res.status(400).json({ error: 'Campo no válido.' });
+
+      const row = await db.get(
+        `SELECT
+           ${meta.filenameCol} AS filename,
+           ${meta.mimetypeCol} AS mimetype,
+           octet_length(${meta.dataCol}) AS size
+         FROM admission_documents WHERE admission_id = ?`,
+        req.params.id
+      );
+
+      if (!row) return res.status(404).json({ error: 'Expediente no encontrado.' });
+
+      res.json({
+        campo: campoKey,
+        filename: row.filename || null,
+        mimetype: row.mimetype || null,
+        size: row.size || 0,
+        existe: Boolean(row.size && row.size > 0),
+      });
+    } catch (err) {
+      console.error('[ADMISIONES] GET /api/admisiones/:id/expediente/:campo/info', err);
+      res.status(500).json({ error: 'No se pudo obtener la información del archivo.' });
     }
   });
 }

@@ -523,6 +523,8 @@ async function initDb() {
   for (const nombre of TRATAMIENTOS_BASE) {
     await db.run('INSERT INTO treatments (name) VALUES ($1) ON CONFLICT DO NOTHING', nombre);
   }
+  // Correr migraciones pendientes automáticamente
+  await runMigrations(db, pool);
   try {
     await db.run(`DELETE FROM sessions WHERE expires_at <= now()`);
   } catch (err) {}
@@ -537,6 +539,45 @@ async function initDb() {
     );
   } catch (err) {}
   return db;
+}
+
+async function runMigrations(db, pool) {
+  const MIGRATIONS_DIR = path.join(__dirname, 'migrations');
+  try {
+    // Crear tabla de control de migraciones si no existe
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS _schema_migrations (
+        name TEXT PRIMARY KEY,
+        applied_at TIMESTAMPTZ DEFAULT now()
+      )
+    `);
+    if (!fs.existsSync(MIGRATIONS_DIR)) return;
+    const files = fs.readdirSync(MIGRATIONS_DIR)
+      .filter((f) => f.endsWith('.sql'))
+      .sort();
+    for (const file of files) {
+      const existing = await pool.query(
+        'SELECT name FROM _schema_migrations WHERE name = $1',
+        [file]
+      );
+      if (existing.rows.length > 0) continue;
+      const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, file), 'utf8');
+      console.log(`[DB] Aplicando migración: ${file}`);
+      try {
+        await pool.query(sql);
+        await pool.query(
+          'INSERT INTO _schema_migrations (name) VALUES ($1)',
+          [file]
+        );
+        console.log(`[DB] Migración aplicada: ${file}`);
+      } catch (err) {
+        console.error(`[DB] Error en migración ${file}:`, err.message);
+        // No lanzar error — migraciones parciales no deben frenar el boot
+      }
+    }
+  } catch (err) {
+    console.error('[DB] Error al correr migraciones:', err.message);
+  }
 }
 
 function hashPassword(password) {
@@ -1328,6 +1369,19 @@ async function main() {
   });
   app.use(cors(buildCorsOptions()));
   app.use(express.json({ limit: '200kb' }));
+  // Aumentar límite para uploads de archivos binarios (PDFs) via multipart/form-data
+  // Los archivos van directamente a la base de datos como BYTEA
+  app.use((req, res, next) => {
+    const ct = req.headers['content-type'] || '';
+    if (ct.includes('multipart/form-data')) {
+      // Para multipart no aplica express.json, pero necesitamos el límite del request
+      // El máximo es 20 MB por admisión
+      req.setMaxBodyLength && req.setMaxBodyLength(20 * 1024 * 1024);
+      next();
+    } else {
+      next();
+    }
+  });
   const authMiddleware = crearAuthMiddleware(db);
   const adminMiddleware = crearAdminMiddleware();
 
