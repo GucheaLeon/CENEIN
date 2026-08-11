@@ -1161,21 +1161,22 @@ async function construirPaciente(db, fila) {
 
 async function listarPacientes(db) {
   const filas = await db.all(
-    `SELECT
-       p.*,
-       o.name AS obra_social_name,
-       s.name AS patient_state_name,
-       auth.authorization_date AS authorized_at
-     FROM PATIENTS p
-     LEFT JOIN OS o ON p.os_id = o.id
-     LEFT JOIN PATIENT_STATE s ON p.patient_state_id = s.id
-     LEFT JOIN LATERAL (
-         SELECT authorization_date
-         FROM AUTHORIZATIONS
-         WHERE patient_id = p.patient_id
-         ORDER BY created_at DESC
-         LIMIT 1
-     ) auth ON true
+     `SELECT
+        p.*,
+        (SELECT array_to_string(array_agg(m.description), ',') FROM MODULE_PATIENT mp JOIN MODULE m ON mp.module_id = m.id WHERE mp.patient_id = p.patient_id) as module_type,
+        o.name AS obra_social_name,
+        s.name AS patient_state_name,
+        auth.authorization_date AS authorized_at
+      FROM PATIENTS p
+      LEFT JOIN OS o ON p.os_id = o.id
+      LEFT JOIN PATIENT_STATE s ON p.patient_state_id = s.id
+      LEFT JOIN LATERAL (
+          SELECT authorization_date
+          FROM AUTHORIZATIONS
+          WHERE patient_id = p.patient_id
+          ORDER BY created_at DESC
+          LIMIT 1
+      ) auth ON true
      ORDER BY p.created_at DESC`
   );
   
