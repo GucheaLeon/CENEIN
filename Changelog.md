@@ -1,5 +1,34 @@
 # CHANGELOG
+
+## [1.1.0] - 2026/08/04
+
+### agregado
+* Actualizacion de BD
+* Organizacion del modulo Factura
+
+
+---
+
+## [1.0.3] - 2026/08/04
+
+### agregado
+* Definicion de etapas en el modulo Admision
+* Agregado de checkboxes de OS y CUD
+
+
+---
+
+## [1.0.2] - 2026/07/28
+
+### agregado
+* Agregado de modulo de Admision
+
+
+---
+
+
 ## [1.0.1] - 2026/07/21
+
 
 ### modificado
 * Se soluciono la planilla en funcion de las semanas 
