@@ -300,7 +300,7 @@ CREATE TABLE IF NOT EXISTS ADMISSION_DOCUMENTS (
     carnet_pdf TEXT,
     cud_pdf TEXT,
     consentimiento_padres_pdf TEXT,
-    presupuesto_pdf TEXT,
+    presupuesto_pdf BYTEA,
     informe_inicial_pdf TEXT,
     plan_trabajo_pdf TEXT,
     resumen_historial_pdf TEXT,
