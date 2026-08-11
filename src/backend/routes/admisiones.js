@@ -156,11 +156,13 @@ function formatDocuments(row) {
     creadoEn: row.created_at,
     actualizadoEn: row.updated_at,
   };
-  // Para cada documento, indicar si existe (true/false) y el nombre de archivo
+  // Para cada documento: tieneField=true si tiene filename guardado, filenameField=nombre del archivo
   for (const [key, meta] of Object.entries(CAMPO_MAP)) {
-    result[`${key}Pdf`] = row[meta.dbField] || (row[meta.dataCol] ? meta.dbField : '') || '';
-    result[`${key}Filename`] = row[meta.filenameCol] || '';
-    result[`${key}Tiene`] = Boolean(row[meta.dataCol] || row[meta.dbField]);
+    const filename = row[meta.filenameCol] || row[meta.dbField] || '';
+    result[`${key}Filename`] = filename;
+    result[`${key}Tiene`] = Boolean(filename);
+    // Valor legible del campo (nombre de archivo o vacío)
+    result[`${key}Pdf`] = filename;
   }
   return result;
 }
@@ -413,6 +415,10 @@ function registerAdmisionsRoutes(app, { db, authMiddleware }) {
       }
 
       const { fields, files } = await parseMultipart(req);
+      console.log('[EXPEDIENTE] fields recibidos:', Object.keys(fields), 'files recibidos:', Object.keys(files), 'content-type:', req.headers['content-type']?.substring(0, 60));
+      for (const [k, f] of Object.entries(files)) {
+        console.log(`  archivo: ${k} -> filename=${f.filename} dataLen=${f.data?.length}`);
+      }
 
       const existing = await db.get(
         `SELECT id FROM admission_documents WHERE admission_id = ?`,
@@ -434,30 +440,48 @@ function registerAdmisionsRoutes(app, { db, authMiddleware }) {
       }
 
       if (existing) {
-        // Actualizar campos de texto
-        await db.run(
-          `UPDATE admission_documents SET
-            dni_numero = COALESCE(?, dni_numero),
-            numero_afiliado = COALESCE(?, numero_afiliado),
-            updated_at = now()
-           WHERE admission_id = ?`,
-          fields.dniNumero || null,
-          fields.numeroAfiliado || null,
-          admissionId
-        );
-        // Actualizar archivos binarios uno por uno (BYTEA)
-        for (const [campoKey, update] of Object.entries(fileUpdates)) {
-          const { meta, data, filename, mimetype } = update;
+        // Actualizar campos de texto solo si se enviaron valores no vacíos
+        const dniVal = (fields.dniNumero || '').trim();
+        const afiliadoVal = (fields.numeroAfiliado || '').trim();
+        if (dniVal || afiliadoVal) {
           await db.run(
             `UPDATE admission_documents SET
-              ${meta.dataCol} = $1,
-              ${meta.filenameCol} = $2,
-              ${meta.mimetypeCol} = $3,
-              ${meta.dbField} = $4,
+              dni_numero = CASE WHEN ?::text <> '' THEN ?::text ELSE dni_numero END,
+              numero_afiliado = CASE WHEN ?::text <> '' THEN ?::text ELSE numero_afiliado END,
               updated_at = now()
-             WHERE admission_id = $5`,
-            [data, filename, mimetype, filename, admissionId]
+             WHERE admission_id = ?`,
+            dniVal,
+            dniVal,
+            afiliadoVal,
+            afiliadoVal,
+            admissionId
           );
+        }
+        // Actualizar archivos binarios uno por uno (BYTEA)
+        console.log('[EXPEDIENTE] fileUpdates keys:', Object.keys(fileUpdates));
+        for (const [campoKey, update] of Object.entries(fileUpdates)) {
+          const { meta, data, filename, mimetype } = update;
+          console.log(`[EXPEDIENTE] Guardando archivo: campo=${campoKey} filename=${filename} mimetype=${mimetype} dataLen=${data?.length}`);
+          try {
+            const buf = Buffer.isBuffer(data) ? data : Buffer.from(data);
+            await db.run(
+              `UPDATE admission_documents SET
+                ${meta.dataCol} = ?,
+                ${meta.filenameCol} = ?,
+                ${meta.mimetypeCol} = ?,
+                ${meta.dbField} = ?,
+                updated_at = now()
+               WHERE admission_id = ?`,
+              buf,
+              filename,
+              mimetype,
+              filename,
+              admissionId
+            );
+            console.log(`[EXPEDIENTE] OK guardado: ${campoKey}`);
+          } catch (fileErr) {
+            console.error(`[EXPEDIENTE] Error guardando ${campoKey}:`, fileErr.message);
+          }
         }
       } else {
         // Crear registro base
@@ -470,18 +494,30 @@ function registerAdmisionsRoutes(app, { db, authMiddleware }) {
           fields.numeroAfiliado || null
         );
         // Agregar archivos binarios
+        console.log('[EXPEDIENTE] INSERT nuevo, fileUpdates keys:', Object.keys(fileUpdates));
         for (const [campoKey, update] of Object.entries(fileUpdates)) {
           const { meta, data, filename, mimetype } = update;
-          await db.run(
-            `UPDATE admission_documents SET
-              ${meta.dataCol} = $1,
-              ${meta.filenameCol} = $2,
-              ${meta.mimetypeCol} = $3,
-              ${meta.dbField} = $4,
-              updated_at = now()
-             WHERE admission_id = $5`,
-            [data, filename, mimetype, filename, admissionId]
-          );
+          console.log(`[EXPEDIENTE] Guardando archivo nuevo: campo=${campoKey} filename=${filename} dataLen=${data?.length}`);
+          try {
+            const buf = Buffer.isBuffer(data) ? data : Buffer.from(data);
+            await db.run(
+              `UPDATE admission_documents SET
+                ${meta.dataCol} = ?,
+                ${meta.filenameCol} = ?,
+                ${meta.mimetypeCol} = ?,
+                ${meta.dbField} = ?,
+                updated_at = now()
+               WHERE admission_id = ?`,
+              buf,
+              filename,
+              mimetype,
+              filename,
+              admissionId
+            );
+            console.log(`[EXPEDIENTE] OK guardado nuevo: ${campoKey}`);
+          } catch (fileErr) {
+            console.error(`[EXPEDIENTE] Error guardando nuevo ${campoKey}:`, fileErr.message);
+          }
         }
       }
 

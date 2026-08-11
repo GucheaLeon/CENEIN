@@ -85,6 +85,16 @@ function WizardNuevaAdmision({ onGuardar, onCancelar }) {
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState('');
   const [animDir, setAnimDir] = useState('forward'); // forward | backward
+  const [obrasSociales, setObrasSociales] = useState([]);
+  const [busquedaOS, setBusquedaOS] = useState('');
+
+  useEffect(() => {
+    if (form.tieneObraSocial && obrasSociales.length === 0) {
+      obtenerObrasSocialesApi()
+        .then((data) => setObrasSociales(Array.isArray(data) ? data : []))
+        .catch(() => {});
+    }
+  }, [form.tieneObraSocial, obrasSociales.length]);
 
   const cambiar = (campo, valor) =>
     setForm((prev) => ({ ...prev, [campo]: valor }));
@@ -358,16 +368,76 @@ function WizardNuevaAdmision({ onGuardar, onCancelar }) {
                 </button>
               </div>
 
-              {/* Nombre de la obra social */}
+              {/* Buscador / Selector compacto de alta legibilidad para Obra Social */}
               {form.tieneObraSocial && (
-                <input
-                  id="wizard-os-nombre"
-                  type="text"
-                  value={form.obraSocialNombre}
-                  onChange={(e) => cambiar('obraSocialNombre', e.target.value)}
-                  placeholder="Nombre de la obra social (opcional)"
-                  className="w-full rounded-2xl border-2 border-[#006d44]/30 bg-[#f0faf4] px-4 py-2.5 text-sm focus:border-[#006d44] focus:outline-none"
-                />
+                <div className="rounded-lg border border-emerald-300 bg-emerald-50/90 p-1.5 space-y-1 shadow-2xs animate-fade-in">
+                  {form.obraSocialNombre ? (
+                    <div className="flex items-center justify-between rounded-md bg-[#006d44] px-2.5 py-1 text-white shadow-2xs">
+                      <span className="text-xs font-bold truncate">OS: {form.obraSocialNombre}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          cambiar('obraSocialNombre', '');
+                          setBusquedaOS('');
+                        }}
+                        className="text-white/80 hover:text-white ml-2 flex items-center gap-0.5 text-xs font-semibold underline"
+                      >
+                        Cambiar
+                        <span className="material-symbols-outlined" style={{fontSize:'13px'}}>close</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="relative">
+                        <span className="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-slate-500" style={{fontSize:'14px'}}>
+                          search
+                        </span>
+                        <input
+                          id="wizard-os-busqueda"
+                          type="text"
+                          value={busquedaOS}
+                          onChange={(e) => {
+                            setBusquedaOS(e.target.value);
+                            cambiar('obraSocialNombre', e.target.value);
+                          }}
+                          placeholder="Buscar o escribir obra social..."
+                          className="w-full rounded-md border border-slate-300 bg-white py-1 pl-6 pr-2 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#006d44] focus:outline-none focus:ring-1 focus:ring-[#006d44]"
+                        />
+                      </div>
+
+                      {/* Lista desplegable compacta con divisores */}
+                      <ul className="max-h-20 overflow-y-auto space-y-0 rounded-md bg-white border border-slate-300 divide-y divide-slate-100 shadow-inner">
+                        {obrasSociales
+                          .filter((os) =>
+                            !busquedaOS ||
+                            os.label.toLowerCase().includes(busquedaOS.toLowerCase())
+                          )
+                          .map((os) => (
+                            <li key={os.id}>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  cambiar('obraSocialNombre', os.label);
+                                  setBusquedaOS('');
+                                }}
+                                className="flex w-full items-center gap-1.5 px-2 py-0.5 text-left text-xs font-medium text-slate-800 hover:bg-[#006d44] hover:text-white transition-colors"
+                              >
+                                {os.label}
+                              </button>
+                            </li>
+                          ))}
+                        {obrasSociales.filter((os) =>
+                          !busquedaOS ||
+                          os.label.toLowerCase().includes(busquedaOS.toLowerCase())
+                        ).length === 0 && (
+                          <li className="px-2 py-1 text-[11px] font-semibold text-slate-500">
+                            {busquedaOS ? `Se registrará: "${busquedaOS}"` : 'Cargando obras sociales...'}
+                          </li>
+                        )}
+                      </ul>
+                    </>
+                  )}
+                </div>
               )}
 
               {/* Resumen */}
@@ -509,11 +579,28 @@ function PanelRevisionFisiatra({ admision, onActualizar }) {
 
   return (
     <div className="space-y-4">
-      {revision ? (
+      {revision && !mostrarForm && (
         <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 space-y-3">
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold text-slate-700">Revisión de la Fisiatra</p>
-            <BadgeEstado estado={revision.resultado} />
+            <div className="flex items-center gap-2">
+              <BadgeEstado estado={revision.resultado} />
+              <button
+                type="button"
+                onClick={() => {
+                  setForm({
+                    fechaTurno: revision.fechaTurno || '',
+                    resultado: revision.resultado || '',
+                    devolucion: revision.devolucion || '',
+                  });
+                  setMostrarForm(true);
+                }}
+                className="flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-bold text-[#006d44] hover:bg-[#006d44] hover:text-white transition"
+              >
+                <span className="material-symbols-outlined text-xs">edit</span>
+                Editar
+              </button>
+            </div>
           </div>
           {revision.fechaTurno && (
             <p className="text-sm text-slate-600">
@@ -534,7 +621,9 @@ function PanelRevisionFisiatra({ admision, onActualizar }) {
             <p className="text-xs text-slate-400">Registrado por: {revision.reviewedBy}</p>
           )}
         </div>
-      ) : (
+      )}
+
+      {!revision && !mostrarForm && (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-center">
           <span className="material-symbols-outlined mb-2 block text-3xl text-slate-300">
             event_available
@@ -545,28 +634,28 @@ function PanelRevisionFisiatra({ admision, onActualizar }) {
         </div>
       )}
 
-      {!revision && (
-        <>
-          {mostrarForm ? (
-            <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-[#006d44]/20 bg-[#f0faf4] p-5">
-              <p className="text-sm font-semibold text-[#006d44]">Registrar devolución de la Fisiatra</p>
+      {mostrarForm ? (
+        <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-[#006d44]/20 bg-[#f0faf4] p-5">
+          <p className="text-sm font-semibold text-[#006d44]">
+            {revision ? 'Editar devolución de la Fisiatra' : 'Registrar devolución de la Fisiatra'}
+          </p>
 
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-slate-600 uppercase tracking-wide">
-                  Fecha del turno
-                </label>
-                <input
-                  type="date"
-                  value={form.fechaTurno}
-                  onChange={(e) => setForm((f) => ({ ...f, fechaTurno: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm focus:border-[#006d44] focus:outline-none"
-                />
-              </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-slate-600 uppercase tracking-wide">
+              Fecha del turno
+            </label>
+            <input
+              type="date"
+              value={form.fechaTurno}
+              onChange={(e) => setForm((f) => ({ ...f, fechaTurno: e.target.value }))}
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm focus:border-[#006d44] focus:outline-none"
+            />
+          </div>
 
-              <div>
-                <label className="mb-2 block text-xs font-semibold text-slate-600 uppercase tracking-wide">
-                  Resultado <span className="text-rose-500">*</span>
-                </label>
+          <div>
+            <label className="mb-2 block text-xs font-semibold text-slate-600 uppercase tracking-wide">
+              Resultado <span className="text-rose-500">*</span>
+            </label>
                 <div className="flex gap-3">
                   {['aprobado', 'desestimado'].map((op) => (
                     <label
@@ -629,17 +718,17 @@ function PanelRevisionFisiatra({ admision, onActualizar }) {
                 </button>
               </div>
             </form>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setMostrarForm(true)}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#006d44]/30 bg-[#f0faf4] px-4 py-3 text-sm font-semibold text-[#006d44] hover:bg-[#e3f5ea]"
-            >
-              <span className="material-symbols-outlined text-base">add_circle</span>
-              Registrar devolución de la Fisiatra
-            </button>
-          )}
-        </>
+      ) : (
+        !revision && (
+          <button
+            type="button"
+            onClick={() => setMostrarForm(true)}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#006d44]/30 bg-[#f0faf4] px-4 py-3 text-sm font-semibold text-[#006d44] hover:bg-[#e3f5ea]"
+          >
+            <span className="material-symbols-outlined text-base">add_circle</span>
+            Registrar devolución de la Fisiatra
+          </button>
+        )
       )}
     </div>
   );
@@ -806,17 +895,26 @@ function PanelExpediente({ admision, onActualizar }) {
     setExito('');
     try {
       const fd = new FormData();
-      if (campos.dniNumero) fd.append('dniNumero', campos.dniNumero);
-      if (campos.numeroAfiliado) fd.append('numeroAfiliado', campos.numeroAfiliado);
+      fd.append('dniNumero', campos.dniNumero || '');
+      fd.append('numeroAfiliado', campos.numeroAfiliado || '');
       for (const doc of DOCUMENTOS_PDF) {
         if (archivos[doc.key]) {
           fd.append(`${doc.key}_pdf`, archivos[doc.key]);
         }
       }
-      await guardarExpedienteAdmisionApi(admision.id, fd);
-      await cargar();
+      const dataActualizada = await guardarExpedienteAdmisionApi(admision.id, fd);
+      if (dataActualizada) {
+        setExpediente(dataActualizada);
+        setCampos({
+          dniNumero: dataActualizada.dniNumero || '',
+          numeroAfiliado: dataActualizada.numeroAfiliado || '',
+        });
+      } else {
+        await cargar();
+      }
       setArchivos({});
       setExito('Expediente guardado correctamente.');
+      if (onActualizar) onActualizar();
       setTimeout(() => setExito(''), 4000);
     } catch (err) {
       setError(err.message || 'No se pudo guardar el expediente.');
@@ -886,10 +984,16 @@ function PanelExpediente({ admision, onActualizar }) {
         </div>
 
         {/* Documentos PDF */}
-        <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Documentos PDF
-          </p>
+        <div className="space-y-2.5">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+              Documentos PDF del Expediente
+            </p>
+            <span className="text-[11px] font-semibold text-slate-500">
+              Hacé clic en "Adjuntar PDF" en cada documento deseado
+            </span>
+          </div>
+
           {DOCUMENTOS_PDF.map((doc) => {
             const yaSubido = expediente && expediente[doc.tieneField];
             const filename = expediente && expediente[doc.filenameField];
@@ -897,29 +1001,33 @@ function PanelExpediente({ admision, onActualizar }) {
             return (
               <div
                 key={doc.key}
-                className={`flex items-center gap-3 rounded-2xl border px-4 py-3 transition-all ${
-                  yaSubido
-                    ? 'border-emerald-200 bg-emerald-50/50'
-                    : 'border-slate-200 bg-slate-50'
+                className={`flex items-center gap-3 rounded-xl border px-3.5 py-2.5 transition-all ${
+                  nuevo
+                    ? 'border-emerald-400 bg-emerald-50/90 shadow-2xs'
+                    : yaSubido
+                    ? 'border-emerald-300 bg-emerald-50/40'
+                    : 'border-slate-200 bg-slate-50/80'
                 }`}
               >
-                <span className={`material-symbols-outlined text-xl flex-shrink-0 ${yaSubido ? 'text-emerald-500' : 'text-slate-300'}`}>
+                <span className={`material-symbols-outlined text-xl flex-shrink-0 ${
+                  nuevo ? 'text-[#006d44]' : yaSubido ? 'text-emerald-600' : 'text-slate-400'
+                }`}>
                   picture_as_pdf
                 </span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-slate-700">{doc.label}</p>
+                  <p className="text-xs font-bold text-slate-800">{doc.label}</p>
                   {nuevo ? (
-                    <p className="text-xs text-[#006d44] truncate flex items-center gap-1">
+                    <p className="text-[11px] font-bold text-[#006d44] truncate flex items-center gap-1">
                       <span className="material-symbols-outlined text-xs">upload</span>
-                      Listo para subir: {nuevo.name}
+                      Listo para guardar: {nuevo.name}
                     </p>
                   ) : yaSubido ? (
-                    <p className="text-xs text-emerald-600 truncate flex items-center gap-1">
+                    <p className="text-[11px] font-semibold text-emerald-700 truncate flex items-center gap-1">
                       <span className="material-symbols-outlined text-xs">check_circle</span>
                       {filename || 'Archivo guardado'}
                     </p>
                   ) : (
-                    <p className="text-xs text-slate-400">Sin archivo</p>
+                    <p className="text-[11px] font-medium text-slate-400">Sin archivo adjunto</p>
                   )}
                 </div>
 
@@ -929,10 +1037,10 @@ function PanelExpediente({ admision, onActualizar }) {
                     <button
                       type="button"
                       onClick={() => setVisorAbierto({ key: doc.key, label: doc.label })}
-                      className="flex items-center gap-1 rounded-xl border border-emerald-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 transition"
+                      className="flex items-center gap-1 rounded-lg border border-emerald-300 bg-white px-2.5 py-1 text-xs font-bold text-emerald-700 hover:bg-emerald-100 transition"
                     >
-                      <span className="material-symbols-outlined text-sm">visibility</span>
-                      Ver
+                      <span className="material-symbols-outlined text-xs">visibility</span>
+                      Ver PDF
                     </button>
                   )}
                   <input
@@ -945,10 +1053,16 @@ function PanelExpediente({ admision, onActualizar }) {
                   <button
                     type="button"
                     onClick={() => fileRefs.current[doc.key]?.click()}
-                    className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:border-[#006d44]/30 hover:text-[#006d44] transition"
+                    className={`flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-bold transition ${
+                      nuevo
+                        ? 'border-emerald-600 bg-[#006d44] text-white hover:bg-[#005a38]'
+                        : yaSubido
+                        ? 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
+                        : 'border-slate-300 bg-white text-slate-800 hover:border-[#006d44] hover:text-[#006d44]'
+                    }`}
                   >
-                    <span className="material-symbols-outlined text-sm">upload_file</span>
-                    {yaSubido ? 'Reemplazar' : 'Subir'}
+                    <span className="material-symbols-outlined text-xs">upload_file</span>
+                    {nuevo ? 'Cambiar PDF' : yaSubido ? 'Reemplazar PDF' : 'Adjuntar PDF'}
                   </button>
                 </div>
               </div>
@@ -958,34 +1072,37 @@ function PanelExpediente({ admision, onActualizar }) {
 
         {/* Resumen de archivos a subir */}
         {Object.keys(archivos).length > 0 && (
-          <div className="rounded-xl bg-[#006d44]/5 border border-[#006d44]/20 px-4 py-3">
-            <p className="text-xs font-semibold text-[#006d44] mb-1">
-              {Object.keys(archivos).length} archivo(s) listo(s) para subir
-            </p>
-            <p className="text-xs text-slate-500">Hacé clic en "Guardar" para subirlos a la base de datos.</p>
+          <div className="rounded-xl bg-[#006d44]/10 border border-[#006d44]/30 px-4 py-2.5 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[#006d44] text-base">cloud_upload</span>
+              <p className="text-xs font-bold text-[#006d44]">
+                {Object.keys(archivos).length} PDF(s) seleccionado(s) pendiente(s) de guardar
+              </p>
+            </div>
+            <span className="text-[11px] font-semibold text-[#006d44]">Hacé clic en "Guardar expediente" abajo</span>
           </div>
         )}
 
         {error && (
-          <p className="rounded-xl bg-rose-50 px-4 py-2.5 text-sm text-rose-600 flex items-center gap-2">
+          <p className="rounded-xl bg-rose-50 px-4 py-2.5 text-xs font-semibold text-rose-600 flex items-center gap-2 border border-rose-200">
             <span className="material-symbols-outlined text-sm">error</span>
             {error}
           </p>
         )}
         {exito && (
-          <p className="rounded-xl bg-emerald-50 px-4 py-2.5 text-sm text-emerald-700 flex items-center gap-2">
+          <p className="rounded-xl bg-emerald-50 px-4 py-2.5 text-xs font-semibold text-emerald-800 flex items-center gap-2 border border-emerald-200">
             <span className="material-symbols-outlined text-sm">check_circle</span>
             {exito}
           </p>
         )}
 
         {/* Botones de acción principal */}
-        <div className="flex gap-3">
+        <div className="flex gap-3 pt-1">
           <button
             type="button"
             onClick={handleGuardar}
             disabled={guardando}
-            className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#006d44] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#005a38] disabled:opacity-60 transition"
+            className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#006d44] px-6 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#005a38] disabled:opacity-60 transition"
           >
             {guardando ? (
               <>
@@ -1151,7 +1268,7 @@ function PanelDetalle({ admision, onCerrar, onActualizar }) {
       {/* Contenido */}
       <div className="flex-1 overflow-y-auto px-6 py-5">
         {pestana === 'datos' && (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {[
               ['Nombre completo', `${admision.apellido}, ${admision.nombre}`],
               ['DNI', admision.dni || '-'],
@@ -1162,39 +1279,37 @@ function PanelDetalle({ admision, onCerrar, onActualizar }) {
               ['Domicilio', admision.domicilio || '-'],
               ['Registrado el', admision.creadoEn ? new Date(admision.creadoEn).toLocaleDateString('es-AR') : '-'],
             ].map(([label, value]) => (
-              <div key={label} className="flex justify-between gap-4 rounded-xl bg-slate-50 px-4 py-2.5">
-                <span className="text-xs font-semibold text-slate-500">{label}</span>
-                <span className="text-sm text-slate-800 text-right">{value}</span>
+              <div key={label} className="flex justify-between items-center gap-3 rounded-lg bg-slate-100 px-3 py-1.5 border border-slate-200 shadow-2xs">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600">{label}</span>
+                <span className="text-xs font-bold text-slate-900 text-right">{value}</span>
               </div>
             ))}
 
             {/* Tarjetas interactivas OS / CUD */}
-            <div className="pt-1 space-y-2">
+            <div className="pt-1 space-y-1.5">
               <div className="grid grid-cols-2 gap-2">
                 {/* Obra Social */}
                 <button
                   type="button"
                   onClick={() => setTieneOS((v) => !v)}
-                  className={`flex items-center justify-between rounded-2xl border-2 px-3 py-2.5 transition-all ${
+                  className={`flex items-center justify-between rounded-lg border px-2.5 py-1.5 shadow-2xs transition-all ${
                     tieneOS
-                      ? 'border-[#006d44] bg-[#f0faf4]'
-                      : 'border-slate-200 bg-slate-50'
+                      ? 'border-[#006d44] bg-emerald-50 text-[#004d30] font-bold'
+                      : 'border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100'
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <span className={`flex h-7 w-7 items-center justify-center rounded-full text-sm ${
-                      tieneOS ? 'bg-[#006d44] text-white' : 'bg-slate-200 text-slate-400'
+                  <div className="flex items-center gap-1.5">
+                    <span className={`flex h-5 w-5 items-center justify-center rounded-full text-xs ${
+                      tieneOS ? 'bg-[#006d44] text-white' : 'bg-slate-300 text-slate-600'
                     }`}>
-                      <span className="material-symbols-outlined" style={{fontSize:'15px'}}>health_and_safety</span>
+                      <span className="material-symbols-outlined" style={{fontSize:'12px'}}>health_and_safety</span>
                     </span>
-                    <span className={`text-xs font-semibold ${tieneOS ? 'text-[#006d44]' : 'text-slate-500'}`}>
-                      Obra Social
-                    </span>
+                    <span className="text-xs font-bold">Obra Social</span>
                   </div>
-                  <div className={`flex h-5 w-9 flex-shrink-0 items-center rounded-full px-0.5 transition-all ${
-                    tieneOS ? 'justify-end bg-[#006d44]' : 'justify-start bg-slate-300'
+                  <div className={`flex h-3.5 w-6 flex-shrink-0 items-center rounded-full px-0.5 transition-all ${
+                    tieneOS ? 'justify-end bg-[#006d44]' : 'justify-start bg-slate-400'
                   }`}>
-                    <div className="h-4 w-4 rounded-full bg-white shadow-sm" />
+                    <div className="h-2.5 w-2.5 rounded-full bg-white shadow-xs" />
                   </div>
                 </button>
 
@@ -1202,85 +1317,80 @@ function PanelDetalle({ admision, onCerrar, onActualizar }) {
                 <button
                   type="button"
                   onClick={() => setTieneCUD((v) => !v)}
-                  className={`flex items-center justify-between rounded-2xl border-2 px-3 py-2.5 transition-all ${
+                  className={`flex items-center justify-between rounded-lg border px-2.5 py-1.5 shadow-2xs transition-all ${
                     tieneCUD
-                      ? 'border-violet-500 bg-violet-50'
-                      : 'border-slate-200 bg-slate-50'
+                      ? 'border-violet-600 bg-violet-50 text-violet-900 font-bold'
+                      : 'border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100'
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <span className={`flex h-7 w-7 items-center justify-center rounded-full text-sm ${
-                      tieneCUD ? 'bg-violet-600 text-white' : 'bg-slate-200 text-slate-400'
+                  <div className="flex items-center gap-1.5">
+                    <span className={`flex h-5 w-5 items-center justify-center rounded-full text-xs ${
+                      tieneCUD ? 'bg-violet-600 text-white' : 'bg-slate-300 text-slate-600'
                     }`}>
-                      <span className="material-symbols-outlined" style={{fontSize:'15px'}}>verified</span>
+                      <span className="material-symbols-outlined" style={{fontSize:'12px'}}>verified</span>
                     </span>
-                    <span className={`text-xs font-semibold ${tieneCUD ? 'text-violet-700' : 'text-slate-500'}`}>
-                      CUD
-                    </span>
+                    <span className="text-xs font-bold">CUD</span>
                   </div>
-                  <div className={`flex h-5 w-9 flex-shrink-0 items-center rounded-full px-0.5 transition-all ${
-                    tieneCUD ? 'justify-end bg-violet-600' : 'justify-start bg-slate-300'
+                  <div className={`flex h-3.5 w-6 flex-shrink-0 items-center rounded-full px-0.5 transition-all ${
+                    tieneCUD ? 'justify-end bg-violet-600' : 'justify-start bg-slate-400'
                   }`}>
-                    <div className="h-4 w-4 rounded-full bg-white shadow-sm" />
+                    <div className="h-2.5 w-2.5 rounded-full bg-white shadow-xs" />
                   </div>
                 </button>
               </div>
 
-              {/* Selector de Obra Social cuando está activo */}
+              {/* Selector compacto de alta legibilidad para Obra Social */}
               {tieneOS && (
-                <div className="rounded-2xl border border-[#006d44]/20 bg-[#f0faf4] p-3 space-y-2">
-                  <div className="relative">
-                    <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[#006d44]/50" style={{fontSize:'16px'}}>search</span>
-                    <input
-                      type="text"
-                      value={busquedaOS}
-                      onChange={(e) => setBusquedaOS(e.target.value)}
-                      placeholder="Buscar obra social..."
-                      className="w-full rounded-xl border border-[#006d44]/20 bg-white py-2 pl-8 pr-3 text-sm focus:border-[#006d44] focus:outline-none"
-                    />
-                  </div>
-                  <ul className="max-h-40 overflow-y-auto space-y-0.5">
-                    {obrasSociales
-                      .filter((os) =>
-                        !busquedaOS ||
-                        os.label.toLowerCase().includes(busquedaOS.toLowerCase())
-                      )
-                      .map((os) => (
-                        <li key={os.id}>
-                          <button
-                            type="button"
-                            onClick={() => { setNombreOS(os.label); setBusquedaOS(''); }}
-                            className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition ${
-                              nombreOS === os.label
-                                ? 'bg-[#006d44] font-semibold text-white'
-                                : 'hover:bg-[#006d44]/10 text-slate-700'
-                            }`}
-                          >
-                            {nombreOS === os.label && (
-                              <span className="material-symbols-outlined text-sm">check</span>
-                            )}
-                            {os.label}
-                          </button>
-                        </li>
-                      ))}
-                    {obrasSociales.filter((os) =>
-                      !busquedaOS ||
-                      os.label.toLowerCase().includes(busquedaOS.toLowerCase())
-                    ).length === 0 && (
-                      <li className="px-3 py-2 text-xs text-slate-400">Sin resultados</li>
-                    )}
-                  </ul>
-                  {nombreOS && (
-                    <div className="flex items-center justify-between rounded-xl bg-[#006d44]/10 px-3 py-1.5">
-                      <span className="text-xs font-semibold text-[#006d44]">{nombreOS}</span>
+                <div className="rounded-lg border border-emerald-300 bg-emerald-50/90 p-1.5 space-y-1 shadow-2xs">
+                  {nombreOS ? (
+                    <div className="flex items-center justify-between rounded-md bg-[#006d44] px-2.5 py-1 text-white shadow-2xs">
+                      <span className="text-xs font-bold truncate">OS: {nombreOS}</span>
                       <button
                         type="button"
-                        onClick={() => setNombreOS('')}
-                        className="text-[#006d44]/60 hover:text-[#006d44]"
+                        onClick={() => { setNombreOS(''); setBusquedaOS(''); }}
+                        className="text-white/80 hover:text-white ml-2 flex items-center gap-0.5 text-xs font-semibold underline"
                       >
-                        <span className="material-symbols-outlined" style={{fontSize:'14px'}}>close</span>
+                        Cambiar
+                        <span className="material-symbols-outlined" style={{fontSize:'13px'}}>close</span>
                       </button>
                     </div>
+                  ) : (
+                    <>
+                      <div className="relative">
+                        <span className="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-slate-500" style={{fontSize:'14px'}}>search</span>
+                        <input
+                          type="text"
+                          value={busquedaOS}
+                          onChange={(e) => setBusquedaOS(e.target.value)}
+                          placeholder="Buscar obra social..."
+                          className="w-full rounded-md border border-slate-300 bg-white py-1 pl-6 pr-2 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#006d44] focus:outline-none focus:ring-1 focus:ring-[#006d44]"
+                        />
+                      </div>
+                      <ul className="max-h-20 overflow-y-auto space-y-0 rounded-md bg-white border border-slate-300 divide-y divide-slate-100 shadow-inner">
+                        {obrasSociales
+                          .filter((os) =>
+                            !busquedaOS ||
+                            os.label.toLowerCase().includes(busquedaOS.toLowerCase())
+                          )
+                          .map((os) => (
+                            <li key={os.id}>
+                              <button
+                                type="button"
+                                onClick={() => { setNombreOS(os.label); setBusquedaOS(''); }}
+                                className="flex w-full items-center gap-1.5 px-2 py-0.5 text-left text-xs font-medium text-slate-800 hover:bg-[#006d44] hover:text-white transition-colors"
+                              >
+                                {os.label}
+                              </button>
+                            </li>
+                          ))}
+                        {obrasSociales.filter((os) =>
+                          !busquedaOS ||
+                          os.label.toLowerCase().includes(busquedaOS.toLowerCase())
+                        ).length === 0 && (
+                          <li className="px-2 py-1 text-[11px] font-semibold text-slate-500">Sin resultados</li>
+                        )}
+                      </ul>
+                    </>
                   )}
                 </div>
               )}
@@ -1483,14 +1593,22 @@ export default function Admision() {
               <ul className="divide-y divide-slate-100">
                 {admisionesFiltradas.map((admision) => (
                   <li key={admision.id}>
-                    <button
-                      type="button"
+                    <div
+                      role="button"
+                      tabIndex={0}
                       onClick={() =>
                         setSeleccionada((prev) =>
                           prev?.id === admision.id ? null : admision
                         )
                       }
-                      className={`group w-full px-5 py-4 text-left transition hover:bg-slate-50 ${
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          setSeleccionada((prev) =>
+                            prev?.id === admision.id ? null : admision
+                          );
+                        }
+                      }}
+                      className={`group w-full cursor-pointer px-5 py-4 text-left transition hover:bg-slate-50 ${
                         seleccionada?.id === admision.id ? 'bg-[#f0faf4] border-l-2 border-[#006d44]' : ''
                       }`}
                     >
@@ -1535,7 +1653,7 @@ export default function Admision() {
                           <span className="material-symbols-outlined text-base">delete</span>
                         </button>
                       </div>
-                    </button>
+                    </div>
                   </li>
                 ))}
               </ul>

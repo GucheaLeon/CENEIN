@@ -117,7 +117,7 @@ CREATE TABLE IF NOT EXISTS PATIENTS (
     patient_state_id BIGINT REFERENCES PATIENT_STATE(id) ON DELETE SET NULL,
     discharged_at TIMESTAMPTZ,
     parametro INTEGER,
-    module_type TEXT,
+
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -297,14 +297,45 @@ CREATE TABLE IF NOT EXISTS ADMISSION_DOCUMENTS (
     dni_numero TEXT,
     numero_afiliado TEXT,
     -- Documentos PDF: se guarda la ruta o nombre del archivo subido
-    carnet_pdf TEXT,
-    cud_pdf TEXT,
-    consentimiento_padres_pdf TEXT,
-    presupuesto_pdf TEXT,
-    informe_inicial_pdf TEXT,
-    plan_trabajo_pdf TEXT,
-    resumen_historial_pdf TEXT,
-    pedidos_medicos_pdf TEXT,
+    carnet_pdf BYTEA,
+    cud_pdf BYTEA,
+    consentimiento_padres_pdf BYTEA,
+    presupuesto_pdf BYTEA,
+    informe_inicial_pdf BYTEA,
+    plan_trabajo_pdf BYTEA,
+    resumen_historial_pdf BYTEA,
+    pedidos_medicos_pdf BYTEA,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS INVOICE_STATUS(
+    id BIGSERIAL PRIMARY KEY,
+    description TEXT
+);
+CREATE TABLE IF NOT EXISTS INVOICE_TYPE(
+    id BIGSERIAL PRIMARY KEY,
+    description TEXT
+);
+CREATE TABLE IF NOT EXISTS MODULE (
+    id BIGSERIAL PRIMARY KEY,
+    description TEXT UNIQUE
+);
+CREATE TABLE IF NOT EXISTS MODULE_PATIENT(
+    id BIGSERIAL PRIMARY KEY,
+    patient_id TEXT REFERENCES PATIENTS(patient_id) ON DELETE CASCADE,
+    module_id BIGINT REFERENCES MODULE(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS INVOICE (
+    id BIGSERIAL PRIMARY KEY,
+    patient_id TEXT REFERENCES PATIENTS(patient_id) ON DELETE CASCADE,
+    amount DECIMAL(10,2),
+    invoice_type_id REFERENCES INVOICE_TYPE(id) ON DELETE SET NULL,
+    payment_date DATE,
+    module_id BIGINT REFERENCES MODULE_PATIENT(id) ON DELETE SET NULL,
+    invoice_status_id REFERENCES INVOICE_STATUS(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+

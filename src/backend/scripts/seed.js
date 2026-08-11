@@ -56,8 +56,9 @@ async function seed() {
   }
   
   // Insertar tratamientos base
+  let tId = 1;
   for (const nombre of TRATAMIENTOS_BASE) {
-    database.run('INSERT INTO treatments (name) VALUES (?)', [nombre]);
+    database.run('INSERT INTO treatments (id, name) VALUES (?, ?)', [tId++, nombre]);
   }
 
   // Insertar usuarios (admin/admin1234)
@@ -92,18 +93,18 @@ async function seed() {
     
     // Insertar paciente con todos sus campos
     database.run(`
-      INSERT INTO patients (
-        id, full_name, first_name, last_name, age, birth_date, condition, 
+      INSERT INTO PATIENTS (
+        patient_id, first_name, last_name, birth_date, condition, 
         last_visit, last_fisiatrico, last_fisiatrico_alta, last_fisiatrico_vencimiento,
         last_trabajo_social, last_trabajo_social_alta, last_trabajo_social_vencimiento,
         dni, cuit, affiliate_number, integracion_horario, diagnosis,
         father_tutor_name, father_tutor_phone, mother_tutor_name, mother_tutor_phone,
         address_street, address_number, address_neighborhood, address_floor, address_sector,
         school_name, school_grade, school_shift, car_years, ppi_years, acta_acuerdo_years,
-        notes, authorized_at, authorization_expires_at, is_active, is_discharged, discharged_at,
-        parametro, module_type
+        os_id, notes, authorization_expires_at, is_active, is_discharged, discharged_at,
+        patient_state_id, parametro
       ) VALUES (
-        ?, ?, ?, ?, ?, ?, ?, 
+        ?, ?, ?, ?, ?, 
         ?, ?, ?, ?,
         ?, ?, ?,
         ?, ?, ?, ?, ?,
@@ -114,16 +115,20 @@ async function seed() {
         ?, ?
       )
     `, [
-      id, fullName, firstName, lastName, age.toString(), birthDate, faker.helpers.arrayElement(['TEA', 'TGD', 'Sindrome de Down', 'Paralisis Cerebral', 'Retraso Madurativo', 'Ninguno']),
+      id, firstName, lastName, birthDate, faker.helpers.arrayElement(['TEA', 'TGD', 'Sindrome de Down', 'Paralisis Cerebral', 'Retraso Madurativo', 'Ninguno']),
       pastDate, pastDate, pastDate, futureDate,
       pastDate, pastDate, futureDate,
       faker.string.numeric(8), faker.string.numeric(11), faker.string.alphanumeric(10), 'Mañana', faker.lorem.words(2),
       faker.person.fullName({ sex: 'male' }), faker.phone.number(), faker.person.fullName({ sex: 'female' }), faker.phone.number(),
       faker.location.street(), faker.location.buildingNumber(), faker.location.county(), faker.number.int({ min: 1, max: 10 }).toString(), 'A',
       'Escuela ' + faker.number.int({ min: 1, max: 100 }), faker.number.int({ min: 1, max: 6 }) + ' Grado', 'Mañana', '2025, 2026', '2025, 2026', '2025, 2026',
-      faker.helpers.arrayElement(['GALENO-30522428163', 'MEDIFE-30691183536', 'OMINT-30624957942', 'OSDEPYM-30586661716', 'SANCOR-30590354798', 'SWISS-MEDICAL-30654855168']), pastDate, futureDate, 1, 0, null,
-      0, faker.helpers.arrayElement(modules)
+      null, 'Nota de ejemplo', futureDate, 1, 0, null,
+      null, 0
     ]);
+
+    const moduleVal = faker.helpers.arrayElement(modules);
+    database.run('INSERT OR IGNORE INTO module (description) VALUES (?)', [moduleVal]);
+    database.run('INSERT INTO module_patient (patient_id, module_id) SELECT ?, id FROM module WHERE description = ?', [id, moduleVal]);
 
     // Tratamientos aleatorios (1 a 3)
     const numTreatments = faker.number.int({ min: 1, max: 3 });
