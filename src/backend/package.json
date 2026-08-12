@@ -5,15 +5,19 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "seed": "node scripts/seed.js"
+    "seed": "node scripts/seed.js",
+    "test:afip": "node scripts/testAfipConnection.js",
+    "generate:csr": "node scripts/generateCsr.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
+    "node-forge": "^1.4.0",
     "pdf-lib": "^1.17.1",
     "pg": "^8.22.0",
+    "soap": "^1.10.0",
     "sql.js": "^1.13.0"
   },
   "devDependencies": {

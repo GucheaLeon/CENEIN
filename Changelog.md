@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## [1.1.1] - 2026/08/04
+
+### agregado
+* Cambio de UI en Admision
+* Busqueda de obra social
+* Rutas de Backend (cambiadas "Admision.jsx")
+
+
+---
+
+## [1.1.0] - 2026/08/04
+
+### agregado
+* Actualizacion de BD
+* Organizacion del modulo Factura
+
+
+---
+
 ## [1.1.0] - 2026/08/04
 
 ### agregado

@@ -18,3 +18,12 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# AFIP / ARCA Certs and Keys
+*.key
+*.crt
+*.csr
+*.pem
+src/backend/certs/*
+!src/backend/certs/.gitkeep
+
