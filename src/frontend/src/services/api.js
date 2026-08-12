@@ -88,7 +88,7 @@ export function resolverApiUrl(path) {
 
 async function fetchJsonApi(path, opciones = {}) {
   const apiUrl = resolverApiUrl(path);
-  const urls = apiUrl ? [apiUrl] : [path];
+  const urls = apiUrl && apiUrl !== path ? [apiUrl, path] : [path];
 
   const headers = new Headers(opciones.headers || {});
   const token = obtenerToken();
@@ -121,15 +121,15 @@ async function fetchJsonApi(path, opciones = {}) {
           }
           error.data = errorData;
         }
-        if (respuesta.status === 401) {
-          throw error;
-        }
         throw error;
       }
       return await respuesta.json();
     } catch (err) {
       lastError = err;
       if (opciones && opciones.signal && opciones.signal.aborted) {
+        throw err;
+      }
+      if (err.status) {
         throw err;
       }
     }
@@ -139,7 +139,7 @@ async function fetchJsonApi(path, opciones = {}) {
 
 async function fetchBlobApi(path, opciones = {}) {
   const apiUrl = resolverApiUrl(path);
-  const urls = apiUrl ? [apiUrl] : [path];
+  const urls = apiUrl && apiUrl !== path ? [apiUrl, path] : [path];
 
   const headers = new Headers(opciones.headers || {});
   const token = obtenerToken();
@@ -162,12 +162,15 @@ async function fetchBlobApi(path, opciones = {}) {
           const data = await respuesta.json();
           if (data && data.error) detalle = `: ${data.error}`;
         } catch (err) {}
-        throw new Error(`HTTP ${respuesta.status}${detalle}`);
+        const error = new Error(`HTTP ${respuesta.status}${detalle}`);
+        error.status = respuesta.status;
+        throw error;
       }
       return await respuesta.blob();
     } catch (err) {
       lastError = err;
       if (opciones && opciones.signal && opciones.signal.aborted) throw err;
+      if (err.status) throw err;
     }
   }
   throw lastError || new Error('No se pudo conectar a la API.');
@@ -617,31 +620,41 @@ export async function obtenerExpedienteAdmisionApi(admisionId, opciones = {}) {
 }
 
 export async function guardarExpedienteAdmisionApi(admisionId, formData) {
-  const apiBaseUrl = obtenerApiBaseUrl();
-  const url = apiBaseUrl
-    ? `${apiBaseUrl}/api/admisiones/${admisionId}/expediente`
-    : `/api/admisiones/${admisionId}/expediente`;
+  const path = `/api/admisiones/${admisionId}/expediente`;
+  const apiUrl = resolverApiUrl(path);
+  const urls = apiUrl && apiUrl !== path ? [apiUrl, path] : [path];
 
   const headers = new Headers();
   const token = obtenerToken();
   if (token) headers.set('Authorization', `Bearer ${token}`);
 
-  const respuesta = await fetch(url, {
-    method: 'POST',
-    headers,
-    credentials: 'include',
-    body: formData,
-  });
-
-  if (!respuesta.ok) {
-    let detalle = '';
+  let lastError = null;
+  for (const url of urls) {
     try {
-      const data = await respuesta.json();
-      if (data?.error) detalle = data.error;
-    } catch {}
-    throw new Error(detalle || `HTTP ${respuesta.status}`);
+      const respuesta = await fetch(url, {
+        method: 'POST',
+        headers,
+        credentials: 'include',
+        body: formData,
+      });
+
+      if (!respuesta.ok) {
+        let detalle = '';
+        try {
+          const data = await respuesta.json();
+          if (data?.error) detalle = data.error;
+        } catch {}
+        const error = new Error(detalle || `HTTP ${respuesta.status}`);
+        error.status = respuesta.status;
+        throw error;
+      }
+      return await respuesta.json();
+    } catch (err) {
+      lastError = err;
+      if (err.status) throw err;
+    }
   }
-  return await respuesta.json();
+  throw lastError || new Error('No se pudo conectar a la API.');
 }
 
 export function urlArchivoExpediente(admisionId, campo) {
