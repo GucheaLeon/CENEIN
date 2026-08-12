@@ -1,6 +1,17 @@
 # CHANGELOG
 
-## [1.1.1] - 2026/08/04
+## [1.1.3] - 2026/08/12
+
+### Testing
+* Testing de las primeras Facturas
+
+### Modificado
+* Arreglado de error al agregar un paciente
+
+
+---
+
+## [1.1.2] - 2026/08/11
 
 ### agregado
 * Cambio de UI en Admision
@@ -10,6 +21,13 @@
 
 ---
 
+## [1.1.1] - 2026/08/04
+
+### agregado
+* Agregado modulo de Admision
+
+
+
 ## [1.1.0] - 2026/08/04
 
 ### agregado
@@ -17,16 +35,6 @@
 * Organizacion del modulo Factura
 
 
----
-
-## [1.1.0] - 2026/08/04
-
-### agregado
-* Actualizacion de BD
-* Organizacion del modulo Factura
-
-
----
 
 ## [1.0.3] - 2026/08/04
 
