@@ -13,6 +13,7 @@ const { registerPatientsRoutes } = require('./routes/patients');
 const { registerAttendancesExportRoute } = require('./routes/attendancesExport');
 const { registerCatalogsRoutes } = require('./routes/catalogs');
 const { registerAdmisionsRoutes } = require('./routes/admisiones');
+const { registerFacturacionRoutes } = require('./routes/facturacion');
 
 const PORT = process.env.PORT || 4000;
 const SCHEMA_SQL_PATH = path.join(__dirname, 'schema.sql');
@@ -1440,6 +1441,8 @@ async function main() {
   registerObrasSocialesRoutes(app, { db, construirPaciente });
 
   registerAttendancesExportRoute(app, { db, construirPaciente });
+
+  registerFacturacionRoutes(app);
 
   app.use('/api', (req, res) => {
     res.status(404).json({ error: 'Ruta no encontrada' });
