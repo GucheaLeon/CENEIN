@@ -1,256 +1,256 @@
-# Git Branching Workflow — Cenein
+# Flujo de Trabajo y Ramas (Branching) en Git — Cenein
 
-This document describes the Git branching strategy used in this project, the step-by-step workflow every developer must follow, and how to handle common real-world situations.
-
----
-
-## Table of Contents
-
-1. [Branch Structure](#branch-structure)
-2. [Branch Rules](#branch-rules)
-3. [Developer Workflow — Starting a New Feature](#developer-workflow--starting-a-new-feature)
-4. [Developer Workflow — Daily Work (Resuming the Next Day)](#developer-workflow--daily-work-resuming-the-next-day)
-5. [Developer Workflow — Finishing a Feature](#developer-workflow--finishing-a-feature)
-6. [Promoting Code: Development → Staging → Main](#promoting-code-development--staging--main)
-7. [Common Scenarios & Troubleshooting](#common-scenarios--troubleshooting)
-8. [Quick Reference Cheat Sheet](#quick-reference-cheat-sheet)
+Este documento describe la estrategia de ramas (branching) de Git que usamos en este proyecto, el flujo de trabajo paso a paso que todo desarrollador debe seguir y cómo manejar situaciones comunes de la vida real.
 
 ---
 
-## Branch Structure
+## Tabla de Contenidos
 
-The project uses **three permanent branches** and temporary **feature branches**:
+1. [Estructura de Ramas](#estructura-de-ramas)
+2. [Reglas de las Ramas](#reglas-de-las-ramas)
+3. [Flujo de Trabajo del Desarrollador — Iniciar una Nueva Funcionalidad](#flujo-de-trabajo-del-desarrollador--iniciar-una-nueva-funcionalidad)
+4. [Flujo de Trabajo del Desarrollador — Trabajo Diario (Retomando al Día Siguiente)](#flujo-de-trabajo-del-desarrollador--trabajo-diario-retomando-al-día-siguiente)
+5. [Flujo de Trabajo del Desarrollador — Finalizar una Funcionalidad](#flujo-de-trabajo-del-desarrollador--finalizar-una-funcionalidad)
+6. [Promoción de Código: Development → Staging → Main](#promoción-de-código-development--staging--main)
+7. [Escenarios Comunes y Solución de Problemas](#escenarios-comunes-y-solución-de-problemas)
+8. [Hoja de Referencia Rápida](#hoja-de-referencia-rápida)
+
+---
+
+## Estructura de Ramas
+
+El proyecto utiliza **tres ramas permanentes** y ramas temporales de **funcionalidades (features)**:
 
 ```
-main          ← Production code (stable, deployed)
- └── staging  ← Testing & QA (pre-production validation)
-      └── development  ← Active development (integration branch)
+main          ← Código de producción (estable, desplegado)
+ └── staging  ← Pruebas y QA (validación pre-producción)
+      └── development  ← Desarrollo activo (rama de integración)
            ├── feature/login-page
            ├── feature/patient-search
            └── feature/...
 ```
 
-| Branch           | Purpose                                                                | Who merges into it                               | Deploys to               |
+| Rama             | Propósito                                                              | Quién fusiona (merge) en ella                    | Se despliega en          |
 | ------------------| ------------------------------------------------------------------------| --------------------------------------------------| --------------------------|
-| `main`           | Stable production code. Only tested and approved code lives here.      | Team lead / after QA approval                    | Production               |
-| `staging`        | Pre-production testing. Code is validated here before going to `main`. | Team lead / designated reviewer                  | Staging / QA environment |
-| `development`    | Integration branch. All completed features are merged here.            | Any developer (via Pull Request or direct merge) | Development environment  |
-| `feature/<name>` | Temporary branch for a single feature or task. Deleted after merging.  | Developer working on the feature                 | Local only               |
+| `main`           | Código de producción estable. Solo vive aquí el código probado y aprobado.      | Líder técnico / después de aprobación de QA                    | Producción               |
+| `staging`        | Pruebas de pre-producción. El código se valida aquí antes de ir a `main`. | Líder técnico / revisor designado                  | Entorno Staging / QA |
+| `development`    | Rama de integración. Todas las funcionalidades completadas se fusionan aquí.            | Cualquier desarrollador (vía Pull Request o merge directo) | Entorno de Desarrollo  |
+| `feature/<nombre>` | Rama temporal para una sola funcionalidad o tarea. Se elimina después de fusionarse.  | El desarrollador trabajando en la funcionalidad                 | Solo local               |
 
 ---
 
-## Branch Rules
+## Reglas de las Ramas
 
-> **⚠️ IMPORTANT — Never commit directly to `main` or `staging`.**
+> **⚠️ IMPORTANTE — Nunca hagas commit directamente a `main` o `staging`.**
 
-1. **`main`** is read-only for developers. Only receives merges from `staging` after QA approval.
-2. **`staging`** only receives merges from `development`. No direct commits.
-3. **`development`** only receives merges from feature branches. Avoid committing directly to it.
-4. **Feature branches** are always created from `development` and merged back into `development`.
-5. Every feature branch must have a descriptive name: `feature/patient-export`, `feature/fix-login-bug`, etc.
+1. **`main`** es de solo lectura para los desarrolladores. Solo recibe merges de `staging` tras la aprobación de QA.
+2. **`staging`** solo recibe merges de `development`. No se permiten commits directos.
+3. **`development`** solo recibe merges de las ramas de funcionalidades (features). Evita hacer commit directamente en ella.
+4. Las **Ramas de funcionalidades (Feature branches)** siempre se crean a partir de `development` y se fusionan de vuelta en `development`.
+5. Cada rama de funcionalidad debe tener un nombre descriptivo: `feature/exportacion-pacientes`, `feature/fix-bug-login`, etc.
 
 ---
 
-## Developer Workflow — Starting a New Feature
+## Flujo de Trabajo del Desarrollador — Iniciar una Nueva Funcionalidad
 
-Follow these steps **every time** you begin working on a new feature.
+Sigue estos pasos **cada vez** que empieces a trabajar en una nueva funcionalidad (feature).
 
-### Step 1 — Make sure your local repository is up to date
+### Paso 1 — Asegúrate de que tu repositorio local esté actualizado
 
-Before creating any branch, you need to download the latest changes from the remote repository.
+Antes de crear cualquier rama, necesitas descargar los últimos cambios del repositorio remoto.
 
 ```bash
-# Switch to the development branch
+# Cambia a la rama de desarrollo (development)
 git checkout development
 
-# Download ALL changes from the remote (all branches)
+# Descarga TODOS los cambios del remoto (todas las ramas)
 git fetch origin
 
-# Merge the latest remote development into your local development
+# Fusiona el development remoto más reciente en tu development local
 git pull origin development
 ```
 
-> **Why `fetch` + `pull`?**
-> - `git fetch origin` downloads the latest state of all remote branches without modifying your local files. It updates your knowledge of what's on the server.
-> - `git pull origin development` actually applies those changes to your current branch. It's equivalent to `git fetch` + `git merge`.
-> - Running `fetch` first is a good habit because it lets you inspect what changed before applying it.
+> **¿Por qué `fetch` + `pull`?**
+> - `git fetch origin` descarga el estado más reciente de todas las ramas remotas sin modificar tus archivos locales. Actualiza tu conocimiento de lo que hay en el servidor.
+> - `git pull origin development` aplica realmente esos cambios a tu rama actual. Es equivalente a `git fetch` + `git merge`.
+> - Ejecutar `fetch` primero es un buen hábito porque te permite inspeccionar qué cambió antes de aplicarlo.
 
-### Step 2 — Create a new feature branch
+### Paso 2 — Crea una nueva rama de funcionalidad
 
 ```bash
-# Create and switch to a new branch based on development
-git checkout -b feature/my-new-feature
+# Crea y cambia a una nueva rama basada en development
+git checkout -b feature/mi-nueva-funcionalidad
 ```
 
-This creates a new branch called `feature/my-new-feature` that starts from the current state of `development` and immediately switches you to it.
+Esto crea una nueva rama llamada `feature/mi-nueva-funcionalidad` que inicia desde el estado actual de `development` e inmediatamente te cambia a ella.
 
-> **Naming convention:** Use `feature/` prefix followed by a short, descriptive, lowercase name with hyphens. Examples:
-> - `feature/patient-search`
-> - `feature/attendance-report`
-> - `feature/fix-login-redirect`
+> **Convención de nombres:** Usa el prefijo `feature/` seguido de un nombre corto, descriptivo y en minúsculas con guiones. Ejemplos:
+> - `feature/busqueda-pacientes`
+> - `feature/reporte-asistencias`
+> - `feature/fix-redireccion-login`
 
-### Step 3 — Work and commit
+### Paso 3 — Trabaja y haz commits
 
-Now you're on your feature branch. Write your code, and commit frequently with clear messages.
+Ahora estás en tu rama de funcionalidad. Escribe tu código y haz commits frecuentemente con mensajes claros.
 
 ```bash
-# Check which files have been modified
+# Revisa qué archivos han sido modificados
 git status
 
-# Stage specific files
-git add path/to/file1.py path/to/file2.html
+# Prepara (stage) archivos específicos
+git add path/to/archivo1.py path/to/archivo2.html
 
-# Or stage ALL modified files
+# O prepara TODOS los archivos modificados
 git add .
 
-# Commit with a descriptive message
-git commit -m "Add patient search endpoint with filters"
+# Haz commit con un mensaje descriptivo
+git commit -m "Agregar endpoint de búsqueda de pacientes con filtros"
 ```
 
-> **Commit message tips:**
-> - Use imperative mood: "Add feature" not "Added feature"
-> - Be specific: "Fix null pointer in patient export" not "Fix bug"
-> - Keep the first line under 72 characters
+> **Consejos para mensajes de commit:**
+> - Usa el modo imperativo: "Agregar funcionalidad" no "Agregada funcionalidad"
+> - Sé específico: "Arreglar puntero nulo en exportación de pacientes" no "Arreglar bug"
+> - Mantén la primera línea por debajo de los 72 caracteres
 
-### Step 4 — Push your feature branch to the remote
+### Paso 4 — Empuja (Push) tu rama de funcionalidad al remoto
 
-Push your branch so it exists on GitHub (as a backup, and so others can see your progress):
+Sube tu rama para que exista en GitHub (como respaldo y para que otros puedan ver tu progreso):
 
 ```bash
-# First push — sets up tracking
-git push -u origin feature/my-new-feature
+# Primer push — configura el seguimiento (tracking)
+git push -u origin feature/mi-nueva-funcionalidad
 
-# Subsequent pushes (after the first one)
+# Pushes subsiguientes (después del primero)
 git push
 ```
 
 ---
 
-## Developer Workflow — Daily Work (Resuming the Next Day)
+## Flujo de Trabajo del Desarrollador — Trabajo Diario (Retomando al Día Siguiente)
 
-You started a feature yesterday but didn't finish. Today you come back and other developers may have merged their work into `development`. Here's what you need to do:
+Empezaste una funcionalidad ayer pero no la terminaste. Hoy vuelves y otros desarrolladores pueden haber fusionado su trabajo en `development`. Esto es lo que debes hacer:
 
-### Step 1 — Fetch the latest changes
+### Paso 1 — Descarga los últimos cambios (Fetch)
 
 ```bash
-# Download the latest state of all remote branches
+# Descarga el estado más reciente de todas las ramas remotas
 git fetch origin
 ```
 
-### Step 2 — Update your local development branch
+### Paso 2 — Actualiza tu rama development local
 
 ```bash
-# Switch to development
+# Cambia a development
 git checkout development
 
-# Pull the latest changes
+# Trae (pull) los últimos cambios
 git pull origin development
 ```
 
-### Step 3 — Go back to your feature branch and bring in the new changes
+### Paso 3 — Vuelve a tu rama de funcionalidad y trae los nuevos cambios
 
 ```bash
-# Switch back to your feature branch
-git checkout feature/my-new-feature
+# Vuelve a tu rama de funcionalidad
+git checkout feature/mi-nueva-funcionalidad
 
-# Merge the updated development into your feature branch
+# Fusiona el development actualizado en tu rama de funcionalidad
 git merge development
 ```
 
-> **Why merge `development` into your feature branch?**
-> This keeps your feature branch up to date with what everyone else has been doing. If you skip this step, you risk having big, painful merge conflicts when you try to merge your feature back into `development` later.
+> **¿Por qué fusionar `development` en tu rama de funcionalidad?**
+> Esto mantiene tu rama al día con lo que todos los demás han estado haciendo. Si te saltas este paso, te arriesgas a tener conflictos de merge grandes y dolorosos cuando intentes fusionar tu funcionalidad de vuelta a `development` más tarde.
 
-### Step 4 — Resolve conflicts (if any)
+### Paso 4 — Resuelve conflictos (si los hay)
 
-If Git reports merge conflicts, it means two people modified the same lines in the same file. Git will mark the conflicting areas in the file like this:
+Si Git reporta conflictos de merge (merge conflicts), significa que dos personas modificaron las mismas líneas en el mismo archivo. Git marcará las áreas conflictivas en el archivo así:
 
 ```
 <<<<<<< HEAD
-// Your code (from your feature branch)
+// Tu código (de tu rama de funcionalidad)
 const timeout = 5000;
 =======
-// Their code (from development)
+// Su código (de development)
 const timeout = 3000;
 >>>>>>> development
 ```
 
-To resolve:
+Para resolverlo:
 
-1. Open each conflicted file and decide which version to keep (or combine both).
-2. Remove the conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`).
-3. Stage the resolved files and commit:
+1. Abre cada archivo conflictivo y decide qué versión mantener (o combina ambas).
+2. Elimina los marcadores de conflicto (`<<<<<<<`, `=======`, `>>>>>>>`).
+3. Prepara (stage) los archivos resueltos y haz commit:
 
 ```bash
-git add path/to/resolved-file.js
-git commit -m "Resolve merge conflict with development"
+git add path/to/archivo-resuelto.js
+git commit -m "Resolver conflicto de merge con development"
 ```
 
-### Step 5 — Continue working
+### Paso 5 — Continúa trabajando
 
-Now you're up to date. Continue coding, committing, and pushing as normal.
+Ahora estás al día. Continúa programando, haciendo commits y pushes de manera normal.
 
 ```bash
-# ... make changes ...
+# ... haz cambios ...
 git add .
-git commit -m "Continue implementing patient search filters"
+git commit -m "Continuar implementando filtros de búsqueda de pacientes"
 git push
 ```
 
 ---
 
-## Developer Workflow — Finishing a Feature
+## Flujo de Trabajo del Desarrollador — Finalizar una Funcionalidad
 
-Your feature is complete and ready to be integrated.
+Tu funcionalidad está completa y lista para ser integrada.
 
-### Step 1 — Final update from development
+### Paso 1 — Actualización final desde development
 
-Before merging, make sure you have the absolute latest version of `development`:
+Antes de fusionar, asegúrate de tener la versión absolutamente más reciente de `development`:
 
 ```bash
 git checkout development
 git pull origin development
 
-git checkout feature/my-new-feature
+git checkout feature/mi-nueva-funcionalidad
 git merge development
 ```
 
-Resolve any conflicts if they appear (see the conflict resolution steps above).
+Resuelve cualquier conflicto si aparece (revisa los pasos de resolución de conflictos arriba).
 
-### Step 2 — Push your final changes
+### Paso 2 — Empuja tus cambios finales
 
 ```bash
 git push
 ```
 
-### Step 3 — Merge into development
+### Paso 3 — Fusiona (Merge) en development
 
-**Via GitHub Pull Request**
+**Vía Pull Request en GitHub**
 
-1. Go to the repository on GitHub.
-2. Click **"Compare & pull request"** for your feature branch.
-3. Set the base branch to `development`.
-4. Add a description of what the feature does.
-5. Request a code review from a teammate (if applicable).
-6. Once approved, click **"Merge pull request"**.
+1. Ve al repositorio en GitHub.
+2. Haz clic en **"Compare & pull request"** para tu rama de funcionalidad.
+3. Establece la rama base en `development`.
+4. Agrega una descripción de lo que hace la funcionalidad.
+5. Solicita una revisión de código a un compañero de equipo (si aplica).
+6. Una vez aprobado, haz clic en **"Merge pull request"**.
 
 
-### Step 4 — Clean up the feature branch
+### Paso 4 — Limpia la rama de funcionalidad
 
-After the merge is complete, delete the feature branch (it's no longer needed):
+Después de que el merge esté completo, elimina la rama de funcionalidad (ya no es necesaria):
 
 ```bash
-# Delete locally
-git branch -d feature/my-new-feature
+# Eliminar localmente
+git branch -d feature/mi-nueva-funcionalidad
 
-# Delete on the remote
-git push origin --delete feature/my-new-feature
+# Eliminar en el remoto
+git push origin --delete feature/mi-nueva-funcionalidad
 ```
 
 ---
 
-## Promoting Code: Development → Staging → Main
+## Promoción de Código: Development → Staging → Main
 
-After several features have been merged into `development` and the team decides it's time to test and release:
+Después de que varias funcionalidades se han fusionado en `development` y el equipo decide que es momento de probar y lanzar:
 
 ### Development → Staging
 
@@ -261,11 +261,11 @@ git merge development
 git push origin staging
 ```
 
-At this point, tests run on the `staging` environment. The team verifies everything works correctly.
+En este punto, se ejecutan las pruebas en el entorno de `staging`. El equipo verifica que todo funcione correctamente.
 
-### Staging → Main (After QA Approval)
+### Staging → Main (Después de Aprobación de QA)
 
-Only after all tests pass and the team confirms the code is ready:
+Solo después de que todas las pruebas pasen y el equipo confirme que el código está listo:
 
 ```bash
 git checkout main
@@ -274,76 +274,76 @@ git merge staging
 git push origin main
 ```
 
-> **🚨 This step should only be performed by the team lead or a designated person.** Merging into `main` means deploying to production.
+> **🚨 Este paso solo debe ser realizado por el líder técnico o una persona designada.** Fusionar en `main` significa desplegar a producción.
 
 ---
 
-## Common Scenarios & Troubleshooting
+## Escenarios Comunes y Solución de Problemas
 
-### 📌 "I accidentally committed to `development` instead of my feature branch"
+### 📌 "Hice commit accidentalmente en `development` en lugar de mi rama de funcionalidad"
 
-If you haven't pushed yet:
+Si aún no has hecho push:
 
 ```bash
-# Undo the last commit but keep your changes
+# Deshace el último commit pero mantiene tus cambios
 git reset --soft HEAD~1
 
-# Now create/switch to your feature branch
-git checkout -b feature/my-feature
+# Ahora crea/cambia a tu rama de funcionalidad
+git checkout -b feature/mi-funcionalidad
 
-# Re-commit there
+# Vuelve a hacer commit ahí
 git add .
-git commit -m "My feature changes"
+git commit -m "Cambios de mi funcionalidad"
 ```
 
-### 📌 "I forgot to pull before starting my feature branch"
+### 📌 "Olvidé hacer pull antes de empezar mi rama de funcionalidad"
 
-Your feature branch is based on an old version of `development`. No problem — just update it:
+Tu rama de funcionalidad está basada en una versión antigua de `development`. No hay problema — solo actualízala:
 
 ```bash
 git checkout development
 git pull origin development
 
-git checkout feature/my-feature
+git checkout feature/mi-funcionalidad
 git merge development
-# Resolve conflicts if any
+# Resuelve conflictos si los hay
 ```
 
 
 ---
 
-## Quick Reference Cheat Sheet
+## Hoja de Referencia Rápida
 
-| Task | Command |
+| Tarea | Comando |
 |---|---|
-| Switch branch | `git checkout <branch>` |
-| Create and switch to new branch | `git checkout -b feature/<name>` |
-| Download remote changes (no merge) | `git fetch origin` |
-| Download and apply remote changes | `git pull origin <branch>` |
-| Stage files | `git add <files>` or `git add .` |
-| Commit | `git commit -m "message"` |
-| Push (first time) | `git push -u origin feature/<name>` |
-| Push (subsequent) | `git push` |
-| Merge branch into current branch | `git merge <branch>` |
-| Delete local branch | `git branch -d <branch>` |
-| Delete remote branch | `git push origin --delete <branch>` |
-| Stash changes | `git stash` / `git stash pop` |
-| View commit history | `git log --oneline --graph` |
-| Check current branch and status | `git status` |
+| Cambiar de rama | `git checkout <rama>` |
+| Crear y cambiar a nueva rama | `git checkout -b feature/<nombre>` |
+| Descargar cambios remotos (sin merge) | `git fetch origin` |
+| Descargar y aplicar cambios remotos | `git pull origin <rama>` |
+| Preparar (stage) archivos | `git add <archivos>` o `git add .` |
+| Hacer Commit | `git commit -m "mensaje"` |
+| Push (primera vez) | `git push -u origin feature/<nombre>` |
+| Push (subsiguientes) | `git push` |
+| Fusionar rama en la rama actual | `git merge <rama>` |
+| Eliminar rama local | `git branch -d <rama>` |
+| Eliminar rama remota | `git push origin --delete <rama>` |
+| Guardar cambios temporalmente | `git stash` / `git stash pop` |
+| Ver historial de commits | `git log --oneline --graph` |
+| Revisar rama actual y estado | `git status` |
 
 ---
 
-## Summary — The Full Lifecycle
+## Resumen — El Ciclo de Vida Completo
 
 ```
 1.  git checkout development
 2.  git fetch origin
 3.  git pull origin development
-4.  git checkout -b feature/my-feature
-5.  ... work, commit, push ...
-6.  (next day) git fetch → git checkout development → git pull → git checkout feature/my-feature → git merge development
-7.  ... continue working, commit, push ...
-8.  (done) Final merge development into feature, then merge feature into development
-9.  Delete feature branch
-10. (release cycle) development → staging → main
+4.  git checkout -b feature/mi-funcionalidad
+5.  ... trabaja, haz commit, push ...
+6.  (al día siguiente) git fetch → git checkout development → git pull → git checkout feature/mi-funcionalidad → git merge development
+7.  ... continúa trabajando, haz commit, push ...
+8.  (terminado) Merge final de development a feature, luego merge de feature a development
+9.  Eliminar rama feature
+10. (ciclo de lanzamiento) development → staging → main
 ```
