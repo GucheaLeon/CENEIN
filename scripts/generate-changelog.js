@@ -1,29 +1,90 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const AI_PROVIDER = (process.env.AI_PROVIDER || '').toLowerCase();
 
-if (!GEMINI_API_KEY) {
-  console.error("❌ Error: No se encontró GEMINI_API_KEY en las variables de entorno.");
-  process.exit(1);
+function getProvider() {
+  if (AI_PROVIDER) return AI_PROVIDER;
+  if (process.env.OPENAI_API_KEY) return 'openai';
+  if (process.env.ANTHROPIC_API_KEY) return 'anthropic';
+  if (process.env.GEMINI_API_KEY) return 'gemini';
+  throw new Error('No se encontró ninguna API key. Define OPENAI_API_KEY, ANTHROPIC_API_KEY o GEMINI_API_KEY.');
 }
 
-const MODEL_PRIORITY = [
-  'gemini-2.5-flash',
-  'gemini-2.5-flash-lite',
-  'gemini-2.5-pro',
-  'gemini-2.0-flash',
-  'gemini-2.0-flash-lite'
-];
+async function generateOpenAIText(promptText) {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY no configurada.');
+  }
 
-async function listAvailableModels() {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(GEMINI_API_KEY)}`;
-  const response = await fetch(url, { method: 'GET' });
+  const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model,
+      messages: [{ role: 'user', content: promptText }],
+      temperature: 0.2
+    })
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    const message = data?.error?.message || 'Error desconocido de OpenAI.';
+    throw new Error(`OpenAI falló: ${message}`);
+  }
+
+  return data.choices?.[0]?.message?.content?.trim() || '';
+}
+
+async function generateAnthropicText(promptText) {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    throw new Error('ANTHROPIC_API_KEY no configurada.');
+  }
+
+  const model = process.env.ANTHROPIC_MODEL || 'claude-3-5-sonnet-20241022';
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01'
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 2048,
+      messages: [{ role: 'user', content: promptText }]
+    })
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    const message = data?.error?.message || 'Error desconocido de Anthropic.';
+    throw new Error(`Anthropic falló: ${message}`);
+  }
+
+  return (data.content || [])
+    .map((item) => item.type === 'text' ? item.text : '')
+    .join('')
+    .trim();
+}
+
+async function listAvailableGeminiModels() {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error('GEMINI_API_KEY no configurada.');
+  }
+
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(apiKey)}`);
   const data = await response.json();
 
   if (!response.ok) {
-    const message = data?.error?.message || 'No se pudo listar los modelos disponibles.';
-    throw new Error(`Error al consultar modelos de Gemini: ${message}`);
+    const message = data?.error?.message || 'No se pudo listar modelos de Gemini.';
+    throw new Error(`Google AI Studio falló: ${message}`);
   }
 
   return (data.models || [])
@@ -32,52 +93,76 @@ async function listAvailableModels() {
     .filter((name) => name.startsWith('gemini-'));
 }
 
-async function chooseModel() {
-  const availableModels = await listAvailableModels();
+async function generateGeminiText(promptText) {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error('GEMINI_API_KEY no configurada.');
+  }
 
-  for (const preferred of MODEL_PRIORITY) {
-    if (availableModels.includes(preferred)) {
-      return preferred;
+  const preferredModels = [
+    process.env.GEMINI_MODEL,
+    'gemini-2.5-flash',
+    'gemini-2.5-flash-lite',
+    'gemini-2.5-pro',
+    'gemini-2.0-flash',
+    'gemini-2.0-flash-lite'
+  ].filter(Boolean);
+
+  const availableModels = await listAvailableGeminiModels();
+  const modelCandidates = [...new Set([...preferredModels, ...availableModels])];
+
+  let lastError;
+  for (const model of modelCandidates) {
+    try {
+      console.log(`Probando modelo de Gemini: ${model}`);
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: promptText }] }]
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        lastError = new Error(`Modelo ${model} falló: ${data?.error?.message || 'Error desconocido de Gemini.'}`);
+        continue;
+      }
+
+      const text = (data.candidates?.[0]?.content?.parts || [])
+        .map((part) => part.text || '')
+        .join('')
+        .trim();
+
+      if (text) {
+        return text;
+      }
+
+      throw new Error(`Gemini devolvió respuesta vacía con el modelo ${model}.`);
+    } catch (err) {
+      lastError = err;
     }
   }
 
-  if (availableModels.length > 0) {
-    return availableModels[0];
-  }
-
-  throw new Error('No se encontraron modelos Gemini disponibles para esta API key.');
+  throw lastError || new Error('No se pudo generar contenido con Gemini.');
 }
 
-async function generateGeminiText(promptText) {
-  const model = await chooseModel();
-  console.log(`Usando modelo de Gemini: ${model}`);
+async function generateText(promptText) {
+  const provider = getProvider();
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`;
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      contents: [
-        {
-          parts: [{ text: promptText }]
-        }
-      ]
-    })
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    const message = data?.error?.message || 'No se pudo generar contenido con Gemini.';
-    throw new Error(`Modelo ${model} falló: ${message}`);
+  if (provider === 'openai') {
+    return generateOpenAIText(promptText);
   }
 
-  return (data.candidates?.[0]?.content?.parts || [])
-    .map((part) => part.text || '')
-    .join('')
-    .trim();
+  if (provider === 'anthropic') {
+    return generateAnthropicText(promptText);
+  }
+
+  if (provider === 'gemini') {
+    return generateGeminiText(promptText);
+  }
+
+  throw new Error(`Proveedor no soportado: ${provider}`);
 }
 
 // 1. Obtener los últimos 20 commits
@@ -109,16 +194,18 @@ Commits a analizar:
 ${gitLog}
 `;
 
-// 3. Generar el contenido usando la API REST de Google AI Studio
+// 3. Generar el contenido usando la API elegida
 async function generateChangelog() {
   try {
-    const aiMarkdown = await generateGeminiText(promptText);
+    const provider = getProvider();
+    console.log(`Usando proveedor de IA: ${provider}`);
+
+    const aiMarkdown = await generateText(promptText);
     const normalizedMarkdown = aiMarkdown
       .replace(/^```markdown\n?/, '')
       .replace(/\n?```$/, '')
       .trim();
 
-    // Formatear la fecha en YYYY/MM/DD
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -127,7 +214,6 @@ async function generateChangelog() {
 
     const newEntry = `## [Unreleased] - ${formattedDate}\n\n${normalizedMarkdown}\n\n\n---`;
 
-    // Leer o crear CHANGELOG.md
     const currentContent = fs.existsSync('CHANGELOG.md')
       ? fs.readFileSync('CHANGELOG.md', 'utf8')
       : '# CHANGELOG\n\n';
