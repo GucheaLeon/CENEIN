@@ -23,14 +23,9 @@ jobs:
         with:
           node-version: '20'
 
-      # Instalamos la librería oficial de Google Gen AI en el entorno de la Action
-      - name: Install dependencies
-        run: npm install @google/genai
-
       - name: Generate Changelog
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GEMINI_MODEL: gemini-2.0-flash
         run: node scripts/generate-changelog.js
 
       - name: Commit and Push changes
