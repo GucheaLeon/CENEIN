@@ -36,7 +36,7 @@ Commits a analizar:
 ${gitLog}
 `;
 
-// 3. Llamada a la API gratuita de Groq (Llama 3.3)
+// 3. Llamada a la API de Groq
 async function generateChangelog() {
   try {
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -71,23 +71,33 @@ async function generateChangelog() {
     const day = String(now.getDate()).padStart(2, '0');
     const formattedDate = `${year}/${month}/${day}`;
 
-    // Construir la nueva entrada
+    // Construir el bloque de la nueva versión
     const newEntry = `## [Unreleased] - ${formattedDate}\n\n${aiMarkdown}\n\n\n---`;
 
-    // Leer o crear CHANGELOG.md
-    let currentContent = fs.existsSync('CHANGELOG.md')
-      ? fs.readFileSync('CHANGELOG.md', 'utf8')
-      : '# CHANGELOG\n\n';
-
-    let updatedContent = '';
-    if (currentContent.startsWith('# CHANGELOG\n\n')) {
-      updatedContent = currentContent.replace('# CHANGELOG\n\n', `# CHANGELOG\n\n${newEntry}\n\n`);
-    } else {
-      updatedContent = `# CHANGELOG\n\n${newEntry}\n\n${currentContent}`;
+    // Leer el archivo CHANGELOG.md si existe
+    let currentContent = '';
+    if (fs.existsSync('CHANGELOG.md')) {
+      currentContent = fs.readFileSync('CHANGELOG.md', 'utf8').trim();
     }
 
-    fs.writeFileSync('CHANGELOG.md', updatedContent);
-    console.log("✅ CHANGELOG.md actualizado con éxito con Groq (Llama 3.3).");
+    let updatedContent = '';
+
+    if (!currentContent) {
+      // Si el archivo estaba vacío
+      updatedContent = `# CHANGELOG\n\n${newEntry}\n`;
+    } else if (currentContent.startsWith('# CHANGELOG')) {
+      // Si el archivo ya tiene el título "# CHANGELOG", insertamos la nueva entrada justo debajo
+      const header = '# CHANGELOG';
+      const restOfFile = currentContent.slice(header.length).trim();
+      updatedContent = `${header}\n\n${newEntry}\n\n${restOfFile}\n`;
+    } else {
+      // Si el archivo no tenía título, ponemos el título, la nueva entrada y anexamos todo lo anterior
+      updatedContent = `# CHANGELOG\n\n${newEntry}\n\n${currentContent}\n`;
+    }
+
+    // Guardar el archivo combinado
+    fs.writeFileSync('CHANGELOG.md', updatedContent.trim() + '\n');
+    console.log("✅ CHANGELOG.md actualizado con éxito sin perder registros anteriores.");
 
   } catch (err) {
     console.error("❌ Error inesperado:", err);
