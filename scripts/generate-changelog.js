@@ -1,3 +1,4 @@
+const { GoogleGenAI } = require('@google/genai');
 const { execSync } = require('child_process');
 const fs = require('fs');
 
@@ -8,6 +9,9 @@ if (!GEMINI_API_KEY) {
   process.exit(1);
 }
 
+// Inicializar el cliente de Google Gen AI
+const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+
 // 1. Obtener los últimos 20 commits
 let gitLog = '';
 try {
@@ -17,7 +21,7 @@ try {
   process.exit(1);
 }
 
-// 2. Prompt personalizado para que respete TU formato actual
+// 2. Prompt personalizado
 const promptText = `
 Eres un asistente técnico encargado de mantener el CHANGELOG de un proyecto de software.
 Analiza los siguientes commits de Git (pueden ser poco precisos, informales o desordenados) y sintetízalos respetando ESTRICTAMENTE el formato que utiliza el proyecto.
@@ -37,40 +41,27 @@ Commits a analizar:
 ${gitLog}
 `;
 
-// 3. Consultar Gemini API
+// 3. Generar el contenido usando el SDK
 async function generateChangelog() {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-  
   try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: promptText }] }]
-      })
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: promptText,
     });
 
-    const data = await response.json();
-
-    if (!data.candidates || data.candidates.length === 0) {
-      console.error("❌ Error en la respuesta de la IA:", JSON.stringify(data));
-      process.exit(1);
-    }
-
-    let aiMarkdown = data.candidates[0].content.parts[0].text.trim();
+    let aiMarkdown = response.text.trim();
     aiMarkdown = aiMarkdown.replace(/^```markdown\n?/, '').replace(/\n?```$/, '');
 
-    // Formatear la fecha en YYYY/MM/DD (como tu changelog)
+    // Formatear la fecha en YYYY/MM/DD
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
     const formattedDate = `${year}/${month}/${day}`;
 
-    // Construir el nuevo bloque manteniendo tu separador '---'
     const newEntry = `## [Unreleased] - ${formattedDate}\n\n${aiMarkdown}\n\n\n---`;
 
-    // Leer o inicializar CHANGELOG.md
+    // Leer o crear CHANGELOG.md
     let currentContent = fs.existsSync('CHANGELOG.md')
       ? fs.readFileSync('CHANGELOG.md', 'utf8')
       : '# CHANGELOG\n\n';
@@ -86,7 +77,7 @@ async function generateChangelog() {
     console.log("✅ CHANGELOG.md actualizado con éxito.");
 
   } catch (err) {
-    console.error("❌ Error inesperado:", err);
+    console.error("❌ Error inesperado al generar el changelog:", err);
     process.exit(1);
   }
 }

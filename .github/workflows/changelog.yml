@@ -3,7 +3,7 @@ name: Automatic AI Changelog
 on:
   push:
     branches:
-      - development # Cambiar por 'master' si tu rama principal se llama así
+      - development  # Cambiar por 'master' si tu rama se llama así
 
 jobs:
   update-changelog:
@@ -22,6 +22,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+
+      # Instalamos la librería oficial de Google Gen AI en el entorno de la Action
+      - name: Install dependencies
+        run: npm install @google/genai
 
       - name: Generate Changelog
         env:
