@@ -63,7 +63,7 @@ function registerFacturacionRoutes(app) {
 
   /**
    * POST /api/facturacion/emitir-prueba
-   * Body: { ptoVta, cbteTipo, docTipo, docNro, impTotal, concepto }
+   * Body: datos de cabecera, receptor, importes, IVA y fechas de servicio.
    */
   app.post('/api/facturacion/emitir-prueba', async (req, res) => {
     try {
@@ -73,7 +73,20 @@ function registerFacturacionRoutes(app) {
         docTipo = 96, // 96 = DNI
         docNro = 30123456,
         impTotal = 100,
-        concepto = 2 // 2 = Servicios
+        concepto = 2, // 2 = Servicios
+        cbteFch,
+        condicionIVAReceptorId = 5,
+        impTotConc,
+        impNeto,
+        impOpEx,
+        impIVA,
+        impTrib,
+        monId = 'PES',
+        monCotiz = 1,
+        ivaArray,
+        fchServDesde,
+        fchServHasta,
+        fchVtoPago
       } = req.body || {};
 
       if (!impTotal || Number(impTotal) <= 0) {
@@ -89,12 +102,25 @@ function registerFacturacionRoutes(app) {
         docTipo,
         docNro,
         impTotal,
-        concepto
+        concepto,
+        cbteFch,
+        condicionIVAReceptorId,
+        impTotConc,
+        impNeto,
+        impOpEx,
+        impIVA,
+        impTrib,
+        monId,
+        monCotiz,
+        ivaArray,
+        fchServDesde,
+        fchServHasta,
+        fchVtoPago
       });
 
       return res.status(200).json({
         ok: true,
-        message: 'Factura de prueba emitida con éxito en el servidor de Homologación ARCA.',
+        message: 'Factura emitida con éxito en ARCA.',
         data: result
       });
     } catch (err) {
