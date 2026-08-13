@@ -1,0 +1,35 @@
+name: Automatic AI Changelog
+
+on:
+  push:
+    branches:
+      - main  # Cambiar por 'master' si tu rama principal se llama así
+
+jobs:
+  update-changelog:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate Changelog
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: node scripts/generate-changelog.js
+
+      - name: Commit and Push changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "docs: update CHANGELOG.md [skip ci]"
+          file_pattern: "CHANGELOG.md"
