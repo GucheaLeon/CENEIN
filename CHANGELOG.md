@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.1.5] - 2026/08/13
+
+### Modificado
+* Se estandarizó el caso de letra en el archivo CHANGELOG.md
+
+
+---
+
 ## [1.1.3] - 2026/08/12
 
 ### Testing
