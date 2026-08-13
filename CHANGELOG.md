@@ -1,3 +1,12 @@
+# CHANGELOG
+
+## [1.1.4] - 2026/08/13
+
+### Agregado
+* Implementación adecuada de AI en changelog con Grok
+
+
+---
 
 ## [1.1.3] - 2026/08/12
 
