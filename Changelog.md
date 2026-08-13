@@ -8,7 +8,6 @@
 ### Modificado
 * Arreglado de error al agregar un paciente
 
-
 ---
 
 ## [1.1.2] - 2026/08/11
