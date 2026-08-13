@@ -3,7 +3,7 @@ name: Automatic AI Changelog
 on:
   push:
     branches:
-      - main  # Cambiar por 'master' si tu rama principal se llama así
+      - development # Cambiar por 'master' si tu rama principal se llama así
 
 jobs:
   update-changelog:
