@@ -30,6 +30,7 @@ jobs:
       - name: Generate Changelog
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: gemini-2.0-flash
         run: node scripts/generate-changelog.js
 
       - name: Commit and Push changes

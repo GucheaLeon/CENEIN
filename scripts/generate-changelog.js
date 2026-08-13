@@ -3,6 +3,7 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
 
 if (!GEMINI_API_KEY) {
   console.error("❌ Error: No se encontró GEMINI_API_KEY en las variables de entorno.");
@@ -45,7 +46,7 @@ ${gitLog}
 async function generateChangelog() {
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: GEMINI_MODEL,
       contents: promptText,
     });
 
