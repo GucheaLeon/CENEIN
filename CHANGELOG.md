@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.1.5] - 2026/08/14
+
+### Modificado
+* Se realizó un cambio en el front del proyecto
+
+
+---
+
 ## [1.1.4] - 2026/08/13
 
 ### Agregado
