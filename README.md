@@ -1,5 +1,6 @@
 # CENEIN - Sistema de Gestión
 
+
 Bienvenido al repositorio oficial de **CENEIN**, un sistema integral diseñado para la gestión de centros médicos, pacientes y turnos.
 
 ## 📖 Propósito del Proyecto
