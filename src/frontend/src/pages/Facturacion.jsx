@@ -72,6 +72,12 @@ function Spinner({ size = 18 }) {
 }
 
 function Badge({ text, color = '#006d44', bg = '#d6ffe8' }) {
+  return (
+    <span style={{ background: bg, color, borderRadius: 20, fontSize: 11, fontWeight: 700, padding: '2px 9px', whiteSpace: 'nowrap' }}>
+      {text}
+    </span>
+  );
+}
 
 // ─── Buscador de paciente con dropdown ───────────────────────────────────────
 function PatientPicker({ onSelect, selected }) {
