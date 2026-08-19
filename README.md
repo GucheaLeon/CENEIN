@@ -1,5 +1,6 @@
 # CENEIN - Sistema de Gestión
 
+
 Bienvenido al repositorio oficial de **CENEIN**, un sistema integral diseñado para la gestión de centros médicos, pacientes y turnos.
 
 ## 📖 Propósito del Proyecto
@@ -10,13 +11,14 @@ CENEIN nació con el objetivo de digitalizar y optimizar la administración de u
 - Reportes automáticos y exportación de datos.
 
 ## 🛠️ Tecnologías y Arquitectura
-El proyecto utiliza una arquitectura moderna basada en contenedores (Docker) para garantizar que funcione idénticamente en cualquier entorno:
 
-- **Frontend:** React.js (servido de forma ultra-rápida mediante Nginx).
-- **Backend:** Node.js + Express (API RESTful).
-- **Base de Datos:** PostgreSQL (Relacional, estructurada en 26 tablas).
-- **Proxy Inverso:** Caddy (Enrutamiento automático y certificados HTTPS gratuitos).
-- **Infraestructura:** Todo el ecosistema está unificado bajo **Docker Compose**.
+El proyecto utiliza una **Arquitectura Cliente-Servidor Desacoplada (3 Capas / 3-Tier)**, modernizada mediante el uso de contenedores. A diferencia de un MVC tradicional monolítico, aquí las responsabilidades están estrictamente separadas en distintos entornos físicos (contenedores):
+
+- **Capa de Presentación (Frontend):** Construida en **React.js** (servido de forma ultra-rápida mediante Nginx). Actúa como una Single Page Application (SPA) independiente.
+- **Capa de Lógica de Negocio (Backend):** Servidor **Node.js + Express** estructurado internamente en capas lógicas (rutas y servicios). Expone una API RESTful centralizada.
+- **Capa de Datos:** **PostgreSQL** (Relacional, estructurada en 26 tablas).
+- **API Gateway / Proxy Inverso:** **Caddy** (Enrutamiento automático de peticiones al Frontend o Backend según corresponda, y gestión de certificados HTTPS).
+- **Infraestructura Contenerizada:** Todo el ecosistema está unificado bajo **Docker Compose**. *Nota: Aunque el sistema corre en múltiples contenedores aislados, el Backend en sí mismo es un monolito modular, distinto a una arquitectura de microservicios.*
 
 ---
 
@@ -41,6 +43,29 @@ ADMIN_USERNAME=admin_cenein
 ADMIN_PASSWORD=clave_admin_segura
 ```
 *Nota: Si no creas este archivo en tu entorno local, Docker utilizará valores por defecto inseguros (`supersecret`, `admin1234`), lo cual es aceptable **solo para desarrollo en tu propia computadora**.*
+
+### Conexión de PostgreSQL desde DBeaver
+
+El servicio `db` publica el puerto de PostgreSQL del contenedor en el puerto `5432` de la computadora mediante esta configuración de Docker Compose:
+
+```yaml
+ports:
+   - "5432:5432"
+```
+
+Esto permite que herramientas externas, como DBeaver, se conecten a la base de datos sin modificar la conexión interna del Backend, que continúa usando `db:5432` dentro de la red de Docker.
+
+Para conectarte desde DBeaver, crea una conexión PostgreSQL con estos valores en desarrollo:
+
+| Campo | Valor |
+|---|---|
+| Host | `localhost` |
+| Puerto | `5432` |
+| Base de datos | `cenein_db` |
+| Usuario | `cenein` |
+| Contraseña | `supersecret` |
+
+Si definiste `DB_PASSWORD` en el archivo `.env`, utiliza ese valor en lugar de `supersecret`. Primero asegúrate de que PostgreSQL esté iniciado con `docker compose up -d db`.
 
 ---
 

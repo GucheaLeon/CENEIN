@@ -11,22 +11,29 @@ function obtenerApiBaseUrl() {
 
 export function obtenerToken() {
   try {
-    if (typeof window === 'undefined' || !window.localStorage) return '';
-    return String(window.localStorage.getItem(TOKEN_STORAGE_KEY) || '');
+    if (typeof window === 'undefined') return '';
+    return String(
+      window.localStorage?.getItem(TOKEN_STORAGE_KEY)
+        || window.sessionStorage?.getItem(TOKEN_STORAGE_KEY)
+        || ''
+    );
   } catch (err) {
     return '';
   }
 }
 
-export function guardarToken(token) {
+export function guardarToken(token, recordarSesion = false) {
   try {
-    if (typeof window === 'undefined' || !window.localStorage) return;
+    if (typeof window === 'undefined') return;
     const limpio = String(token || '').trim();
     if (!limpio) {
-      window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+      window.localStorage?.removeItem(TOKEN_STORAGE_KEY);
+      window.sessionStorage?.removeItem(TOKEN_STORAGE_KEY);
       return;
     }
-    window.localStorage.setItem(TOKEN_STORAGE_KEY, limpio);
+    const almacenamiento = recordarSesion ? window.localStorage : window.sessionStorage;
+    almacenamiento?.setItem(TOKEN_STORAGE_KEY, limpio);
+    (recordarSesion ? window.sessionStorage : window.localStorage)?.removeItem(TOKEN_STORAGE_KEY);
   } catch (err) {}
 }
 
@@ -34,7 +41,7 @@ export function limpiarToken() {
   guardarToken('');
 }
 
-export async function iniciarSesionApi({ username, password }) {
+export async function iniciarSesionApi({ username, password, recordarSesion = false }) {
   const payload = {
     username: String(username || '').trim(),
     password: String(password || '').trim(),
@@ -48,7 +55,7 @@ export async function iniciarSesionApi({ username, password }) {
   // Guardar token en localStorage para que funcione en Safari/iOS donde la cookie
   // puede no persistir (ITP, modo privado, PWA, etc.). Las peticiones usan Authorization.
   const token = data && (data.token ?? data.accessToken ?? data.access_token);
-  if (token) guardarToken(token);
+  if (token) guardarToken(token, recordarSesion);
   return data;
 }
 
@@ -608,6 +615,17 @@ export async function guardarRevisionAdmisionApi(admisionId, datos) {
     });
   } catch (err) {
     throw new Error(String(err?.message || 'No se pudo guardar la revisión.'));
+  }
+}
+
+export async function finalizarAdmisionApi(admisionId) {
+  try {
+    return await fetchJsonApi(`/api/admisiones/${admisionId}/finalizar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (err) {
+    throw new Error(String(err?.message || 'No se pudo finalizar la admisión y crear el paciente.'));
   }
 }
 

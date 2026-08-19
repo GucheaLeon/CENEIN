@@ -1,0 +1,49 @@
+name: Automatic AI Changelog & Tagging
+
+on:
+  push:
+    branches:
+      - development  # Ajusta según el nombre de tu rama principal
+
+jobs:
+  update-changelog:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Trae todo el historial de commits y tags
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate Changelog
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: node scripts/generate-changelog.js
+
+      - name: Check if new version tag was generated
+        id: check_tag
+        run: |
+          if [ -f NEW_TAG.txt ]; then
+            TAG_NAME=$(cat NEW_TAG.txt)
+            echo "NEW_TAG=$TAG_NAME" >> $GITHUB_ENV
+            echo "has_tag=true" >> $GITHUB_OUTPUT
+            rm NEW_TAG.txt
+          else
+            echo "has_tag=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit CHANGELOG and Push Git Tag
+        if: steps.check_tag.outputs.has_tag == 'true'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(release): update CHANGELOG.md for ${{ env.NEW_TAG }} [skip ci]"
+          file_pattern: "CHANGELOG.md"
+          tagging_message: "${{ env.NEW_TAG }}"

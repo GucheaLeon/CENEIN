@@ -60,11 +60,11 @@ async function parseMultipart(req) {
         const headerRaw = part.slice(0, headerEnd).toString('utf8');
         const body = part.slice(headerEnd + 4);
 
-        const dispositionMatch = headerRaw.match(/Content-Disposition:[^\r\n]*name="([^"]+)"/i);
-        if (!dispositionMatch) continue;
-        const fieldName = dispositionMatch[1];
+        const nameMatch = headerRaw.match(/\bname="([^"]+)"/i);
+        if (!nameMatch) continue;
+        const fieldName = nameMatch[1];
 
-        const filenameMatch = headerRaw.match(/Content-Disposition:[^\r\n]*filename="([^"]*)"/i);
+        const filenameMatch = headerRaw.match(/\bfilename="([^"]*)"/i);
         const ctMatch = headerRaw.match(/Content-Type:\s*([^\r\n]+)/i);
 
         if (filenameMatch) {
@@ -81,6 +81,58 @@ async function parseMultipart(req) {
     });
     req.on('error', reject);
   });
+}
+
+function validarDatosAdmision({ nombre, apellido, dni, fechaNacimiento, telefono, domicilio, tieneObraSocial, obraSocialNombre }) {
+  if (nombre !== undefined) {
+    const nom = String(nombre || '').trim();
+    if (!nom) return 'El nombre es obligatorio.';
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]{2,60}$/.test(nom)) {
+      return 'El nombre solo puede contener letras y espacios (entre 2 y 60 caracteres).';
+    }
+  }
+  if (apellido !== undefined) {
+    const ape = String(apellido || '').trim();
+    if (!ape) return 'El apellido es obligatorio.';
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]{2,60}$/.test(ape)) {
+      return 'El apellido solo puede contener letras y espacios (entre 2 y 60 caracteres).';
+    }
+  }
+  if (dni !== undefined && dni !== null && String(dni).trim() !== '') {
+    const dniClean = String(dni).replace(/\D/g, '');
+    if (dniClean.length < 6 || dniClean.length > 9) {
+      return 'El DNI debe contener entre 6 y 9 dígitos numéricos.';
+    }
+  }
+  if (fechaNacimiento) {
+    const d = new Date(fechaNacimiento);
+    if (isNaN(d.getTime())) return 'La fecha de nacimiento no es válida.';
+    if (d > new Date()) return 'La fecha de nacimiento no puede ser en el futuro.';
+    if (d.getFullYear() < 1900) return 'La fecha de nacimiento no es válida.';
+
+    const hoy = new Date();
+    let edad = hoy.getFullYear() - d.getFullYear();
+    const m = hoy.getMonth() - d.getMonth();
+    if (m < 0 || (m === 0 && hoy.getDate() < d.getDate())) {
+      edad--;
+    }
+    if (edad < 3) {
+      return 'El paciente no puede tener menos de 3 años de edad.';
+    }
+    if (edad > 18) {
+      return 'El paciente no puede tener más de 18 años de edad.';
+    }
+  }
+  if (telefono !== undefined && telefono !== null && String(telefono).trim() !== '') {
+    const tel = String(telefono).trim();
+    if (!/^[\d\s+()-]{6,25}$/.test(tel)) {
+      return 'El teléfono ingresado no tiene un formato válido.';
+    }
+  }
+  if (toBoolean(tieneObraSocial) && (!obraSocialNombre || !String(obraSocialNombre).trim())) {
+    return 'Debe seleccionar o indicar el nombre de la Obra Social.';
+  }
+  return null;
 }
 
 function toBoolean(val) {
@@ -215,9 +267,21 @@ function registerAdmisionsRoutes(app, { db, authMiddleware }) {
         tieneCUD,
       } = req.body || {};
 
-      if (!nombre || !apellido) {
-        return res.status(400).json({ error: 'El nombre y apellido son obligatorios.' });
+      const validationError = validarDatosAdmision({
+        nombre,
+        apellido,
+        dni,
+        fechaNacimiento,
+        telefono,
+        domicilio,
+        tieneObraSocial,
+        obraSocialNombre,
+      });
+      if (validationError) {
+        return res.status(400).json({ error: validationError });
       }
+
+      const dniClean = dni ? String(dni).replace(/\D/g, '') : null;
 
       const result = await db.run(
         `INSERT INTO admissions
@@ -227,11 +291,11 @@ function registerAdmisionsRoutes(app, { db, authMiddleware }) {
         String(nombre).trim(),
         String(apellido).trim(),
         fechaNacimiento || null,
-        dni || null,
-        telefono || null,
-        domicilio || null,
+        dniClean || null,
+        telefono ? String(telefono).trim() : null,
+        domicilio ? String(domicilio).trim() : null,
         toBoolean(tieneObraSocial),
-        obraSocialNombre || null,
+        toBoolean(tieneObraSocial) ? String(obraSocialNombre || '').trim() : null,
         toBoolean(tieneCUD)
       );
 
@@ -262,12 +326,28 @@ function registerAdmisionsRoutes(app, { db, authMiddleware }) {
         estado,
       } = req.body || {};
 
+      const validationError = validarDatosAdmision({
+        nombre,
+        apellido,
+        dni,
+        fechaNacimiento,
+        telefono,
+        domicilio,
+        tieneObraSocial,
+        obraSocialNombre,
+      });
+      if (validationError) {
+        return res.status(400).json({ error: validationError });
+      }
+
+      const dniClean = dni !== undefined ? (dni ? String(dni).replace(/\D/g, '') : null) : undefined;
+
       await db.run(
         `UPDATE admissions SET
           first_name = COALESCE(?, first_name),
           last_name = COALESCE(?, last_name),
           birth_date = COALESCE(?, birth_date),
-          dni = COALESCE(?, dni),
+          dni = CASE WHEN ?::boolean THEN ? ELSE dni END,
           phone = COALESCE(?, phone),
           address = COALESCE(?, address),
           tiene_obra_social = COALESCE(?, tiene_obra_social),
@@ -279,11 +359,12 @@ function registerAdmisionsRoutes(app, { db, authMiddleware }) {
         nombre ? String(nombre).trim() : null,
         apellido ? String(apellido).trim() : null,
         fechaNacimiento !== undefined ? (fechaNacimiento || null) : null,
-        dni !== undefined ? (dni || null) : null,
-        telefono !== undefined ? (telefono || null) : null,
-        domicilio !== undefined ? (domicilio || null) : null,
+        dniClean !== undefined,
+        dniClean,
+        telefono !== undefined ? (telefono ? String(telefono).trim() : null) : null,
+        domicilio !== undefined ? (domicilio ? String(domicilio).trim() : null) : null,
         tieneObraSocial !== undefined ? toBoolean(tieneObraSocial) : null,
-        obraSocialNombre !== undefined ? (obraSocialNombre || null) : null,
+        obraSocialNombre !== undefined ? (String(obraSocialNombre || '').trim() || null) : null,
         tieneCUD !== undefined ? toBoolean(tieneCUD) : null,
         estado !== undefined ? String(estado).trim() : null,
         req.params.id
@@ -475,7 +556,7 @@ function registerAdmisionsRoutes(app, { db, authMiddleware }) {
               buf,
               filename,
               mimetype,
-              filename,
+              buf,
               admissionId
             );
             console.log(`[EXPEDIENTE] OK guardado: ${campoKey}`);
@@ -511,7 +592,7 @@ function registerAdmisionsRoutes(app, { db, authMiddleware }) {
               buf,
               filename,
               mimetype,
-              filename,
+              buf,
               admissionId
             );
             console.log(`[EXPEDIENTE] OK guardado nuevo: ${campoKey}`);
@@ -539,6 +620,113 @@ function registerAdmisionsRoutes(app, { db, authMiddleware }) {
     } catch (err) {
       console.error('[ADMISIONES] POST /api/admisiones/:id/expediente', err);
       res.status(500).json({ error: 'No se pudo guardar el expediente.' });
+    }
+  });
+
+  // POST /api/admisiones/:id/finalizar – finalizar los 3 pasos y dar de alta en tabla PATIENTS
+  app.post('/api/admisiones/:id/finalizar', authMiddleware, async (req, res) => {
+    try {
+      const admissionId = req.params.id;
+      const admission = await db.get(`SELECT * FROM admissions WHERE id = ?`, admissionId);
+      if (!admission) {
+        return res.status(404).json({ error: 'Admisión no encontrada.' });
+      }
+      if (admission.estado !== 'aprobado' && admission.estado !== 'completado') {
+        return res.status(400).json({ error: 'La admisión debe estar aprobada por la fisiatra antes de admitir al paciente.' });
+      }
+
+      // 1. Obtener datos del expediente (afiliado, dni)
+      const docRow = await db.get(`SELECT * FROM admission_documents WHERE admission_id = ?`, admissionId);
+      const dniFinal = String(admission.dni || docRow?.dni_numero || '').replace(/\D/g, '') || null;
+      const nroAfiliado = docRow?.numero_afiliado ? String(docRow.numero_afiliado).trim() : null;
+
+      // 2. Resolver Obra Social si corresponde
+      let osId = null;
+      if (admission.tiene_obra_social && admission.obra_social_nombre) {
+        const osNombre = String(admission.obra_social_nombre).trim();
+        const osExistente = await db.get(`SELECT id FROM OS WHERE LOWER(TRIM(name)) = LOWER(TRIM(?))`, osNombre);
+        if (osExistente) {
+          osId = osExistente.id;
+        } else {
+          const insertOs = await db.run(`INSERT INTO OS (name) VALUES (?)`, osNombre);
+          osId = insertOs.lastID || null;
+        }
+      }
+
+      // 3. Crear o actualizar paciente en tabla PATIENTS
+      let patientId = admission.patient_id;
+      if (patientId) {
+        const pacExistente = await db.get(`SELECT patient_id FROM PATIENTS WHERE patient_id = ?`, patientId);
+        if (pacExistente) {
+          await db.run(
+            `UPDATE PATIENTS SET
+              first_name = ?,
+              last_name = ?,
+              birth_date = COALESCE(?, birth_date),
+              dni = COALESCE(?, dni),
+              father_tutor_phone = COALESCE(?, father_tutor_phone),
+              address_street = COALESCE(?, address_street),
+              os_id = COALESCE(?, os_id),
+              affiliate_number = COALESCE(?, affiliate_number),
+              is_active = TRUE,
+              is_discharged = FALSE
+             WHERE patient_id = ?`,
+            admission.first_name,
+            admission.last_name,
+            admission.birth_date,
+            dniFinal,
+            admission.phone,
+            admission.address,
+            osId,
+            nroAfiliado,
+            patientId
+          );
+        }
+      } else {
+        // Verificar si ya existe paciente con este DNI
+        if (dniFinal) {
+          const pacPorDni = await db.get(`SELECT patient_id FROM PATIENTS WHERE dni = ?`, dniFinal);
+          if (pacPorDni) {
+            patientId = pacPorDni.patient_id;
+          }
+        }
+        if (!patientId) {
+          patientId = `p-${Date.now()}`;
+          await db.run(
+            `INSERT INTO PATIENTS
+              (patient_id, first_name, last_name, birth_date, condition, dni,
+               father_tutor_phone, address_street, os_id, affiliate_number, is_active, is_discharged)
+             VALUES (?, ?, ?, ?, 'Ambulatorio', ?, ?, ?, ?, ?, TRUE, FALSE)`,
+            patientId,
+            admission.first_name,
+            admission.last_name,
+            admission.birth_date,
+            dniFinal,
+            admission.phone,
+            admission.address,
+            osId,
+            nroAfiliado
+          );
+        }
+      }
+
+      // 4. Marcar admisión como completada y asociar patient_id
+      await db.run(
+        `UPDATE admissions SET estado = 'completado', patient_id = ?, updated_at = now() WHERE id = ?`,
+        patientId,
+        admissionId
+      );
+
+      const updated = await db.get(`SELECT * FROM admissions WHERE id = ?`, admissionId);
+      res.json({
+        ok: true,
+        mensaje: `Paciente ${admission.last_name}, ${admission.first_name} admitido exitosamente con ID ${patientId}.`,
+        patientId,
+        admision: formatAdmission(updated)
+      });
+    } catch (err) {
+      console.error('[ADMISIONES] POST /api/admisiones/:id/finalizar', err);
+      res.status(500).json({ error: err.message || 'No se pudo finalizar la admisión y crear el paciente.' });
     }
   });
 

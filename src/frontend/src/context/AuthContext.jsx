@@ -1,4 +1,4 @@
-﻿import React, {
+import React, {
   createContext,
   useContext,
   useEffect,
@@ -62,12 +62,12 @@ export function ProveedorAutenticacion({ children }) {
     };
   }, []);
 
-  const iniciarSesion = async ({ username, password }) => {
+  const iniciarSesion = async ({ username, password, recordarSesion }) => {
     const u = String(username || '').trim();
     const p = String(password || '').trim();
     if (!u || !p) return { ok: false, error: 'Completa usuario y contraseÃ±a.' };
     try {
-      const data = await iniciarSesionApi({ username: u, password: p });
+      const data = await iniciarSesionApi({ username: u, password: p, recordarSesion });
       const nombre = String(data?.user?.username || '').trim() || u;
       setUsuario({
         nombre,

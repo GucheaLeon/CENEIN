@@ -6,6 +6,7 @@ const NAV_ITEMS = [
   { key: 'attendances', label: 'Asistencias', icon: 'calendar_today' },
   { key: 'alta', label: 'Alta Pacientes', icon: 'person_add' },
   { key: 'admision', label: 'Admisión', icon: 'assignment_ind' },
+  { key: 'facturacion', label: 'Facturación', icon: 'receipt_long' },
 ];
 
 const ADMIN_ITEMS = [
@@ -19,6 +20,7 @@ const PAGE_TITLES = {
   attendances: 'Asistencias',
   alta: 'Alta Pacientes',
   admision: 'Admisión',
+  facturacion: 'Facturación',
   users: 'Usuarios',
   'user-history': 'Historial por usuario',
   patient: 'Paciente',
@@ -126,30 +128,6 @@ export default function Distribucion({
               </div>
 
               <div className="flex items-center gap-2 sm:gap-4">
-                <div className="relative hidden lg:block">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                    search
-                  </span>
-                  <input
-                    type="text"
-                    readOnly
-                    placeholder="Buscar..."
-                    className="w-72 rounded-full border-none bg-[#f1f4f5] py-2 pl-10 pr-4 text-sm text-slate-600 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-200"
-                  />
-                </div>
-
-                <button
-                  type="button"
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-transparent p-0 text-slate-600 shadow-none hover:bg-[#f1f4f5]"
-                >
-                  <span className="material-symbols-outlined">notifications</span>
-                </button>
-                <button
-                  type="button"
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-transparent p-0 text-slate-600 shadow-none hover:bg-[#f1f4f5]"
-                >
-                  <span className="material-symbols-outlined">settings</span>
-                </button>
                 <div className="mx-1 hidden h-8 w-px bg-slate-300 sm:block" />
 
                 <div className="flex items-center gap-3">

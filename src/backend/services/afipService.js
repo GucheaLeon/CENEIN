@@ -7,14 +7,7 @@ const WSAA_HOMO_WSDL = 'https://wsaahomo.afip.gov.ar/ws/services/LoginCms?WSDL';
 const WSAA_PROD_WSDL = 'https://wsaa.afip.gov.ar/ws/services/LoginCms?WSDL';
 
 const WSFE_HOMO_WSDL = 'https://wswhomo.afip.gov.ar/wsfev1/service.asmx?WSDL';
-const WSFE_PROD_WSDL = 'https://wswhomo.afip.gov.ar/wsfev1/service.asmx?WSDL'; // Se reemplaza por el de prod cuando corresponda
-
-// Cache en memoria para Token y Sign
-let tokenCache = {
-  token: null,
-  sign: null,
-  expirationTime: null
-};
+const WSFE_PROD_WSDL = 'https://servicios1.afip.gov.ar/wsfev1/service.asmx?WSDL';
 
 /**
  * Obtiene la configuración de AFIP desde las variables de entorno o valores por defecto.
@@ -27,7 +20,7 @@ function getAfipConfig() {
   const keyPath = process.env.AFIP_KEY_PATH
     ? path.resolve(process.env.AFIP_KEY_PATH)
     : path.join(__dirname, '../certs/homo.key');
-  const cuit = Number(process.env.AFIP_CUIT || 20123456789);
+  const cuit = Number(process.env.AFIP_CUIT || 27279591122);
   const ptoVta = Number(process.env.AFIP_PTO_VTA || 1);
 
   return {
@@ -115,26 +108,43 @@ function signTra(traXml, certPem, keyPem) {
   return forge.util.encode64(cmsDer);
 }
 
-const TA_CACHE_FILE = path.join(__dirname, '../certs/ta_wsfe.json');
+// Ticket de acceso generado por WSAA. Se comparte entre reinicios del backend.
+const TA_CACHE_FILE = process.env.AFIP_TA_PATH
+  ? path.resolve(process.env.AFIP_TA_PATH)
+  : path.join(__dirname, '../certs/ta_wsfe.json');
 
-function loadCachedToken() {
+// Backup del TA para recuperar ante pérdida de caché mientras ARCA aún lo considera válido.
+const TA_BACKUP_FILE = TA_CACHE_FILE.replace('.json', '.backup.json');
+
+function loadCachedToken(useBackup = false) {
+  const file = useBackup ? TA_BACKUP_FILE : TA_CACHE_FILE;
   try {
-    if (fs.existsSync(TA_CACHE_FILE)) {
-      const data = JSON.parse(fs.readFileSync(TA_CACHE_FILE, 'utf8'));
+    if (fs.existsSync(file)) {
+      const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+      const token = String(data?.token || '').trim();
+      const sign = String(data?.sign || '').trim();
       const exp = new Date(data.expirationTime);
-      if (exp > new Date(Date.now() + 5 * 60 * 1000)) {
-        return data;
+      if (
+        token &&
+        sign &&
+        Number.isFinite(exp.getTime()) &&
+        exp > new Date(Date.now() + 5 * 60 * 1000)
+      ) {
+        return { token, sign, expirationTime: exp.toISOString() };
       }
     }
-  } catch (err) {}
+  } catch (err) { }
   return null;
 }
 
 function saveCachedToken(token, sign, expirationTime) {
   try {
     const data = { token, sign, expirationTime: expirationTime.toISOString() };
-    fs.writeFileSync(TA_CACHE_FILE, JSON.stringify(data, null, 2), 'utf8');
-  } catch (err) {}
+    const json = JSON.stringify(data, null, 2);
+    fs.writeFileSync(TA_CACHE_FILE, json, 'utf8');
+    // Guardar copia de respaldo para recuperar ante pérdida del caché principal.
+    fs.writeFileSync(TA_BACKUP_FILE, json, 'utf8');
+  } catch (err) { }
 }
 
 /**
@@ -158,8 +168,30 @@ async function getAfipAuthToken() {
   const cmsBase64 = signTra(traXml, certPem, keyPem);
   const client = await soap.createClientAsync(check.config.wsaaWsdl);
 
-  const [result] = await client.loginCmsAsync({ in0: cmsBase64 });
-  const loginTicketResponseXml = result.loginCmsReturn;
+  let loginTicketResponseXml;
+  try {
+    const [result] = await client.loginCmsAsync({ in0: cmsBase64 });
+    loginTicketResponseXml = result.loginCmsReturn;
+  } catch (wsaaErr) {
+    const errStr = String(wsaaErr?.message || wsaaErr);
+    // ARCA devuelve alreadyAuthenticated cuando el TA anterior sigue vigente
+    // server-side pero fue eliminado del caché local. Intentar recuperar del backup.
+    if (errStr.includes('alreadyAuthenticated')) {
+      const backup = loadCachedToken(true);
+      if (backup) {
+        console.warn('[WSAA] alreadyAuthenticated: restaurando TA desde backup.');
+        // Restaurar el caché principal desde el backup
+        saveCachedToken(backup.token, backup.sign, new Date(backup.expirationTime));
+        return { token: backup.token, sign: backup.sign };
+      }
+      throw new Error(
+        'ARCA rechazó la autenticación con alreadyAuthenticated y no hay backup del TA. ' +
+        'El TA anterior aún es válido en los servidores de ARCA. ' +
+        'Esperá que expire (máx. 12 hs desde la última autenticación) y reiniciá el backend.'
+      );
+    }
+    throw wsaaErr;
+  }
 
   const tokenMatch = loginTicketResponseXml.match(/<token>(.*?)<\/token>/);
   const signMatch = loginTicketResponseXml.match(/<sign>(.*?)<\/sign>/);
@@ -177,6 +209,46 @@ async function getAfipAuthToken() {
   saveCachedToken(token, sign, expirationTime);
 
   return { token, sign };
+}
+
+/**
+ * Construye el bloque Auth que WSFE serializa como XML estándar de ARCA:
+ *
+ * <Auth>
+ *   <Token>...</Token>
+ *   <Sign>...</Sign>
+ *   <Cuit>...</Cuit>
+ * </Auth>
+ *
+ * No se debe envolver manualmente el token en XML: node-soap genera ese XML
+ * al recibir este objeto en FECAESolicitarAsync/FECompUltimoAutorizadoAsync.
+ */
+function buildWsfeAuth(config, ticket) {
+  const token = String(ticket?.token || '').trim();
+  const sign = String(ticket?.sign || '').trim();
+  const cuit = Number(config?.cuit);
+
+  if (!token || !sign) {
+    throw new Error(`El archivo de ticket WSAA no contiene token y sign válidos: ${TA_CACHE_FILE}`);
+  }
+  if (!Number.isSafeInteger(cuit) || cuit <= 0) {
+    throw new Error('AFIP_CUIT no es válido para WSFE.');
+  }
+
+  return {
+    Token: token,
+    Sign: sign,
+    Cuit: cuit
+  };
+}
+
+/**
+ * Obtiene el ticket del JSON (o renueva WSAA si está vencido) y lo prepara
+ * para cualquier operación WSFE.
+ */
+async function getWsfeAuth(config = getAfipConfig()) {
+  const ticket = await getAfipAuthToken();
+  return buildWsfeAuth(config, ticket);
 }
 
 /**
@@ -203,15 +275,11 @@ async function getAfipStatus() {
 async function getLastVoucherNumber(ptoVta = null, cbteTipo = 6) {
   const config = getAfipConfig();
   const targetPtoVta = ptoVta || config.ptoVta;
-  const auth = await getAfipAuthToken();
+  const auth = await getWsfeAuth(config);
   const client = await getWsfeClient();
 
   const [result] = await client.FECompUltimoAutorizadoAsync({
-    Auth: {
-      Token: auth.token,
-      Sign: auth.sign,
-      Cuit: config.cuit
-    },
+    Auth: auth,
     PtoVta: targetPtoVta,
     CbteTipo: cbteTipo
   });
@@ -270,7 +338,7 @@ async function createVoucher(params) {
   const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
   const dateFormatted = new Date().toISOString().slice(0, 10);
 
-  const auth = await getAfipAuthToken();
+  const auth = await getWsfeAuth(config);
   const client = await getWsfeClient();
 
   const reqDetail = {
@@ -330,11 +398,7 @@ async function createVoucher(params) {
   };
 
   const [result] = await client.FECAESolicitarAsync({
-    Auth: {
-      Token: auth.token,
-      Sign: auth.sign,
-      Cuit: config.cuit
-    },
+    Auth: auth,
     FeCAEReq: feCAEReq
   });
 
@@ -386,6 +450,7 @@ module.exports = {
   verifyCertsExist,
   getAfipStatus,
   getAfipAuthToken,
+  getWsfeAuth,
   getLastVoucherNumber,
   generateArcaQrUrl,
   createVoucher
