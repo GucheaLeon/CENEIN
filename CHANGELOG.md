@@ -4,10 +4,16 @@
 
 ### Agregado
 * Requerir la carga completa de los 8 PDFs antes de habilitar la validación y admisión de pacientes.
-
+* sembrado automático de estados operativos en patient_state
+* rediseño de la ficha de detalle del paciente con navegación por pestañas y banner clínico
+* rediseño integral del buscador de pacientes con control unificado y filtros avanzados
 ### Modificado
 * Arreglo de la API de Groq para automatizar el changelog.  
 * Corrección de la fecha y versión del changelog generado automáticamente.
+* corrección de consultas SQL con patient_id para generación de PDFs y exportación de asistencias
+
+### Testing
+* agregar suite de pruebas automatizadas de QA senior y generador de reporte
 
 ---
 
