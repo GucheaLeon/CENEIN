@@ -153,7 +153,7 @@ function registerAttendancesExportRoute(app, { db, construirPaciente }) {
 
       const resultados = [];
       for (const id of ids) {
-        const fila = await db.get('SELECT * FROM patients WHERE id = ?', id);
+        const fila = await db.get('SELECT * FROM PATIENTS WHERE patient_id = ?', id);
         if (!fila) continue;
         if (Boolean(fila.is_discharged)) continue;
         if (fila.is_active === false || fila.is_active === 0 || fila.is_active === '0') continue;
