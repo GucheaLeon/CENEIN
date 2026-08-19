@@ -993,7 +993,17 @@ function PanelExpediente({ admision, onActualizar, alAbrirPaciente, alNavegar })
     }
   };
 
+  const isDocCargado = (doc) => Boolean((expediente && expediente[doc.tieneField]) || archivos[doc.key]);
+  const docsCargadosCount = DOCUMENTOS_PDF.filter(isDocCargado).length;
+  const totalDocs = DOCUMENTOS_PDF.length;
+  const todosPdfsCargados = docsCargadosCount === totalDocs;
+  const docsFaltantes = DOCUMENTOS_PDF.filter((doc) => !isDocCargado(doc));
+
   const handleFinalizar = async () => {
+    if (!todosPdfsCargados) {
+      setError(`Debés adjuntar todos los PDFs requeridos antes de admitir al paciente. Faltan: ${docsFaltantes.map(d => d.label).join(', ')}.`);
+      return;
+    }
     if (!window.confirm('¿Finalizar los 3 pasos de admisión y admitir formalmente al paciente en el sistema?')) {
       return;
     }
@@ -1166,8 +1176,15 @@ function PanelExpediente({ admision, onActualizar, alAbrirPaciente, alNavegar })
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
               Documentos PDF del Expediente
             </p>
-            <span className="text-[11px] font-semibold text-slate-500">
-              Hacé clic en "Adjuntar PDF" en cada documento deseado
+            <span
+              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold border ${
+                todosPdfsCargados
+                  ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
+                  : 'border-amber-300 bg-amber-50 text-amber-800'
+              }`}
+            >
+              <span className={`h-1.5 w-1.5 rounded-full ${todosPdfsCargados ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+              {docsCargadosCount} de {totalDocs} PDFs cargados
             </span>
           </div>
 
@@ -1204,7 +1221,10 @@ function PanelExpediente({ admision, onActualizar, alAbrirPaciente, alNavegar })
                       {filename || 'Archivo guardado'}
                     </p>
                   ) : (
-                    <p className="text-[11px] font-medium text-slate-400">Sin archivo adjunto</p>
+                    <p className="text-[11px] font-medium text-amber-700 flex items-center gap-1">
+                      <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                      Sin archivo adjunto (Pendiente)
+                    </p>
                   )}
                 </div>
 
@@ -1260,6 +1280,55 @@ function PanelExpediente({ admision, onActualizar, alAbrirPaciente, alNavegar })
           </div>
         )}
 
+        {/* Aviso de validación de PDFs cuando está en estado aprobado */}
+        {admision.estado === 'aprobado' && (
+          !todosPdfsCargados ? (
+            <div className="rounded-2xl border border-amber-300 bg-amber-50/80 p-3.5 space-y-1.5">
+              <div className="flex items-center gap-2 text-amber-900 font-bold text-xs">
+                <span className="material-symbols-outlined text-amber-600 text-base">warning</span>
+                <span>Expediente incompleto ({docsCargadosCount}/{totalDocs} PDFs cargados)</span>
+              </div>
+              <p className="text-[11px] text-amber-800 leading-relaxed">
+                El botón para validar y admitir al paciente en la lista de pacientes aparecerá únicamente cuando se hayan adjuntado todos los PDFs requeridos.
+              </p>
+              {docsFaltantes.length > 0 && (
+                <div className="pt-1">
+                  <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider mb-1">
+                    Documentos pendientes ({docsFaltantes.length}):
+                  </p>
+                  <div className="flex flex-wrap gap-1">
+                    {docsFaltantes.map((d) => (
+                      <span
+                        key={d.key}
+                        className="inline-flex items-center gap-1 rounded-md bg-white border border-amber-200 px-2 py-0.5 text-[10px] font-semibold text-amber-800"
+                      >
+                        <span className="h-1 w-1 rounded-full bg-amber-400" />
+                        {d.label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-emerald-300 bg-emerald-50 p-3.5 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#006d44] text-white">
+                  <span className="material-symbols-outlined text-base">task_alt</span>
+                </span>
+                <div>
+                  <p className="text-xs font-bold text-[#006d44]">
+                    ¡Todos los PDFs cargados ({totalDocs}/{totalDocs})!
+                  </p>
+                  <p className="text-[11px] text-slate-600">
+                    El expediente está completo. Ya podés validar y admitir al paciente en la lista general.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )
+        )}
+
         {error && (
           <p className="rounded-xl bg-rose-50 px-4 py-2.5 text-xs font-semibold text-rose-600 flex items-center gap-2 border border-rose-200">
             <span className="material-symbols-outlined text-sm">error</span>
@@ -1274,12 +1343,12 @@ function PanelExpediente({ admision, onActualizar, alAbrirPaciente, alNavegar })
         )}
 
         {/* Botones de acción principal */}
-        <div className="flex gap-3 pt-1">
+        <div className="flex flex-col sm:flex-row gap-3 pt-1">
           <button
             type="button"
             onClick={handleGuardar}
             disabled={guardando}
-            className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#006d44] px-6 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#005a38] disabled:opacity-60 transition"
+            className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-slate-100 border border-slate-300 px-6 py-2.5 text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-200 disabled:opacity-60 transition"
           >
             {guardando ? (
               <>
@@ -1289,19 +1358,20 @@ function PanelExpediente({ admision, onActualizar, alAbrirPaciente, alNavegar })
             ) : (
               <>
                 <span className="material-symbols-outlined text-base">save</span>
-                {admision.estado === 'completado' ? 'Actualizar documentos' : 'Guardar expediente'}
+                {admision.estado === 'completado' ? 'Actualizar documentos' : 'Guardar borrador de expediente'}
               </>
             )}
           </button>
-          {admision.estado === 'aprobado' && (
+          {admision.estado === 'aprobado' && todosPdfsCargados && (
             <button
               type="button"
+              id="btn-validar-admitir"
               onClick={handleFinalizar}
               disabled={guardando}
-              className="flex items-center gap-2 rounded-xl border-2 border-[#006d44] bg-[#006d44] px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#005a38] disabled:opacity-60 transition"
+              className="flex-1 flex items-center justify-center gap-2 rounded-xl border-2 border-[#006d44] bg-[#006d44] px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#005a38] disabled:opacity-60 transition animate-fade-in"
             >
               <span className="material-symbols-outlined text-base">how_to_reg</span>
-              Finalizar y Admitir Paciente
+              Validar y Admitir Paciente
             </button>
           )}
         </div>

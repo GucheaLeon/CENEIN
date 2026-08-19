@@ -635,8 +635,39 @@ function registerAdmisionsRoutes(app, { db, authMiddleware }) {
         return res.status(400).json({ error: 'La admisión debe estar aprobada por la fisiatra antes de admitir al paciente.' });
       }
 
-      // 1. Obtener datos del expediente (afiliado, dni)
+      // 1. Obtener datos del expediente (afiliado, dni) y validar que todos los PDFs estén cargados
       const docRow = await db.get(`SELECT * FROM admission_documents WHERE admission_id = ?`, admissionId);
+      if (!docRow) {
+        return res.status(400).json({
+          error: 'No se puede admitir al paciente: no se han adjuntado los documentos PDF obligatorios en el expediente.',
+        });
+      }
+
+      const DOCUMENTOS_EXPEDIENTE_REQUERIDOS = [
+        { key: 'carnet', label: 'Carnet' },
+        { key: 'cud', label: 'CUD' },
+        { key: 'consentimiento', label: 'Consentimiento de los padres' },
+        { key: 'presupuesto', label: 'Presupuesto' },
+        { key: 'informe', label: 'Informe inicial' },
+        { key: 'plan', label: 'Plan de trabajo' },
+        { key: 'historial', label: 'Resumen historial clínico' },
+        { key: 'pedidos', label: 'Pedidos médicos' },
+      ];
+
+      const docsFaltantes = DOCUMENTOS_EXPEDIENTE_REQUERIDOS.filter((doc) => {
+        const meta = CAMPO_MAP[doc.key];
+        if (!meta) return true;
+        const hasFile = Boolean(docRow[meta.filenameCol] || docRow[meta.dataCol] || docRow[meta.dbField]);
+        return !hasFile;
+      });
+
+      if (docsFaltantes.length > 0) {
+        return res.status(400).json({
+          error: `No se puede admitir al paciente porque faltan ${docsFaltantes.length} documento(s) PDF obligatorio(s) en el expediente: ${docsFaltantes.map((d) => d.label).join(', ')}.`,
+          faltantes: docsFaltantes.map((d) => d.label),
+        });
+      }
+
       const dniFinal = String(admission.dni || docRow?.dni_numero || '').replace(/\D/g, '') || null;
       const nroAfiliado = docRow?.numero_afiliado ? String(docRow.numero_afiliado).trim() : null;
 
