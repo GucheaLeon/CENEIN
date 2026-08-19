@@ -10,6 +10,8 @@ services:
       POSTGRES_USER: cenein
       POSTGRES_PASSWORD: ${DB_PASSWORD:-supersecret}
       POSTGRES_DB: cenein_db
+    ports:
+      - "5432:5432"
     volumes:
       - cenein-db-data:/var/lib/postgresql/data
     networks:

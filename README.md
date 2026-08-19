@@ -44,6 +44,29 @@ ADMIN_PASSWORD=clave_admin_segura
 ```
 *Nota: Si no creas este archivo en tu entorno local, Docker utilizará valores por defecto inseguros (`supersecret`, `admin1234`), lo cual es aceptable **solo para desarrollo en tu propia computadora**.*
 
+### Conexión de PostgreSQL desde DBeaver
+
+El servicio `db` publica el puerto de PostgreSQL del contenedor en el puerto `5432` de la computadora mediante esta configuración de Docker Compose:
+
+```yaml
+ports:
+   - "5432:5432"
+```
+
+Esto permite que herramientas externas, como DBeaver, se conecten a la base de datos sin modificar la conexión interna del Backend, que continúa usando `db:5432` dentro de la red de Docker.
+
+Para conectarte desde DBeaver, crea una conexión PostgreSQL con estos valores en desarrollo:
+
+| Campo | Valor |
+|---|---|
+| Host | `localhost` |
+| Puerto | `5432` |
+| Base de datos | `cenein_db` |
+| Usuario | `cenein` |
+| Contraseña | `supersecret` |
+
+Si definiste `DB_PASSWORD` en el archivo `.env`, utiliza ese valor en lugar de `supersecret`. Primero asegúrate de que PostgreSQL esté iniciado con `docker compose up -d db`.
+
 ---
 
 ## 💻 Instrucciones de Instalación y Ejecución
