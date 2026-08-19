@@ -241,7 +241,7 @@ async function generateChangelog() {
     const restOfFile = currentContent.startsWith(header)
       ? currentContent.slice(header.length).trim()
       : currentContent;
-    const latestEntryPattern = /^(## \[([^\]]+)\] - (\d{4}\/\d{2}\/\d{2})\n\n)([\s\S]*?)(\n\n---)/;
+    const latestEntryPattern = /^(## \[([^\]]+)\] - (\d{4}\/\d{2}\/\d{2})\r?\n\r?\n)([\s\S]*?)(\r?\n\r?\n---)/;
     const latestEntry = latestEntryPattern.exec(restOfFile);
     const sameDayEntry = latestEntry && latestEntry[3] === formattedDate ? latestEntry : null;
 

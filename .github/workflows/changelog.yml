@@ -26,6 +26,7 @@ jobs:
       - name: Generate Changelog
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          TZ: America/Argentina/Buenos_Aires
         run: node scripts/generate-changelog.js
 
       - name: Check if new version tag was generated
@@ -43,8 +44,15 @@ jobs:
             echo "has_update=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Commit CHANGELOG without new tag
+        if: steps.check_tag.outputs.has_update == 'true' && env.NEW_TAG == ''
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(release): update CHANGELOG.md [skip ci]"
+          file_pattern: "CHANGELOG.md"
+
       - name: Commit CHANGELOG and Push Git Tag
-        if: steps.check_tag.outputs.has_update == 'true'
+        if: steps.check_tag.outputs.has_update == 'true' && env.NEW_TAG != ''
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore(release): update CHANGELOG.md for ${{ env.NEW_TAG }} [skip ci]"
