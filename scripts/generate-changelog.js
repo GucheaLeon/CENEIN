@@ -99,8 +99,19 @@ function parseSections(markdown) {
 
 function mergeChangelogSections(existingMarkdown, incomingMarkdown) {
   let mergedMarkdown = existingMarkdown.trim();
+  const incomingSections = parseSections(incomingMarkdown);
 
-  for (const incomingSection of parseSections(incomingMarkdown)) {
+  if (!incomingSections.length) {
+    const existingItems = new Set(mergedMarkdown.split('\n').map((line) => line.trim()).filter(Boolean));
+    const newContent = incomingMarkdown
+      .split('\n')
+      .filter((line) => line.trim() && !existingItems.has(line.trim()))
+      .join('\n');
+
+    return newContent ? `${mergedMarkdown}\n${newContent}` : mergedMarkdown;
+  }
+
+  for (const incomingSection of incomingSections) {
     const escapedTitle = incomingSection.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const sectionPattern = new RegExp(`^###\\s+${escapedTitle}\\s*$`, 'im');
     const sectionMatch = sectionPattern.exec(mergedMarkdown);
@@ -241,7 +252,7 @@ async function generateChangelog() {
       const updatedRestOfFile = restOfFile.replace(latestEntry[0], mergedEntry);
       updatedContent = `${header}\n\n${updatedRestOfFile}\n`;
       fs.writeFileSync('CHANGELOG.md', updatedContent.trim() + '\n');
-      fs.writeFileSync('NEW_TAG.txt', `v${sameDayEntry[2]}`);
+      fs.writeFileSync('CHANGELOG_UPDATED.txt', 'true');
       console.log(`✅ CHANGELOG.md actualizado en la versión ${sameDayEntry[2]} del ${formattedDate}.`);
       return;
     }
@@ -258,6 +269,7 @@ async function generateChangelog() {
     }
 
     fs.writeFileSync('CHANGELOG.md', updatedContent.trim() + '\n');
+    fs.writeFileSync('CHANGELOG_UPDATED.txt', 'true');
     
     // Archivo temporal para comunicar el nuevo tag a la Action
     fs.writeFileSync('NEW_TAG.txt', newVersionTag);
