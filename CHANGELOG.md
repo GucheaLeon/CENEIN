@@ -5,6 +5,9 @@
 ### Agregado
 * Requerir la carga completa de los 8 PDFs antes de habilitar la validación y admisión de pacientes.
 
+### Modificado
+* Arreglo de la API de Groq para automatizar el changelog.  
+* Corrección de la fecha y versión del changelog generado automáticamente.
 
 ---
 
