@@ -618,6 +618,17 @@ export async function guardarRevisionAdmisionApi(admisionId, datos) {
   }
 }
 
+export async function finalizarAdmisionApi(admisionId) {
+  try {
+    return await fetchJsonApi(`/api/admisiones/${admisionId}/finalizar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (err) {
+    throw new Error(String(err?.message || 'No se pudo finalizar la admisión y crear el paciente.'));
+  }
+}
+
 export async function obtenerExpedienteAdmisionApi(admisionId, opciones = {}) {
   try {
     return await fetchJsonApi(`/api/admisiones/${admisionId}/expediente`, opciones);

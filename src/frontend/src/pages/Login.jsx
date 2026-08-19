@@ -109,9 +109,6 @@ export default function InicioSesion({ alIngresar }) {
                 >
                   Contraseña
                 </label>
-                <span className="text-xs font-medium text-[#006d44] opacity-0 pointer-events-none">
-                  ¿Olvidó su clave?
-                </span>
               </div>
               <div className="group relative">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">

@@ -520,12 +520,24 @@ async function initDb() {
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
   const db = createPostgresDb(pool);
   const schemaSql = fs.readFileSync(SCHEMA_SQL_PATH, 'utf8');
-  await db.exec(schemaSql);
+  try {
+    await db.exec(schemaSql);
+  } catch (err) {
+    console.warn('[DB] Schema inicial parcial (se completará con migraciones):', err.message);
+  }
   for (const nombre of TRATAMIENTOS_BASE) {
     await db.run('INSERT INTO treatments (name) VALUES ($1) ON CONFLICT DO NOTHING', nombre);
   }
+  for (const mod of ['MII', 'MIS', 'MIE']) {
+    try {
+      await db.run('INSERT INTO module (description) VALUES ($1) ON CONFLICT DO NOTHING', mod);
+    } catch (err) {}
+  }
   // Correr migraciones pendientes automáticamente
   await runMigrations(db, pool);
+  try {
+    await db.exec(schemaSql);
+  } catch (err) {}
   try {
     await db.run(`DELETE FROM sessions WHERE expires_at <= now()`);
   } catch (err) {}

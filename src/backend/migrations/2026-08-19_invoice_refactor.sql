@@ -2,6 +2,15 @@
 -- 2026-08-19: Refactor módulos + INVOICE con datos ARCA
 -- ============================================================
 
+-- 0. Asegurar columna price y catálogo en MODULE
+ALTER TABLE MODULE
+  ADD COLUMN IF NOT EXISTS price DECIMAL(10,2) DEFAULT 0;
+
+INSERT INTO MODULE (description)
+SELECT unnest(ARRAY['MII', 'MIS', 'MIE'])
+WHERE NOT EXISTS (SELECT 1 FROM MODULE LIMIT 1)
+ON CONFLICT (description) DO NOTHING;
+
 -- 1. Ampliar INVOICE con todos los campos de ARCA y descriptivos
 ALTER TABLE INVOICE
   ADD COLUMN IF NOT EXISTS cae TEXT,

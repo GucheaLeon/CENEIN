@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { usePacientes } from '../context/PatientsContext';
 import {
   actualizarAdmisionApi,
   crearAdmisionApi,
   descargarArchivoExpedienteApi,
   eliminarAdmisionApi,
+  finalizarAdmisionApi,
   guardarExpedienteAdmisionApi,
   guardarRevisionAdmisionApi,
   obtenerAdmisionesApi,
@@ -32,7 +34,7 @@ const ESTADO_META = {
     dot: 'bg-amber-400',
   },
   completado: {
-    label: 'Expediente completo',
+    label: 'Expediente completo / Admitido',
     color: 'bg-emerald-100 text-emerald-700',
     dot: 'bg-emerald-400',
   },
@@ -100,28 +102,36 @@ function WizardNuevaAdmision({ onGuardar, onCancelar }) {
     setForm((prev) => ({ ...prev, [campo]: valor }));
 
   const validarPaso = () => {
-    const soloLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
-    const soloNumeros = /^[0-9]+$/;
-    const alfanumerico = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,-]+$/;
+    const soloLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]{2,60}$/;
+    const soloNumerosDni = /^\d{6,9}$/;
+    const telValido = /^[\d\s+()-]{6,25}$/;
+    const alfanumericoDomicilio = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,#º°/-]{3,120}$/;
 
     if (paso === 1) {
       if (!form.nombre.trim()) return 'El nombre es obligatorio.';
-      if (!soloLetras.test(form.nombre.trim())) return 'El nombre no debe contener números ni caracteres especiales.';
+      if (!soloLetras.test(form.nombre.trim())) return 'El nombre solo puede contener letras y espacios (mínimo 2 letras).';
       if (!form.apellido.trim()) return 'El apellido es obligatorio.';
-      if (!soloLetras.test(form.apellido.trim())) return 'El apellido no debe contener números ni caracteres especiales.';
+      if (!soloLetras.test(form.apellido.trim())) return 'El apellido solo puede contener letras y espacios (mínimo 2 letras).';
     }
     if (paso === 2) {
       if (!form.fechaNacimiento) return 'La fecha de nacimiento es obligatoria.';
-      if (new Date(form.fechaNacimiento) > new Date()) return 'La fecha de nacimiento no puede ser en el futuro.';
-      if (new Date(form.fechaNacimiento).getFullYear() < 1900) return 'La fecha de nacimiento no es válida.';
+      const d = new Date(form.fechaNacimiento);
+      if (isNaN(d.getTime())) return 'La fecha de nacimiento no es válida.';
+      if (d > new Date()) return 'La fecha de nacimiento no puede ser en el futuro.';
+      if (d.getFullYear() < 1900) return 'La fecha de nacimiento no es válida.';
       if (!form.dni.trim()) return 'El DNI es obligatorio.';
-      if (!soloNumeros.test(form.dni.trim())) return 'El DNI solo puede contener números sin espacios.';
+      if (!soloNumerosDni.test(form.dni.trim())) return 'El DNI debe contener entre 6 y 9 números sin puntos ni letras.';
       if (!form.telefono.trim()) return 'El teléfono es obligatorio.';
-      if (!soloNumeros.test(form.telefono.trim())) return 'El teléfono solo puede contener números sin espacios.';
+      if (!telValido.test(form.telefono.trim())) return 'El teléfono debe contener al menos 6 dígitos válidos.';
     }
     if (paso === 3) {
-      if (form.domicilio.trim() && !alfanumerico.test(form.domicilio.trim())) {
-        return 'El domicilio no puede contener caracteres especiales no permitidos.';
+      if (form.domicilio.trim() && !alfanumericoDomicilio.test(form.domicilio.trim())) {
+        return 'El domicilio contiene caracteres no permitidos.';
+      }
+    }
+    if (paso === 4) {
+      if (form.tieneObraSocial && !form.obraSocialNombre.trim()) {
+        return 'Debe seleccionar o ingresar el nombre de la Obra Social.';
       }
     }
     return '';
@@ -142,6 +152,8 @@ function WizardNuevaAdmision({ onGuardar, onCancelar }) {
   };
 
   const handleSubmit = async () => {
+    const err = validarPaso();
+    if (err) { setError(err); return; }
     setGuardando(true);
     setError('');
     try {
@@ -231,7 +243,7 @@ function WizardNuevaAdmision({ onGuardar, onCancelar }) {
                   type="text"
                   autoFocus
                   value={form.nombre}
-                  onChange={(e) => cambiar('nombre', e.target.value)}
+                  onChange={(e) => cambiar('nombre', e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]/g, ''))}
                   onKeyDown={(e) => e.key === 'Enter' && avanzar()}
                   className="w-full rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-base focus:border-[#006d44] focus:outline-none focus:bg-white transition"
                   placeholder="Ej: Juan"
@@ -245,7 +257,7 @@ function WizardNuevaAdmision({ onGuardar, onCancelar }) {
                   id="wizard-apellido"
                   type="text"
                   value={form.apellido}
-                  onChange={(e) => cambiar('apellido', e.target.value)}
+                  onChange={(e) => cambiar('apellido', e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]/g, ''))}
                   onKeyDown={(e) => e.key === 'Enter' && avanzar()}
                   className="w-full rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-base focus:border-[#006d44] focus:outline-none focus:bg-white transition"
                   placeholder="Ej: García"
@@ -264,7 +276,7 @@ function WizardNuevaAdmision({ onGuardar, onCancelar }) {
               </p>
               <div>
                 <label className="mb-1.5 block text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                  Fecha de nacimiento
+                  Fecha de nacimiento <span className="text-rose-500">*</span>
                 </label>
                 <input
                   id="wizard-fecha-nac"
@@ -277,23 +289,29 @@ function WizardNuevaAdmision({ onGuardar, onCancelar }) {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-slate-500 uppercase tracking-wide">DNI</label>
+                  <label className="mb-1.5 block text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                    DNI <span className="text-rose-500">*</span>
+                  </label>
                   <input
                     id="wizard-dni"
                     type="text"
+                    inputMode="numeric"
+                    maxLength={9}
                     value={form.dni}
-                    onChange={(e) => cambiar('dni', e.target.value)}
+                    onChange={(e) => cambiar('dni', e.target.value.replace(/\D/g, '').slice(0, 9))}
                     className="w-full rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-base focus:border-[#006d44] focus:outline-none focus:bg-white transition"
                     placeholder="Ej: 40123456"
                   />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-slate-500 uppercase tracking-wide">Teléfono</label>
+                  <label className="mb-1.5 block text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                    Teléfono <span className="text-rose-500">*</span>
+                  </label>
                   <input
                     id="wizard-telefono"
-                    type="text"
+                    type="tel"
                     value={form.telefono}
-                    onChange={(e) => cambiar('telefono', e.target.value)}
+                    onChange={(e) => cambiar('telefono', e.target.value.replace(/[^\d\s+()-]/g, '').slice(0, 20))}
                     className="w-full rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-base focus:border-[#006d44] focus:outline-none focus:bg-white transition"
                     placeholder="Ej: 2634 123456"
                   />
@@ -312,14 +330,14 @@ function WizardNuevaAdmision({ onGuardar, onCancelar }) {
               </p>
               <div>
                 <label className="mb-1.5 block text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                  Domicilio
+                  Domicilio (Calle y número)
                 </label>
                 <input
                   id="wizard-domicilio"
                   type="text"
                   autoFocus
                   value={form.domicilio}
-                  onChange={(e) => cambiar('domicilio', e.target.value)}
+                  onChange={(e) => cambiar('domicilio', e.target.value.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,#º°/-]/g, ''))}
                   onKeyDown={(e) => e.key === 'Enter' && avanzar()}
                   className="w-full rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-base focus:border-[#006d44] focus:outline-none focus:bg-white transition"
                   placeholder="Ej: Av. San Martín 123, Mendoza"
@@ -887,7 +905,8 @@ const DOCUMENTOS_PDF = [
   { key: 'pedidos', field: 'pedidosPdf', tieneField: 'pedidosTiene', filenameField: 'pedidosFilename', label: 'Pedidos médicos' },
 ];
 
-function PanelExpediente({ admision, onActualizar }) {
+function PanelExpediente({ admision, onActualizar, alAbrirPaciente, alNavegar }) {
+  const { refrescarPacientes } = usePacientes();
   const [expediente, setExpediente] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [archivos, setArchivos] = useState({});
@@ -895,6 +914,7 @@ function PanelExpediente({ admision, onActualizar }) {
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState('');
   const [exito, setExito] = useState('');
+  const [admitidoModal, setAdmitidoModal] = useState(null); // { patientId, nombre, mensaje }
   const [visorAbierto, setVisorAbierto] = useState(null); // { key, label }
   const fileRefs = useRef({});
 
@@ -918,6 +938,10 @@ function PanelExpediente({ admision, onActualizar }) {
   }, [cargar]);
 
   const handleFileChange = (campo, file) => {
+    if (file && file.size > 15 * 1024 * 1024) {
+      alert('El archivo no debe superar los 15MB.');
+      return;
+    }
     setArchivos((prev) => ({ ...prev, [campo]: file }));
   };
 
@@ -949,6 +973,38 @@ function PanelExpediente({ admision, onActualizar }) {
       setTimeout(() => setExito(''), 4000);
     } catch (err) {
       setError(err.message || 'No se pudo guardar el expediente.');
+      throw err;
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  const handleFinalizar = async () => {
+    if (!window.confirm('¿Finalizar los 3 pasos de admisión y admitir formalmente al paciente en el sistema?')) {
+      return;
+    }
+    setGuardando(true);
+    setError('');
+    try {
+      if (
+        Object.keys(archivos).length > 0 ||
+        campos.numeroAfiliado !== (expediente?.numeroAfiliado || '')
+      ) {
+        await handleGuardar();
+      }
+      const res = await finalizarAdmisionApi(admision.id);
+      if (refrescarPacientes) {
+        await refrescarPacientes();
+      }
+      setExito(res.mensaje || '¡Paciente admitido con éxito!');
+      setAdmitidoModal({
+        patientId: res.patientId,
+        nombre: `${admision.apellido}, ${admision.nombre}`,
+        mensaje: res.mensaje,
+      });
+      if (onActualizar) onActualizar();
+    } catch (err) {
+      setError(err.message || 'No se pudo finalizar la admisión.');
     } finally {
       setGuardando(false);
     }
@@ -985,7 +1041,95 @@ function PanelExpediente({ admision, onActualizar }) {
         />
       )}
 
+      {/* Modal de confirmación de admisión exitosa */}
+      {admitidoModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl animate-fade-in text-center">
+            <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-[#006d44]">
+              <span className="material-symbols-outlined text-3xl">how_to_reg</span>
+            </div>
+            <h3 className="text-xl font-extrabold text-slate-800">
+              ¡Paciente Admitido con Éxito!
+            </h3>
+            <p className="mt-2 text-sm text-slate-600">
+              El proceso de los 3 pasos (Datos, Revisión Fisiatra y Expediente) ha concluido.
+            </p>
+            <div className="mt-4 rounded-2xl bg-slate-50 p-3.5 border border-slate-200 text-left">
+              <p className="text-xs font-semibold text-slate-500 uppercase">Paciente</p>
+              <p className="text-sm font-bold text-slate-800">{admitidoModal.nombre}</p>
+              <p className="mt-1 text-xs text-[#006d44] font-semibold">
+                ID de paciente: <span className="font-mono">{admitidoModal.patientId}</span>
+              </p>
+            </div>
+            <div className="mt-6 flex flex-col gap-2.5">
+              {alAbrirPaciente && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAdmitidoModal(null);
+                    alAbrirPaciente(admitidoModal.patientId);
+                  }}
+                  className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#006d44] py-3 text-sm font-bold text-white shadow-md hover:bg-[#005a38] transition"
+                >
+                  <span className="material-symbols-outlined text-base">person</span>
+                  Ir a la ficha del paciente
+                </button>
+              )}
+              {alNavegar && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAdmitidoModal(null);
+                    alNavegar('patients');
+                  }}
+                  className="w-full flex items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                >
+                  <span className="material-symbols-outlined text-base">groups</span>
+                  Ver lista general de pacientes
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setAdmitidoModal(null)}
+                className="w-full py-2 text-xs font-semibold text-slate-500 hover:text-slate-700"
+              >
+                Permanecer en admisiones
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-5">
+        {/* Banner de estado completado */}
+        {admision.estado === 'completado' && (
+          <div className="rounded-2xl border-2 border-emerald-500/40 bg-emerald-50 p-4 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fade-in">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#006d44] text-white">
+                <span className="material-symbols-outlined text-xl">verified</span>
+              </span>
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-wide text-[#006d44]">
+                  Paciente Admitido en el Sistema
+                </p>
+                <p className="text-xs font-semibold text-slate-700">
+                  {admision.patientId ? `ID en padrón: ${admision.patientId}` : 'Proceso de admisión completado'}
+                </p>
+              </div>
+            </div>
+            {alAbrirPaciente && admision.patientId && (
+              <button
+                type="button"
+                onClick={() => alAbrirPaciente(admision.patientId)}
+                className="flex items-center gap-1.5 rounded-xl bg-[#006d44] px-3.5 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#005a38] transition"
+              >
+                <span className="material-symbols-outlined text-sm">open_in_new</span>
+                Ver en Lista de Pacientes
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Campos de texto */}
         <div className="grid grid-cols-1 gap-4">
           <div>
@@ -1138,30 +1282,12 @@ function PanelExpediente({ admision, onActualizar }) {
           {admision.estado === 'aprobado' && (
             <button
               type="button"
-              onClick={async () => {
-                if (window.confirm('¿Finalizar la admisión? Se marcará el expediente como completo.')) {
-                  setGuardando(true);
-                  try {
-                    if (
-                      Object.keys(archivos).length > 0 ||
-                      campos.numeroAfiliado !== (expediente?.numeroAfiliado || '')
-                    ) {
-                      await handleGuardar();
-                    }
-                    await actualizarAdmisionApi(admision.id, { estado: 'completado' });
-                    if (onActualizar) onActualizar();
-                  } catch (err) {
-                    setError(err.message || 'No se pudo finalizar la admisión.');
-                  } finally {
-                    setGuardando(false);
-                  }
-                }
-              }}
+              onClick={handleFinalizar}
               disabled={guardando}
-              className="flex items-center gap-2 rounded-xl border border-[#006d44] px-4 py-3 text-sm font-semibold text-[#006d44] hover:bg-[#f0faf4] disabled:opacity-60 transition"
+              className="flex items-center gap-2 rounded-xl border-2 border-[#006d44] bg-[#006d44] px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#005a38] disabled:opacity-60 transition"
             >
-              <span className="material-symbols-outlined text-base">task_alt</span>
-              Finalizar
+              <span className="material-symbols-outlined text-base">how_to_reg</span>
+              Finalizar y Admitir Paciente
             </button>
           )}
         </div>
@@ -1173,7 +1299,7 @@ function PanelExpediente({ admision, onActualizar }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Panel lateral de detalle de admisión (gestor de pestañas)
 // ─────────────────────────────────────────────────────────────────────────────
-function PanelDetalle({ admision, onCerrar, onActualizar }) {
+function PanelDetalle({ admision, onCerrar, onActualizar, alAbrirPaciente, alNavegar }) {
   const [pestana, setPestana] = useState('datos');
   const [tieneOS, setTieneOS] = useState(admision.tieneObraSocial);
   const [nombreOS, setNombreOS] = useState(admision.obraSocialNombre || '');
@@ -1229,8 +1355,13 @@ function PanelDetalle({ admision, onCerrar, onActualizar }) {
             <h2 className="text-lg font-bold text-slate-800">
               {admision.apellido}, {admision.nombre}
             </h2>
-            <div className="mt-1">
+            <div className="mt-1 flex items-center gap-2">
               <BadgeEstado estado={admision.estado} />
+              {admision.patientId && (
+                <span className="text-[11px] font-mono font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                  ID: {admision.patientId}
+                </span>
+              )}
             </div>
           </div>
           <button
@@ -1287,6 +1418,26 @@ function PanelDetalle({ admision, onCerrar, onActualizar }) {
       <div className="flex-1 overflow-y-auto px-6 py-5">
         {pestana === 'datos' && (
           <div className="space-y-2">
+            {admision.patientId && alAbrirPaciente && (
+              <div className="mb-3 rounded-xl border border-emerald-300 bg-emerald-50 p-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#006d44]">check_circle</span>
+                  <div>
+                    <p className="text-xs font-bold text-[#006d44]">Paciente Admitido</p>
+                    <p className="text-[11px] text-slate-600">Este paciente ya forma parte del padrón de CENEIN.</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => alAbrirPaciente(admision.patientId)}
+                  className="flex items-center gap-1 rounded-lg bg-[#006d44] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#005a38] transition"
+                >
+                  <span className="material-symbols-outlined text-xs">open_in_new</span>
+                  Ver Ficha
+                </button>
+              </div>
+            )}
+
             {[
               ['Nombre completo', `${admision.apellido}, ${admision.nombre}`],
               ['DNI', admision.dni || '-'],
@@ -1437,7 +1588,14 @@ function PanelDetalle({ admision, onCerrar, onActualizar }) {
           <PanelRevisionFisiatra admision={admision} onActualizar={onActualizar} />
         )}
 
-        {pestana === 'expediente' && <PanelExpediente admision={admision} onActualizar={onActualizar} />}
+        {pestana === 'expediente' && (
+          <PanelExpediente
+            admision={admision}
+            onActualizar={onActualizar}
+            alAbrirPaciente={alAbrirPaciente}
+            alNavegar={alNavegar}
+          />
+        )}
       </div>
     </div>
   );
@@ -1446,7 +1604,7 @@ function PanelDetalle({ admision, onCerrar, onActualizar }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Página principal: Admision
 // ─────────────────────────────────────────────────────────────────────────────
-export default function Admision() {
+export default function Admision({ alAbrirPaciente, alNavegar }) {
   const [admisiones, setAdmisiones] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
@@ -1686,6 +1844,8 @@ export default function Admision() {
               admision={seleccionada}
               onCerrar={() => setSeleccionada(null)}
               onActualizar={handleActualizarDetalle}
+              alAbrirPaciente={alAbrirPaciente}
+              alNavegar={alNavegar}
             />
           </div>
         )}

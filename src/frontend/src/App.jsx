@@ -44,11 +44,11 @@ function CapaApp() {
     if (pagina === 'attendances') return <Asistencias />;
     if (pagina === 'users' && usuario?.isAdmin) return <Users />;
     if (pagina === 'user-history' && usuario?.isAdmin) return <UserHistory />;
-    if (pagina === 'admision') return <Admision />;
+    if (pagina === 'admision') return <Admision alAbrirPaciente={abrirPaciente} alNavegar={navegar} />;
     if (pagina === 'facturacion') return <Facturacion />;
     if (pagina === 'patient') return <DetallePaciente alVolver={volver} />;
     return <PanelPrincipal />;
-  }, [usuario, cargando, pagina]);
+  }, [usuario, cargando, pagina, abrirPaciente, navegar, volver]);
 
   return (
     <Distribucion
