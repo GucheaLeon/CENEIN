@@ -79,19 +79,17 @@ function Badge({ text, color = '#006d44', bg = '#d6ffe8' }) {
   );
 }
 
-// ─── Buscador de paciente con dropdown ───────────────────────────────────────
-function PatientPicker({ onSelect, selected }) {
+// ─── Selector / Buscador de paciente ─────────────────────────────────────────
+function PatientPicker({ pacientes = [], onSelect, selected, loading }) {
   const [q, setQ] = useState('');
-  const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
-  const timeout = useRef(null);
   const wrapRef = useRef(null);
 
   useEffect(() => {
     if (selected) {
       setQ(`${selected.apellido}, ${selected.nombre}`);
-      setOpen(false);
+    } else {
+      setQ('');
     }
   }, [selected]);
 
@@ -103,193 +101,211 @@ function PatientPicker({ onSelect, selected }) {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const search = (val) => {
-    setQ(val);
-    if (!val.trim()) { setResults([]); setOpen(false); return; }
-    clearTimeout(timeout.current);
-    timeout.current = setTimeout(async () => {
-      setLoading(true);
-      try {
-        const data = await apiFetch(`/api/facturacion/pacientes?q=${encodeURIComponent(val)}`);
-        setResults(data.data || []);
-        setOpen(true);
-      } catch (_) {}
-      setLoading(false);
-    }, 280);
-  };
+  const filtered = pacientes.filter((p) => {
+    if (!q.trim()) return true;
+    const term = q.toLowerCase();
+    return (
+      (p.nombre && p.nombre.toLowerCase().includes(term)) ||
+      (p.apellido && p.apellido.toLowerCase().includes(term)) ||
+      (p.dni && p.dni.includes(term)) ||
+      (p.cuit && p.cuit.includes(term)) ||
+      (p.obraSocial && p.obraSocial.toLowerCase().includes(term))
+    );
+  });
 
-  const clear = () => { setQ(''); setResults([]); setOpen(false); onSelect(null); };
+  const clear = (e) => {
+    e.stopPropagation();
+    setQ('');
+    onSelect(null);
+  };
 
   return (
     <div ref={wrapRef} style={{ position: 'relative' }}>
-      <div style={{ position: 'relative' }}>
+      <div
+        style={{ position: 'relative', cursor: 'pointer' }}
+        onClick={() => setOpen((prev) => !prev)}
+      >
         <span className="material-symbols-outlined" style={{
-          position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)',
-          color: '#006d44', fontSize: 18, pointerEvents: 'none'
+          position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',
+          color: '#006d44', fontSize: 20, pointerEvents: 'none'
         }}>person_search</span>
         <input
           id="fac-paciente-buscador"
           className="fac-input"
-          style={{ paddingLeft: 34, paddingRight: selected ? 34 : 12 }}
-          placeholder="Buscar paciente por nombre, apellido o DNI…"
+          style={{ paddingLeft: 38, paddingRight: selected ? 65 : 34, cursor: 'text' }}
+          placeholder="Hacé clic para ver la lista o escribí nombre, DNI, OS…"
           value={q}
-          onChange={(e) => search(e.target.value)}
-          onFocus={() => { if (results.length) setOpen(true); }}
+          onChange={(e) => {
+            setQ(e.target.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
           autoComplete="off"
         />
-        {loading && (
-          <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)' }}>
-            <Spinner size={15} />
-          </span>
-        )}
-        {selected && !loading && (
-          <button type="button" onClick={clear} style={{
-            position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
-            background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: 2
-          }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>close</span>
-          </button>
-        )}
-      </div>
-      {open && results.length > 0 && (
-        <div style={{
-          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 200,
-          background: '#fff', border: '1.5px solid #c8e6d4', borderRadius: 12,
-          boxShadow: '0 8px 24px rgba(0,0,0,.12)', maxHeight: 260, overflowY: 'auto', marginTop: 4
-        }}>
-          {results.map((p) => (
+        <div style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: 4 }}>
+          {loading && <Spinner size={15} />}
+          {selected && (
             <button
-              key={p.id}
               type="button"
-              onClick={() => { onSelect(p); setOpen(false); }}
+              onClick={clear}
+              title="Quitar paciente"
               style={{
-                width: '100%', textAlign: 'left', background: 'none', border: 'none',
-                padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid #f1f5f2',
-                transition: 'background .1s'
+                background: '#fee2e2', border: 'none', borderRadius: '50%',
+                width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', color: '#b91c1c'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#f0fdf6'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
             >
-              <div style={{ fontWeight: 700, fontSize: 13, color: '#1a2e25' }}>
-                {p.apellido}, {p.nombre}
-              </div>
-              <div style={{ fontSize: 11, color: '#64748b', marginTop: 2, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                {p.dni && <span>DNI: {p.dni}</span>}
-                {p.obraSocial && <span>OS: {p.obraSocial}</span>}
-                {p.modulos?.length > 0 && (
-                  <span style={{ color: '#006d44', fontWeight: 600 }}>
-                    {p.modulos.map((m) => m.descripcion).join(' · ')}
-                  </span>
-                )}
-                {p.tratamientos?.length > 0 && (
-                  <span>{p.tratamientos.map((t) => t.nombre).join(', ')}</span>
-                )}
-              </div>
+              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>close</span>
             </button>
-          ))}
+          )}
+          <span className="material-symbols-outlined" style={{ color: '#94a3b8', fontSize: 18, pointerEvents: 'none' }}>
+            {open ? 'expand_less' : 'expand_more'}
+          </span>
         </div>
-      )}
-      {open && results.length === 0 && q.trim() && !loading && (
+      </div>
+
+      {open && (
         <div style={{
-          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 200,
+          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 300,
           background: '#fff', border: '1.5px solid #c8e6d4', borderRadius: 12,
-          padding: '14px', color: '#64748b', fontSize: 13, marginTop: 4
+          boxShadow: '0 10px 30px rgba(0,0,0,.15)', maxHeight: 280, overflowY: 'auto', marginTop: 5
         }}>
-          No se encontraron pacientes.
+          {filtered.length === 0 ? (
+            <div style={{ padding: '16px', color: '#64748b', fontSize: 13, textAlign: 'center' }}>
+              {loading ? 'Cargando pacientes…' : 'No se encontraron pacientes.'}
+            </div>
+          ) : (
+            filtered.map((p) => {
+              const isSel = selected?.id === p.id;
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => { onSelect(p); setOpen(false); }}
+                  style={{
+                    width: '100%', textAlign: 'left', background: isSel ? '#e6f7ef' : 'none',
+                    border: 'none', padding: '10px 14px', cursor: 'pointer',
+                    borderBottom: '1px solid #f1f5f2', transition: 'background .1s'
+                  }}
+                  onMouseEnter={(e) => { if (!isSel) e.currentTarget.style.background = '#f0fdf6'; }}
+                  onMouseLeave={(e) => { if (!isSel) e.currentTarget.style.background = 'none'; }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 700, fontSize: 13, color: '#1a2e25' }}>
+                      {p.apellido}, {p.nombre}
+                    </span>
+                    {p.dni && (
+                      <span style={{ fontSize: 11, color: '#006d44', background: '#d6ffe8', padding: '1px 7px', borderRadius: 10, fontWeight: 600 }}>
+                        DNI {p.dni}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 11, color: '#64748b', marginTop: 3, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                    {p.cuit && <span>CUIT: {p.cuit}</span>}
+                    {p.obraSocial && <span>OS: {p.obraSocial}</span>}
+                    {p.modulos?.length > 0 && (
+                      <span style={{ color: '#006d44', fontWeight: 700 }}>
+                        Módulo: {p.modulos.map((m) => m.descripcion).join(', ')}
+                      </span>
+                    )}
+                  </div>
+                </button>
+              );
+            })
+          )}
         </div>
       )}
     </div>
   );
 }
 
-// ─── Panel info del paciente seleccionado ────────────────────────────────────
-function PatientCard({ paciente, onModuloToggle, onTratamientoToggle, selectedModulos, selectedTratamientos }) {
+// ─── Card de información y autocompletado del paciente ────────────────────────
+function PatientCard({ paciente, selectedModulo, onSelectModulo, modulosCatalogo = [] }) {
   if (!paciente) return null;
   return (
     <div style={{
-      background: '#f0fdf6', border: '1.5px solid #86efac', borderRadius: 14,
+      background: 'linear-gradient(135deg, #f0fdf6 0%, #e6f7ef 100%)',
+      border: '1.5px solid #86efac', borderRadius: 14,
       padding: '14px 18px', marginBottom: 18, animation: 'fac-fadein .2s'
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-        <div style={{ width: 36, height: 36, borderRadius: 10, background: '#d6ffe8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span className="material-symbols-outlined" style={{ color: '#006d44', fontSize: 20 }}>person</span>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginBottom: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 38, height: 38, borderRadius: 10, background: '#006d44', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 22 }}>person</span>
+          </div>
+          <div>
+            <h4 style={{ margin: 0, fontWeight: 800, fontSize: 15, color: '#15803d' }}>
+              {paciente.nombre} {paciente.apellido}
+            </h4>
+            <p style={{ margin: 0, fontSize: 12, color: '#166534' }}>
+              {paciente.dni ? `DNI: ${paciente.dni}` : ''}
+              {paciente.cuit ? ` · CUIT: ${paciente.cuit}` : ''}
+              {paciente.obraSocial ? ` · OS: ${paciente.obraSocial}` : ''}
+              {paciente.nroAfiliado ? ` · Afiliado: ${paciente.nroAfiliado}` : ''}
+            </p>
+          </div>
         </div>
-        <div>
-          <p style={{ margin: 0, fontWeight: 800, fontSize: 14, color: '#15803d' }}>
-            {paciente.nombre} {paciente.apellido}
-          </p>
-          <p style={{ margin: 0, fontSize: 11, color: '#166534' }}>
-            {paciente.dni ? `DNI: ${paciente.dni}` : ''}
-            {paciente.obraSocial ? ` · OS: ${paciente.obraSocial}` : ''}
-            {paciente.nroAfiliado ? ` · Afil: ${paciente.nroAfiliado}` : ''}
-          </p>
-        </div>
+        <span style={{ background: '#006d44', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>
+          Paciente Vinculado
+        </span>
       </div>
 
-      {/* Módulos */}
-      {paciente.modulos?.length > 0 && (
-        <div style={{ marginBottom: 8 }}>
-          <p style={{ margin: '0 0 6px', fontSize: 11, fontWeight: 700, color: '#166534', textTransform: 'uppercase', letterSpacing: '.04em' }}>
-            Módulos — seleccioná el que se factura:
-          </p>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+      {/* Módulos asignados al paciente */}
+      {paciente.modulos?.length > 0 ? (
+        <div style={{ marginTop: 8 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#166534', textTransform: 'uppercase', letterSpacing: '.04em', display: 'block', marginBottom: 6 }}>
+            Módulos asignados a este paciente (clic para seleccionar):
+          </span>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {paciente.modulos.map((m) => {
-              const sel = selectedModulos.some((s) => s.id === m.id);
+              const isSel = selectedModulo?.id === m.id || selectedModulo?.descripcion === m.descripcion;
+              const catMod = modulosCatalogo.find((c) => c.id === m.id || c.description === m.descripcion);
+              const precio = m.price || catMod?.price || 0;
               return (
                 <button
-                  key={m.id}
+                  key={m.id || m.descripcion}
                   type="button"
-                  onClick={() => onModuloToggle(m)}
+                  onClick={() => onSelectModulo({ id: m.id, descripcion: m.descripcion, price: precio })}
                   style={{
-                    border: `1.5px solid ${sel ? '#006d44' : '#86efac'}`,
-                    background: sel ? '#006d44' : '#fff',
-                    color: sel ? '#fff' : '#006d44',
-                    borderRadius: 20, padding: '4px 12px', fontSize: 12, fontWeight: 700,
-                    cursor: 'pointer', transition: 'all .15s'
+                    border: `2px solid ${isSel ? '#006d44' : '#86efac'}`,
+                    background: isSel ? '#006d44' : '#fff',
+                    color: isSel ? '#fff' : '#006d44',
+                    borderRadius: 10, padding: '6px 14px', fontSize: 12, fontWeight: 700,
+                    cursor: 'pointer', transition: 'all .15s', display: 'flex', alignItems: 'center', gap: 6
                   }}
                 >
-                  {m.descripcion}
+                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                    {isSel ? 'check_circle' : 'medical_services'}
+                  </span>
+                  <span>{m.descripcion}</span>
+                  {precio > 0 && (
+                    <span style={{ opacity: 0.9, fontWeight: 800 }}>({fmtMoneda(precio)})</span>
+                  )}
                 </button>
               );
             })}
           </div>
         </div>
+      ) : (
+        <p style={{ margin: '6px 0 0', fontSize: 12, color: '#4b7a5e', fontStyle: 'italic' }}>
+          Este paciente no tiene módulos asignados en su ficha. Podés seleccionar un módulo del catálogo abajo.
+        </p>
       )}
 
       {/* Tratamientos */}
       {paciente.tratamientos?.length > 0 && (
-        <div>
-          <p style={{ margin: '0 0 6px', fontSize: 11, fontWeight: 700, color: '#166534', textTransform: 'uppercase', letterSpacing: '.04em' }}>
-            Sesiones / Tratamientos — seleccioná los incluidos:
-          </p>
+        <div style={{ marginTop: 10 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#166534', textTransform: 'uppercase', letterSpacing: '.04em', display: 'block', marginBottom: 4 }}>
+            Sesiones / Tratamientos activos:
+          </span>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {paciente.tratamientos.map((t) => {
-              const sel = selectedTratamientos.some((s) => s.id === t.id);
-              return (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => onTratamientoToggle(t)}
-                  style={{
-                    border: `1.5px solid ${sel ? '#1d4ed8' : '#bfdbfe'}`,
-                    background: sel ? '#1d4ed8' : '#eff6ff',
-                    color: sel ? '#fff' : '#1d4ed8',
-                    borderRadius: 20, padding: '4px 12px', fontSize: 12, fontWeight: 600,
-                    cursor: 'pointer', transition: 'all .15s'
-                  }}
-                >
-                  {t.nombre}
-                </button>
-              );
-            })}
+            {paciente.tratamientos.map((t) => (
+              <span key={t.id || t.nombre} style={{ background: '#dbeafe', color: '#1e40af', padding: '2px 8px', borderRadius: 6, fontSize: 11, fontWeight: 600 }}>
+                {t.nombre}
+              </span>
+            ))}
           </div>
         </div>
-      )}
-
-      {paciente.modulos?.length === 0 && paciente.tratamientos?.length === 0 && (
-        <p style={{ margin: 0, fontSize: 12, color: '#4b7a5e', fontStyle: 'italic' }}>
-          Este paciente no tiene módulos ni tratamientos asignados.
-        </p>
       )}
     </div>
   );
@@ -362,9 +378,9 @@ function Historial({ onPreview }) {
         </div>
         <div>
           <label className="fac-label">Módulo</label>
-          <select className="fac-input" style={{ width: 160 }}
+          <select className="fac-input" style={{ width: 180 }}
             value={filtros.module_id} onChange={(e) => applyFiltros({ module_id: e.target.value })}>
-            <option value="">Todos</option>
+            <option value="">Todos los módulos</option>
             {modulos.map((m) => <option key={m.id} value={m.id}>{m.description}</option>)}
           </select>
         </div>
@@ -372,7 +388,7 @@ function Historial({ onPreview }) {
           <label className="fac-label">Estado</label>
           <select className="fac-input" style={{ width: 170 }}
             value={filtros.status} onChange={(e) => applyFiltros({ status: e.target.value })}>
-            <option value="">Todos</option>
+            <option value="">Todos los estados</option>
             {ESTADOS.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
         </div>
@@ -400,7 +416,7 @@ function Historial({ onPreview }) {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ background: '#f0fdf6' }}>
-                  {['Fecha', 'Paciente', 'Módulo', 'Sesiones', 'CAE', 'Importe', 'Estado', 'Acciones'].map((h) => (
+                  {['Fecha', 'Paciente / Receptor', 'Módulo', 'Sesiones', 'CAE', 'Importe', 'Estado', 'Acciones'].map((h) => (
                     <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700, color: '#006d44', fontSize: 11, textTransform: 'uppercase', letterSpacing: '.04em', whiteSpace: 'nowrap', borderBottom: '1px solid #e2ebe5' }}>{h}</th>
                   ))}
                 </tr>
@@ -492,10 +508,15 @@ export default function Facturacion() {
   const [tab, setTab] = useState('emitir');
   const [pdfPreview, setPdfPreview] = useState(null);
 
+  // Catálogos
+  const [pacientesList, setPacientesList] = useState([]);
+  const [loadingPacientes, setLoadingPacientes] = useState(false);
+  const [modulosCatalogo, setModulosCatalogo] = useState([]);
+
   // Formulario
   const [paciente, setPaciente] = useState(null);
-  const [selectedModulos, setSelectedModulos] = useState([]);
-  const [selectedTratamientos, setSelectedTratamientos] = useState([]);
+  const [selectedModulo, setSelectedModulo] = useState(null);
+  const [cantidadModulos, setCantidadModulos] = useState(1);
   const [form, setForm] = useState({
     impTotal: '',
     cbteTipo: '6',
@@ -503,12 +524,29 @@ export default function Facturacion() {
     docTipo: '99',
     docNro: '',
     receptorNombre: '',
+    facturarA: 'paciente', // 'paciente' | 'obra_social'
   });
   const [emitiendo, setEmitiendo] = useState(false);
   const [emitResult, setEmitResult] = useState(null);
   const [emitError, setEmitError] = useState('');
 
-  useEffect(() => { checkStatus(); }, []);
+  useEffect(() => {
+    checkStatus();
+    loadCatalogos();
+  }, []);
+
+  async function loadCatalogos() {
+    setLoadingPacientes(true);
+    try {
+      const [pRes, mRes] = await Promise.all([
+        apiFetch('/api/facturacion/pacientes'),
+        apiFetch('/api/facturacion/modulos'),
+      ]);
+      setPacientesList(pRes.data || []);
+      setModulosCatalogo(mRes.data || []);
+    } catch (_) {}
+    setLoadingPacientes(false);
+  }
 
   async function checkStatus() {
     setLoadingStatus(true);
@@ -521,43 +559,123 @@ export default function Facturacion() {
     setLoadingStatus(false);
   }
 
-  // Al seleccionar paciente → autocompletar campos
+  // Al seleccionar paciente → autocompletar automáticamente todos los datos del receptor y módulo
   const handleSelectPaciente = useCallback((p) => {
     setPaciente(p);
-    setSelectedModulos([]);
-    setSelectedTratamientos([]);
-    if (!p) return;
+    if (!p) {
+      setSelectedModulo(null);
+      setForm((f) => ({
+        ...f,
+        receptorNombre: '',
+        docTipo: '99',
+        docNro: '',
+        impTotal: '',
+      }));
+      return;
+    }
+
+    // 1. Determinar documento y nombre del receptor
+    let docTipo = '99';
+    let docNro = '';
+    if (p.cuit) {
+      docTipo = '80'; // CUIT
+      docNro = p.cuit;
+    } else if (p.dni) {
+      docTipo = '96'; // DNI
+      docNro = p.dni;
+    }
+
+    // 2. Preseleccionar módulo asignado al paciente si existe
+    let autoModulo = null;
+    let autoImp = '';
+    if (p.modulos && p.modulos.length > 0) {
+      autoModulo = p.modulos[0];
+      const matchCat = modulosCatalogo.find((c) => c.id === autoModulo.id || c.description === autoModulo.descripcion);
+      const precio = autoModulo.price || matchCat?.price || 0;
+      if (precio > 0) {
+        autoImp = String(precio * cantidadModulos);
+      }
+    }
+
+    setSelectedModulo(autoModulo);
     setForm((f) => ({
       ...f,
-      receptorNombre: `${p.nombre} ${p.apellido}`.trim() || f.receptorNombre,
-      docTipo: p.dni ? '96' : '99',
-      docNro: p.dni || '',
+      receptorNombre: `${p.nombre} ${p.apellido}`.trim(),
+      docTipo,
+      docNro,
+      cbteTipo: docTipo === '80' ? '1' : '6', // Factura A para CUIT, Factura B para DNI/Consumidor Final
+      impTotal: autoImp || f.impTotal,
+      facturarA: 'paciente',
     }));
-  }, []);
+  }, [modulosCatalogo, cantidadModulos]);
 
-  const toggleModulo = (m) => {
-    setSelectedModulos((prev) =>
-      prev.some((s) => s.id === m.id) ? prev.filter((s) => s.id !== m.id) : [...prev, m]
-    );
+  // Manejar cambio de facturar a (Paciente vs Obra Social)
+  const handleCambioDestinatario = (tipo) => {
+    if (!paciente) return;
+    if (tipo === 'obra_social' && paciente.obraSocial) {
+      setForm((f) => ({
+        ...f,
+        facturarA: 'obra_social',
+        receptorNombre: paciente.obraSocial,
+        docTipo: '80', // CUIT Obra Social
+        docNro: '', // CUIT a completar si corresponde
+        cbteTipo: '1', // Factura A para Obra Social (usualmente RI)
+      }));
+    } else {
+      let docTipo = '99';
+      let docNro = '';
+      if (paciente.cuit) {
+        docTipo = '80';
+        docNro = paciente.cuit;
+      } else if (paciente.dni) {
+        docTipo = '96';
+        docNro = paciente.dni;
+      }
+      setForm((f) => ({
+        ...f,
+        facturarA: 'paciente',
+        receptorNombre: `${paciente.nombre} ${paciente.apellido}`.trim(),
+        docTipo,
+        docNro,
+        cbteTipo: docTipo === '80' ? '1' : '6',
+      }));
+    }
   };
 
-  const toggleTratamiento = (t) => {
-    setSelectedTratamientos((prev) =>
-      prev.some((s) => s.id === t.id) ? prev.filter((s) => s.id !== t.id) : [...prev, t]
-    );
+  // Al elegir o cambiar módulo del catálogo o del paciente
+  const handleSelectModulo = (mod) => {
+    setSelectedModulo(mod);
+    if (mod) {
+      const matchCat = modulosCatalogo.find((c) => c.id === mod.id || c.description === mod.descripcion);
+      const precioUnit = mod.price || matchCat?.price || 0;
+      if (precioUnit > 0) {
+        setForm((f) => ({ ...f, impTotal: String(precioUnit * cantidadModulos) }));
+      }
+    }
+  };
+
+  // Al cambiar cantidad
+  const handleCantidadChange = (cant) => {
+    const c = Math.max(1, Number(cant) || 1);
+    setCantidadModulos(c);
+    if (selectedModulo) {
+      const matchCat = modulosCatalogo.find((cat) => cat.id === selectedModulo.id || cat.description === selectedModulo.descripcion);
+      const precioUnit = selectedModulo.price || matchCat?.price || 0;
+      if (precioUnit > 0) {
+        setForm((f) => ({ ...f, impTotal: String(precioUnit * c) }));
+      }
+    }
   };
 
   async function handleEmitir(e) {
     e.preventDefault();
     if (!form.impTotal || Number(form.impTotal) <= 0) {
-      setEmitError('Ingresá un importe mayor a 0.');
+      setEmitError('Ingresá o seleccioná un módulo con importe mayor a $0.');
       return;
     }
     setEmitiendo(true);
     setEmitResult(null);
     setEmitError('');
-
-    const primerModulo = selectedModulos[0] || null;
 
     try {
       const payload = {
@@ -568,12 +686,12 @@ export default function Facturacion() {
         docNro: form.docNro ? Number(form.docNro) : 0,
         receptorNombre: form.receptorNombre || 'Consumidor Final',
         receptorObraSocial: paciente?.obraSocial || '',
-        receptorModulos: selectedModulos.map((m) => m.descripcion),
-        receptorTratamientos: selectedTratamientos.map((t) => t.nombre),
+        receptorModulos: selectedModulo ? [selectedModulo.descripcion || selectedModulo.description] : [],
+        receptorTratamientos: paciente?.tratamientos ? paciente.tratamientos.map((t) => t.nombre) : [],
         patientId: paciente?.id || null,
-        moduloMpId: primerModulo?.mpId || null,
-        moduleDirectId: primerModulo?.id || null,
-        treatmentIds: selectedTratamientos.map((t) => t.id),
+        moduloMpId: selectedModulo?.mpId || null,
+        moduleDirectId: selectedModulo?.id || null,
+        treatmentIds: paciente?.tratamientos ? paciente.tratamientos.map((t) => t.id) : [],
       };
       const data = await apiFetch('/api/facturacion/emitir', {
         method: 'POST',
@@ -609,7 +727,7 @@ export default function Facturacion() {
         .fac-modal { background:#fff; border-radius:16px; width:100%; max-width:900px; height:82vh; display:flex; flex-direction:column; overflow:hidden; }
       `}</style>
 
-      <div style={{ padding: '28px 24px', maxWidth: 960, margin: '0 auto' }}>
+      <div style={{ padding: '28px 24px', maxWidth: 980, margin: '0 auto' }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
           <div style={{ width: 44, height: 44, background: '#d6ffe8', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -617,7 +735,7 @@ export default function Facturacion() {
           </div>
           <div>
             <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: '#1a2e25' }}>Facturación Electrónica</h2>
-            <p style={{ margin: 0, fontSize: 12, color: '#64748b' }}>ARCA — Entorno de Homologación</p>
+            <p style={{ margin: 0, fontSize: 12, color: '#64748b' }}>ARCA / AFIP — Facturación por Paciente y Módulos</p>
           </div>
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
             {loadingStatus ? <Spinner /> : (
@@ -630,10 +748,10 @@ export default function Facturacion() {
                 <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
                   {arcaStatus?.ok ? 'check_circle' : 'error'}
                 </span>
-                {arcaStatus?.ok ? 'Conectado' : 'Sin conexión'}
+                {arcaStatus?.ok ? 'ARCA Conectado' : 'Sin conexión'}
               </span>
             )}
-            <button className="fac-btn fac-btn-outline" style={{ padding: '6px 12px', fontSize: 12 }} onClick={checkStatus}>
+            <button className="fac-btn fac-btn-outline" style={{ padding: '6px 12px', fontSize: 12 }} onClick={checkStatus} title="Comprobar conexión">
               <span className="material-symbols-outlined" style={{ fontSize: 15 }}>refresh</span>
             </button>
           </div>
@@ -659,7 +777,7 @@ export default function Facturacion() {
           </button>
           <button className={`fac-tab${tab === 'historial' ? ' active' : ''}`} onClick={() => setTab('historial')}>
             <span className="material-symbols-outlined" style={{ fontSize: 16, verticalAlign: 'middle', marginRight: 5 }}>history</span>
-            Historial
+            Historial de Facturas
           </button>
         </div>
 
@@ -670,7 +788,7 @@ export default function Facturacion() {
               <div className="fac-card" style={{ padding: 20, marginBottom: 20, background: '#f0fdf4', border: '1.5px solid #86efac' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
                   <span className="material-symbols-outlined" style={{ color: '#16a34a', fontSize: 26 }}>check_circle</span>
-                  <span style={{ fontWeight: 800, fontSize: 16, color: '#15803d' }}>¡Factura emitida con éxito en ARCA!</span>
+                  <span style={{ fontWeight: 800, fontSize: 16, color: '#15803d' }}>¡Factura emitida con éxito en ARCA y guardada!</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 24px', fontSize: 13, color: '#166534' }}>
                   {[
@@ -696,81 +814,219 @@ export default function Facturacion() {
             )}
 
             <div className="fac-card" style={{ padding: 24 }}>
-              <h3 style={{ margin: '0 0 18px', fontSize: 15, fontWeight: 800, color: '#1a2e25' }}>Nueva Factura</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: '#1a2e25' }}>
+                  Emisión de Comprobante
+                </h3>
+                <span style={{ fontSize: 12, color: '#64748b' }}>
+                  Emisor: <strong>CENEIN (CUIT 27-27959112-2)</strong>
+                </span>
+              </div>
+
               <form onSubmit={handleEmitir}>
-                {/* Buscador de paciente */}
+                {/* 1. SELECCIÓN DE PACIENTE */}
                 <div style={{ marginBottom: 16 }}>
-                  <label className="fac-label">Paciente (opcional — autocompletado)</label>
-                  <PatientPicker onSelect={handleSelectPaciente} selected={paciente} />
+                  <label className="fac-label">1. Seleccionar Paciente de la Lista</label>
+                  <PatientPicker
+                    pacientes={pacientesList}
+                    loading={loadingPacientes}
+                    onSelect={handleSelectPaciente}
+                    selected={paciente}
+                  />
                 </div>
 
-                {/* Card del paciente con módulos y tratamientos */}
+                {/* Card de paciente seleccionado */}
                 <PatientCard
                   paciente={paciente}
-                  selectedModulos={selectedModulos}
-                  selectedTratamientos={selectedTratamientos}
-                  onModuloToggle={toggleModulo}
-                  onTratamientoToggle={toggleTratamiento}
+                  selectedModulo={selectedModulo}
+                  onSelectModulo={handleSelectModulo}
+                  modulosCatalogo={modulosCatalogo}
                 />
 
-                {/* Campos del formulario */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                  <div style={{ gridColumn: '1 / -1' }}>
-                    <label className="fac-label">Nombre del Receptor</label>
-                    <input id="fac-receptor" className="fac-input" type="text"
-                      placeholder="Consumidor Final"
-                      value={form.receptorNombre}
-                      onChange={(e) => setForm((f) => ({ ...f, receptorNombre: e.target.value }))} />
+                {/* 2. MÓDULO E IMPORTE */}
+                <div style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 14, padding: '16px 18px', marginBottom: 18 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                    <span className="material-symbols-outlined" style={{ color: '#006d44' }}>medical_services</span>
+                    <span style={{ fontWeight: 800, fontSize: 14, color: '#1e293b' }}>
+                      2. Módulo a Facturar e Importe
+                    </span>
                   </div>
-                  <div>
-                    <label className="fac-label">Importe Total ($) *</label>
-                    <input id="fac-importe" className="fac-input" type="number"
-                      min="0.01" step="0.01" placeholder="Ej: 1500.00"
-                      value={form.impTotal}
-                      onChange={(e) => setForm((f) => ({ ...f, impTotal: e.target.value }))}
-                      required />
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1.5fr', gap: 14 }}>
+                    <div>
+                      <label className="fac-label">Módulo Clínico *</label>
+                      <select
+                        id="fac-modulo-select"
+                        className="fac-input"
+                        value={selectedModulo?.id || selectedModulo?.descripcion || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const found = modulosCatalogo.find((m) => String(m.id) === val || m.description === val);
+                          if (found) {
+                            handleSelectModulo({ id: found.id, descripcion: found.description, price: found.price });
+                          } else {
+                            handleSelectModulo(null);
+                          }
+                        }}
+                      >
+                        <option value="">-- Seleccionar Módulo del Catálogo --</option>
+                        {modulosCatalogo.map((m) => (
+                          <option key={m.id} value={m.id}>
+                            {m.description} {m.price > 0 ? `(${fmtMoneda(m.price)})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="fac-label">Cantidad / Meses</label>
+                      <input
+                        type="number"
+                        min="1"
+                        step="1"
+                        className="fac-input"
+                        value={cantidadModulos}
+                        onChange={(e) => handleCantidadChange(e.target.value)}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="fac-label">Importe Total Calculado ($) *</label>
+                      <input
+                        id="fac-importe"
+                        className="fac-input"
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={form.impTotal}
+                        onChange={(e) => setForm((f) => ({ ...f, impTotal: e.target.value }))}
+                        required
+                        style={{ fontWeight: 800, color: '#006d44', fontSize: 15 }}
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="fac-label">Tipo de Comprobante</label>
-                    <select id="fac-cbte-tipo" className="fac-input" value={form.cbteTipo}
-                      onChange={(e) => setForm((f) => ({ ...f, cbteTipo: e.target.value }))}>
-                      {TIPOS_CBTE.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-                    </select>
+                </div>
+
+                {/* 3. DATOS DEL RECEPTOR AUTOCOMPLETADOS */}
+                <div style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 14, padding: '16px 18px', marginBottom: 18 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span className="material-symbols-outlined" style={{ color: '#006d44' }}>badge</span>
+                      <span style={{ fontWeight: 800, fontSize: 14, color: '#1e293b' }}>
+                        3. Datos del Receptor (Autocompletado)
+                      </span>
+                    </div>
+
+                    {paciente?.obraSocial && (
+                      <div style={{ display: 'flex', gap: 10, alignItems: 'center', fontSize: 12 }}>
+                        <span style={{ color: '#64748b', fontWeight: 600 }}>Facturar a:</span>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', fontWeight: 600 }}>
+                          <input
+                            type="radio"
+                            name="facturarA"
+                            checked={form.facturarA === 'paciente'}
+                            onChange={() => handleCambioDestinatario('paciente')}
+                          />
+                          Paciente
+                        </label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', fontWeight: 600, color: '#006d44' }}>
+                          <input
+                            type="radio"
+                            name="facturarA"
+                            checked={form.facturarA === 'obra_social'}
+                            onChange={() => handleCambioDestinatario('obra_social')}
+                          />
+                          Obra Social ({paciente.obraSocial})
+                        </label>
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <label className="fac-label">Concepto</label>
-                    <select id="fac-concepto" className="fac-input" value={form.concepto}
-                      onChange={(e) => setForm((f) => ({ ...f, concepto: e.target.value }))}>
-                      {CONCEPTOS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="fac-label">Tipo Documento</label>
-                    <select id="fac-doc-tipo" className="fac-input" value={form.docTipo}
-                      onChange={(e) => setForm((f) => ({ ...f, docTipo: e.target.value, docNro: '' }))}>
-                      {DOC_TIPOS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="fac-label">Nro. Documento {form.docTipo === '99' ? '(opcional)' : '*'}</label>
-                    <input id="fac-doc-nro" className="fac-input" type="number"
-                      placeholder={form.docTipo === '99' ? '0' : 'Ej: 30123456'}
-                      value={form.docNro}
-                      onChange={(e) => setForm((f) => ({ ...f, docNro: e.target.value }))} />
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <label className="fac-label">Nombre o Razón Social del Receptor *</label>
+                      <input
+                        id="fac-receptor"
+                        className="fac-input"
+                        type="text"
+                        placeholder="Consumidor Final"
+                        value={form.receptorNombre}
+                        onChange={(e) => setForm((f) => ({ ...f, receptorNombre: e.target.value }))}
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="fac-label">Tipo de Documento</label>
+                      <select
+                        id="fac-doc-tipo"
+                        className="fac-input"
+                        value={form.docTipo}
+                        onChange={(e) => setForm((f) => ({ ...f, docTipo: e.target.value, docNro: e.target.value === '99' ? '0' : '' }))}
+                      >
+                        {DOC_TIPOS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="fac-label">Nro. Documento {form.docTipo === '99' ? '(0 para Consumidor Final)' : '*'}</label>
+                      <input
+                        id="fac-doc-nro"
+                        className="fac-input"
+                        type="text"
+                        placeholder={form.docTipo === '99' ? '0' : 'Ej: 30123456'}
+                        value={form.docNro}
+                        onChange={(e) => setForm((f) => ({ ...f, docNro: e.target.value }))}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="fac-label">Tipo de Comprobante</label>
+                      <select
+                        id="fac-cbte-tipo"
+                        className="fac-input"
+                        value={form.cbteTipo}
+                        onChange={(e) => setForm((f) => ({ ...f, cbteTipo: e.target.value }))}
+                      >
+                        {TIPOS_CBTE.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="fac-label">Concepto ARCA</label>
+                      <select
+                        id="fac-concepto"
+                        className="fac-input"
+                        value={form.concepto}
+                        onChange={(e) => setForm((f) => ({ ...f, concepto: e.target.value }))}
+                      >
+                        {CONCEPTOS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+                      </select>
+                    </div>
                   </div>
                 </div>
 
                 {emitError && (
-                  <div style={{ marginTop: 14, background: '#fee2e2', color: '#b91c1c', borderRadius: 10, padding: '10px 14px', fontSize: 13 }}>
-                    {emitError}
+                  <div style={{ marginTop: 14, background: '#fee2e2', color: '#b91c1c', borderRadius: 10, padding: '10px 14px', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span className="material-symbols-outlined">error</span>
+                    <span>{emitError}</span>
                   </div>
                 )}
 
-                <div style={{ marginTop: 20, display: 'flex', gap: 10 }}>
-                  <button id="fac-emitir-btn" className="fac-btn fac-btn-primary" type="submit" disabled={emitiendo}>
-                    {emitiendo
-                      ? <><Spinner /> Emitiendo en ARCA…</>
-                      : <><span className="material-symbols-outlined" style={{ fontSize: 17 }}>send</span> Emitir Factura en ARCA</>}
+                <div style={{ marginTop: 22, display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+                  <button
+                    id="fac-emitir-btn"
+                    className="fac-btn fac-btn-primary"
+                    type="submit"
+                    disabled={emitiendo}
+                    style={{ padding: '12px 24px', fontSize: 15 }}
+                  >
+                    {emitiendo ? (
+                      <><Spinner /> Emitiendo en ARCA y Generando Factura…</>
+                    ) : (
+                      <><span className="material-symbols-outlined" style={{ fontSize: 19 }}>send</span> Emitir Factura Electrónica</>
+                    )}
                   </button>
                 </div>
               </form>

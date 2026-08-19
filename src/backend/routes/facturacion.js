@@ -84,7 +84,7 @@ function registerFacturacionRoutes(app, { db } = {}) {
 
       // Módulos en batch
       const modulosRows = await db.all(
-        `SELECT mp.patient_id, m.id AS module_id, m.description AS module_desc, mp.id AS mp_id
+        `SELECT mp.patient_id, m.id AS module_id, m.description AS module_desc, m.price AS module_price, mp.id AS mp_id
          FROM MODULE_PATIENT mp
          JOIN MODULE m ON mp.module_id = m.id`
       );
@@ -94,7 +94,8 @@ function registerFacturacionRoutes(app, { db } = {}) {
         modulosPorPaciente.get(r.patient_id).push({
           id: r.module_id,
           mpId: r.mp_id,
-          descripcion: r.module_desc
+          descripcion: r.module_desc,
+          price: Number(r.module_price || 0)
         });
       }
 
@@ -158,7 +159,7 @@ function registerFacturacionRoutes(app, { db } = {}) {
       if (!fila) return res.status(404).json({ ok: false, error: 'Paciente no encontrado.' });
 
       const modulos = await db.all(
-        `SELECT mp.id AS mp_id, m.id AS module_id, m.description
+        `SELECT mp.id AS mp_id, m.id AS module_id, m.description, m.price
          FROM MODULE_PATIENT mp
          JOIN MODULE m ON mp.module_id = m.id
          WHERE mp.patient_id = $1`,
@@ -185,7 +186,7 @@ function registerFacturacionRoutes(app, { db } = {}) {
           nroAfiliado: fila.affiliate_number || '',
           obraSocial: fila.obra_social_name || '',
           tutor: fila.father_tutor_name || fila.mother_tutor_name || '',
-          modulos: modulos.map((m) => ({ id: m.module_id, mpId: m.mp_id, descripcion: m.description })),
+          modulos: modulos.map((m) => ({ id: m.module_id, mpId: m.mp_id, descripcion: m.description, price: Number(m.price || 0) })),
           tratamientos: tratamientos.map((t) => ({ id: t.treatment_id, nombre: t.name })),
         }
       });
@@ -202,8 +203,8 @@ function registerFacturacionRoutes(app, { db } = {}) {
   app.get('/api/facturacion/modulos', async (req, res) => {
     if (!db) return res.status(503).json({ ok: false, error: 'Base de datos no disponible.' });
     try {
-      const rows = await db.all('SELECT id, description FROM MODULE ORDER BY description');
-      return res.status(200).json({ ok: true, data: rows });
+      const rows = await db.all('SELECT id, description, price FROM MODULE ORDER BY description');
+      return res.status(200).json({ ok: true, data: rows.map(r => ({ ...r, price: Number(r.price || 0) })) });
     } catch (err) {
       return res.status(500).json({ ok: false, error: err.message });
     }
