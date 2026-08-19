@@ -311,31 +311,73 @@ CREATE TABLE IF NOT EXISTS ADMISSION_DOCUMENTS (
 
 CREATE TABLE IF NOT EXISTS INVOICE_STATUS(
     id BIGSERIAL PRIMARY KEY,
-    description TEXT
+    description TEXT UNIQUE
 );
 CREATE TABLE IF NOT EXISTS INVOICE_TYPE(
     id BIGSERIAL PRIMARY KEY,
-    description TEXT
+    description TEXT UNIQUE
 );
+
+-- Catálogo de módulos clínicos (MII, MIS, MIE, etc.)
 CREATE TABLE IF NOT EXISTS MODULE (
     id BIGSERIAL PRIMARY KEY,
     description TEXT UNIQUE
 );
+
+-- Tabla intermedia: asignación de módulos a pacientes (M:N)
 CREATE TABLE IF NOT EXISTS MODULE_PATIENT(
     id BIGSERIAL PRIMARY KEY,
     patient_id TEXT REFERENCES PATIENTS(patient_id) ON DELETE CASCADE,
-    module_id BIGINT REFERENCES MODULE(id) ON DELETE SET NULL
+    module_id BIGINT REFERENCES MODULE(id) ON DELETE SET NULL,
+    UNIQUE(patient_id, module_id)
 );
 
+-- Factura electrónica (ARCA/AFIP)
 CREATE TABLE IF NOT EXISTS INVOICE (
     id BIGSERIAL PRIMARY KEY,
+    -- Datos del paciente
     patient_id TEXT REFERENCES PATIENTS(patient_id) ON DELETE CASCADE,
+    receptor_nombre TEXT,
+    doc_tipo INTEGER DEFAULT 99,
+    doc_nro TEXT,
+    obra_social TEXT,
+    -- Módulo facturado: referencia a la asignación paciente-módulo
+    module_patient_id BIGINT REFERENCES MODULE_PATIENT(id) ON DELETE SET NULL,
+    -- FK directa a MODULE para filtros simples por módulo
+    module_direct_id BIGINT REFERENCES MODULE(id) ON DELETE SET NULL,
+    -- Datos económicos
     amount DECIMAL(10,2),
+    mon_id TEXT DEFAULT 'PES',
+    concepto INTEGER DEFAULT 2,
     invoice_type_id BIGINT REFERENCES INVOICE_TYPE(id) ON DELETE SET NULL,
-    payment_date DATE,
-    module_id BIGINT REFERENCES MODULE_PATIENT(id) ON DELETE SET NULL,
     invoice_status_id BIGINT REFERENCES INVOICE_STATUS(id) ON DELETE SET NULL,
+    payment_date DATE,
+    -- Datos ARCA
+    cae TEXT,
+    cae_vto TEXT,
+    cbte_nro INTEGER,
+    cbte_tipo INTEGER DEFAULT 6,
+    pto_vta INTEGER DEFAULT 1,
+    fecha_emision DATE,
+    pdf_filename TEXT,
+    -- Timestamps
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Tratamientos incluidos en cada factura (M:N)
+CREATE TABLE IF NOT EXISTS INVOICE_TREATMENTS (
+    invoice_id   BIGINT NOT NULL REFERENCES INVOICE(id) ON DELETE CASCADE,
+    treatment_id BIGINT NOT NULL REFERENCES TREATMENTS(id) ON DELETE CASCADE,
+    PRIMARY KEY (invoice_id, treatment_id)
+);
+
+-- Índices para filtros rápidos
+CREATE INDEX IF NOT EXISTS idx_invoice_patient    ON INVOICE(patient_id);
+CREATE INDEX IF NOT EXISTS idx_invoice_cae        ON INVOICE(cae);
+CREATE INDEX IF NOT EXISTS idx_invoice_fecha      ON INVOICE(fecha_emision);
+CREATE INDEX IF NOT EXISTS idx_invoice_module     ON INVOICE(module_direct_id);
+CREATE INDEX IF NOT EXISTS idx_invoice_status     ON INVOICE(invoice_status_id);
+CREATE INDEX IF NOT EXISTS idx_module_patient_p   ON MODULE_PATIENT(patient_id);
+CREATE INDEX IF NOT EXISTS idx_module_patient_m   ON MODULE_PATIENT(module_id);
+CREATE INDEX IF NOT EXISTS idx_inv_treatments_inv ON INVOICE_TREATMENTS(invoice_id);

@@ -27,3 +27,8 @@ pnpm-debug.log*
 src/backend/certs/*
 !src/backend/certs/.gitkeep
 
+# Facturas generadas (PDFs) — no subir al repo
+src/backend/facturas/
+
+# Backup de Ticket de Acceso ARCA
+src/backend/ta_wsfe.backup.json

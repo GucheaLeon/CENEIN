@@ -458,6 +458,8 @@ export default function Attendances() {
     }
   };
 
+  const [cronogramaModal, setCronogramaModal] = useState(null);
+
   const verCronogramaPaciente = (paciente) => {
     const mesNum = Number(mes);
     const turnosMes = (paciente?.turnosPorMes || {})[mesNum] || {};
@@ -470,6 +472,7 @@ export default function Attendances() {
         ...Object.keys(turnosMes),
       ])
     ).sort((a, b) => a.localeCompare(b));
+    
     const nombrePaciente =
       `${paciente?.nombre || ''} ${paciente?.apellido || ''}`.trim() ||
       paciente?.id ||
@@ -477,14 +480,12 @@ export default function Attendances() {
     const titulo = `Cronograma de ${nombrePaciente} - ${MESES[mesNum - 1] || mesNum} ${anio}`;
 
     if (!tratamientos.length) {
-      window.alert(`${titulo}\n\nSin horarios cargados para este mes.`);
+      setCronogramaModal({ titulo, tratamientos: [], nombrePaciente });
       return;
     }
 
-    const lineas = [titulo, ''];
     const ordenDias = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'];
-    tratamientos.forEach((trat) => {
-      lineas.push(`${trat}:`);
+    const detallesTratamientos = tratamientos.map((trat) => {
       const basePorDia = new Map();
       (turnosMes[trat] || []).forEach((clave) => {
         const [dia, hora] = String(clave || '').split('-');
@@ -492,20 +493,17 @@ export default function Attendances() {
         if (!basePorDia.has(dia)) basePorDia.set(dia, []);
         basePorDia.get(dia).push(hora);
       });
-      let tieneHorarios = false;
+      const dias = [];
       ordenDias.forEach((dia) => {
         const horas = Array.from(new Set(basePorDia.get(dia) || [])).sort(compararHoras);
-        if (!horas.length) return;
-        tieneHorarios = true;
-        lineas.push(`- ${dia}: ${horas.join(', ')}`);
+        if (horas.length) {
+          dias.push({ dia, horas });
+        }
       });
-      if (!tieneHorarios) {
-        lineas.push('- Sin horarios cargados para este mes');
-      }
-      lineas.push('');
+      return { trat, dias };
     });
 
-    window.alert(lineas.join('\n').trim());
+    setCronogramaModal({ titulo, tratamientos: detallesTratamientos, nombrePaciente });
   };
 
   const generarUno = async (paciente, imprimir = false) => {
@@ -740,7 +738,7 @@ export default function Attendances() {
             </select>
           </div>
           <div>
-            <label className={labelClass}>Ano</label>
+            <label className={labelClass}>Año</label>
             <input type="number" value={anio} onChange={(e) => setAnio(Number(e.target.value))} className={inputClass} />
           </div>
           <div>
@@ -986,6 +984,66 @@ export default function Attendances() {
           </table>
         </div>
       </section>
+
+      {cronogramaModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
+            <div className="bg-gradient-to-r from-primary to-emerald-600 px-6 py-5">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-white">Cronograma del Paciente</h3>
+                <button
+                  type="button"
+                  onClick={() => setCronogramaModal(null)}
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-white/80 transition hover:bg-white/20 hover:text-white"
+                >
+                  <span className="material-symbols-outlined text-lg">close</span>
+                </button>
+              </div>
+              <p className="mt-1 text-sm font-medium text-white/80">{cronogramaModal.titulo}</p>
+            </div>
+            <div className="max-h-[60vh] overflow-y-auto p-6">
+              {cronogramaModal.tratamientos.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">
+                  Sin horarios cargados para este mes.
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {cronogramaModal.tratamientos.map((t, i) => (
+                    <div key={i}>
+                      <h4 className="mb-3 text-sm font-bold uppercase tracking-wide text-primary">
+                        {t.trat}
+                      </h4>
+                      {t.dias.length === 0 ? (
+                        <p className="text-xs text-slate-500 italic">Sin horarios cargados</p>
+                      ) : (
+                        <ul className="space-y-2">
+                          {t.dias.map((d, j) => (
+                            <li key={j} className="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-2 border border-slate-100 mb-2">
+                              <span className="font-semibold text-slate-700">{d.dia}</span>
+                              <span className="text-sm font-medium text-slate-600">
+                                {d.horas.join(', ')}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="border-t border-slate-100 bg-slate-50 px-6 py-4 text-right">
+              <button
+                type="button"
+                onClick={() => setCronogramaModal(null)}
+                className="rounded-xl bg-primary px-5 py-2 text-sm font-bold text-white transition hover:bg-emerald-700 shadow-md shadow-primary/20 hover:-translate-y-0.5"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

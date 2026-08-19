@@ -1442,7 +1442,7 @@ async function main() {
 
   registerAttendancesExportRoute(app, { db, construirPaciente });
 
-  registerFacturacionRoutes(app);
+  registerFacturacionRoutes(app, { db });
 
   app.use('/api', (req, res) => {
     res.status(404).json({ error: 'Ruta no encontrada' });

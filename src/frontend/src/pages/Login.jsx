@@ -108,7 +108,7 @@ export default function InicioSesion({ alIngresar }) {
                 >
                   Contraseña
                 </label>
-                <span className="text-xs font-medium text-[#006d44]">
+                <span className="text-xs font-medium text-[#006d44] opacity-0 pointer-events-none">
                   ¿Olvidó su clave?
                 </span>
               </div>
@@ -169,7 +169,7 @@ export default function InicioSesion({ alIngresar }) {
         </div>
 
         <footer className="mt-12 space-y-4 text-center">
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-500 hidden">
             ¿Necesita ayuda?{' '}
             <span className="font-semibold text-[#006d44]">Contactar Soporte Técnico</span>
           </p>

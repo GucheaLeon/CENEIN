@@ -100,9 +100,29 @@ function WizardNuevaAdmision({ onGuardar, onCancelar }) {
     setForm((prev) => ({ ...prev, [campo]: valor }));
 
   const validarPaso = () => {
+    const soloLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
+    const soloNumeros = /^[0-9]+$/;
+    const alfanumerico = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,-]+$/;
+
     if (paso === 1) {
       if (!form.nombre.trim()) return 'El nombre es obligatorio.';
+      if (!soloLetras.test(form.nombre.trim())) return 'El nombre no debe contener números ni caracteres especiales.';
       if (!form.apellido.trim()) return 'El apellido es obligatorio.';
+      if (!soloLetras.test(form.apellido.trim())) return 'El apellido no debe contener números ni caracteres especiales.';
+    }
+    if (paso === 2) {
+      if (!form.fechaNacimiento) return 'La fecha de nacimiento es obligatoria.';
+      if (new Date(form.fechaNacimiento) > new Date()) return 'La fecha de nacimiento no puede ser en el futuro.';
+      if (new Date(form.fechaNacimiento).getFullYear() < 1900) return 'La fecha de nacimiento no es válida.';
+      if (!form.dni.trim()) return 'El DNI es obligatorio.';
+      if (!soloNumeros.test(form.dni.trim())) return 'El DNI solo puede contener números sin espacios.';
+      if (!form.telefono.trim()) return 'El teléfono es obligatorio.';
+      if (!soloNumeros.test(form.telefono.trim())) return 'El teléfono solo puede contener números sin espacios.';
+    }
+    if (paso === 3) {
+      if (form.domicilio.trim() && !alfanumerico.test(form.domicilio.trim())) {
+        return 'El domicilio no puede contener caracteres especiales no permitidos.';
+      }
     }
     return '';
   };
@@ -249,6 +269,7 @@ function WizardNuevaAdmision({ onGuardar, onCancelar }) {
                 <input
                   id="wizard-fecha-nac"
                   type="date"
+                  max={new Date().toISOString().split('T')[0]}
                   value={form.fechaNacimiento}
                   onChange={(e) => cambiar('fechaNacimiento', e.target.value)}
                   className="w-full rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-base focus:border-[#006d44] focus:outline-none focus:bg-white transition"
@@ -398,7 +419,6 @@ function WizardNuevaAdmision({ onGuardar, onCancelar }) {
                           value={busquedaOS}
                           onChange={(e) => {
                             setBusquedaOS(e.target.value);
-                            cambiar('obraSocialNombre', e.target.value);
                           }}
                           placeholder="Buscar o escribir obra social..."
                           className="w-full rounded-md border border-slate-300 bg-white py-1 pl-6 pr-2 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#006d44] focus:outline-none focus:ring-1 focus:ring-[#006d44]"
@@ -430,8 +450,21 @@ function WizardNuevaAdmision({ onGuardar, onCancelar }) {
                           !busquedaOS ||
                           os.label.toLowerCase().includes(busquedaOS.toLowerCase())
                         ).length === 0 && (
-                          <li className="px-2 py-1 text-[11px] font-semibold text-slate-500">
-                            {busquedaOS ? `Se registrará: "${busquedaOS}"` : 'Cargando obras sociales...'}
+                          <li className="px-2 py-1">
+                            {busquedaOS ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  cambiar('obraSocialNombre', busquedaOS);
+                                  setBusquedaOS('');
+                                }}
+                                className="w-full text-left text-[11px] font-semibold text-slate-500 hover:text-[#006d44]"
+                              >
+                                Se registrará: "{busquedaOS}" (Click para confirmar)
+                              </button>
+                            ) : (
+                              <span className="text-[11px] font-semibold text-slate-500">Cargando obras sociales...</span>
+                            )}
                           </li>
                         )}
                       </ul>
@@ -858,7 +891,7 @@ function PanelExpediente({ admision, onActualizar }) {
   const [expediente, setExpediente] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [archivos, setArchivos] = useState({});
-  const [campos, setCampos] = useState({ dniNumero: '', numeroAfiliado: '' });
+  const [campos, setCampos] = useState({ numeroAfiliado: '' });
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState('');
   const [exito, setExito] = useState('');
@@ -872,7 +905,6 @@ function PanelExpediente({ admision, onActualizar }) {
       if (data) {
         setExpediente(data);
         setCampos({
-          dniNumero: data.dniNumero || '',
           numeroAfiliado: data.numeroAfiliado || '',
         });
       }
@@ -895,7 +927,7 @@ function PanelExpediente({ admision, onActualizar }) {
     setExito('');
     try {
       const fd = new FormData();
-      fd.append('dniNumero', campos.dniNumero || '');
+      fd.append('dniNumero', admision.dni || '');
       fd.append('numeroAfiliado', campos.numeroAfiliado || '');
       for (const doc of DOCUMENTOS_PDF) {
         if (archivos[doc.key]) {
@@ -906,7 +938,6 @@ function PanelExpediente({ admision, onActualizar }) {
       if (dataActualizada) {
         setExpediente(dataActualizada);
         setCampos({
-          dniNumero: dataActualizada.dniNumero || '',
           numeroAfiliado: dataActualizada.numeroAfiliado || '',
         });
       } else {
@@ -956,19 +987,7 @@ function PanelExpediente({ admision, onActualizar }) {
 
       <div className="space-y-5">
         {/* Campos de texto */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-              DNI (Número)
-            </label>
-            <input
-              type="text"
-              value={campos.dniNumero}
-              onChange={(e) => setCampos((c) => ({ ...c, dniNumero: e.target.value }))}
-              placeholder="Ej: 40123456"
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-[#006d44] focus:outline-none"
-            />
-          </div>
+        <div className="grid grid-cols-1 gap-4">
           <div>
             <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
               Número de afiliado
@@ -1125,7 +1144,6 @@ function PanelExpediente({ admision, onActualizar }) {
                   try {
                     if (
                       Object.keys(archivos).length > 0 ||
-                      campos.dniNumero !== (expediente?.dniNumero || '') ||
                       campos.numeroAfiliado !== (expediente?.numeroAfiliado || '')
                     ) {
                       await handleGuardar();
