@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.2.2] - 2026/08/19
+
+### Agregado
+* Rediseño moderno de vistas de usuarios y auditoría usando Tailwind CSS en el frontend.
+
+
+---
+
 ## [1.2.1] - 2026/08/19
 
 ### Agregado
