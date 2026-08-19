@@ -81,8 +81,62 @@ function incrementVersion(latestTag, commitsLog) {
   return `v${major}.${minor}.${patch}`;
 }
 
+function parseSections(markdown) {
+  const sections = [];
+  const sectionPattern = /^###\s+(.+)\s*$/gm;
+  let match;
+
+  while ((match = sectionPattern.exec(markdown)) !== null) {
+    const contentStart = match.index + match[0].length;
+    const nextSection = sectionPattern.exec(markdown);
+    const contentEnd = nextSection ? nextSection.index : markdown.length;
+
+    sections.push({
+      title: match[1].trim(),
+      content: markdown.slice(contentStart, contentEnd).trim(),
+    });
+
+    if (nextSection) sectionPattern.lastIndex = nextSection.index;
+  }
+
+  return sections;
+}
+
+function mergeChangelogSections(existingMarkdown, incomingMarkdown) {
+  let mergedMarkdown = existingMarkdown.trim();
+
+  for (const incomingSection of parseSections(incomingMarkdown)) {
+    const escapedTitle = incomingSection.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const sectionPattern = new RegExp(`^###\\s+${escapedTitle}\\s*$`, 'im');
+    const sectionMatch = sectionPattern.exec(mergedMarkdown);
+
+    if (!sectionMatch) {
+      mergedMarkdown += `\n\n### ${incomingSection.title}\n${incomingSection.content}`;
+      continue;
+    }
+
+    const contentStart = sectionMatch.index + sectionMatch[0].length;
+    const nextSectionMatch = /\n###\s+.+\s*$/im.exec(mergedMarkdown.slice(contentStart));
+    const contentEnd = nextSectionMatch
+      ? contentStart + nextSectionMatch.index
+      : mergedMarkdown.length;
+    const existingContent = mergedMarkdown.slice(contentStart, contentEnd).trim();
+    const existingItems = new Set(existingContent.split('\n').map((line) => line.trim()).filter(Boolean));
+    const newItems = incomingSection.content
+      .split('\n')
+      .filter((line) => line.trim() && !existingItems.has(line.trim()))
+      .join('\n');
+
+    if (newItems) {
+      const separator = existingContent ? '\n' : '';
+      mergedMarkdown = `${mergedMarkdown.slice(0, contentEnd).trimEnd()}${separator}${newItems}${mergedMarkdown.slice(contentEnd)}`;
+    }
+  }
+
+  return mergedMarkdown;
+}
+
 const newVersionTag = incrementVersion(lastTag, gitLog);
-const versionNumberOnly = newVersionTag.replace(/^v/, '');
 console.log(`🚀 Nueva versión calculada: ${newVersionTag}`);
 
 // 4. Prompt para la IA
@@ -172,20 +226,37 @@ async function generateChangelog() {
     const day = String(now.getDate()).padStart(2, '0');
     const formattedDate = `${year}/${month}/${day}`;
 
-    // Nueva entrada en el CHANGELOG
-    const newEntry = `## [${versionNumberOnly}] - ${formattedDate}\n\n${aiMarkdown}\n\n\n---`;
-
     let currentContent = '';
     if (fs.existsSync('CHANGELOG.md')) {
       currentContent = fs.readFileSync('CHANGELOG.md', 'utf8').trim();
     }
 
+    const header = '# CHANGELOG';
+    const restOfFile = currentContent.startsWith(header)
+      ? currentContent.slice(header.length).trim()
+      : currentContent;
+    const latestEntryPattern = /^(## \[([^\]]+)\] - (\d{4}\/\d{2}\/\d{2})\n\n)([\s\S]*?)(\n\n---)/;
+    const latestEntry = latestEntryPattern.exec(restOfFile);
+    const sameDayEntry = latestEntry && latestEntry[3] === formattedDate ? latestEntry : null;
+
     let updatedContent = '';
+    if (sameDayEntry) {
+      const mergedBody = mergeChangelogSections(sameDayEntry[4], aiMarkdown);
+      const mergedEntry = `${sameDayEntry[1]}${mergedBody}${sameDayEntry[5]}`;
+      const updatedRestOfFile = restOfFile.replace(latestEntry[0], mergedEntry);
+      updatedContent = `${header}\n\n${updatedRestOfFile}\n`;
+      fs.writeFileSync('CHANGELOG.md', updatedContent.trim() + '\n');
+      fs.writeFileSync('NEW_TAG.txt', `v${sameDayEntry[2]}`);
+      console.log(`✅ CHANGELOG.md actualizado en la versión ${sameDayEntry[2]} del ${formattedDate}.`);
+      return;
+    }
+
+    const versionNumberOnly = newVersionTag.replace(/^v/, '');
+    const newEntry = `## [${versionNumberOnly}] - ${formattedDate}\n\n${aiMarkdown}\n\n\n---`;
+
     if (!currentContent) {
       updatedContent = `# CHANGELOG\n\n${newEntry}\n`;
-    } else if (currentContent.startsWith('# CHANGELOG')) {
-      const header = '# CHANGELOG';
-      const restOfFile = currentContent.slice(header.length).trim();
+    } else if (currentContent.startsWith(header)) {
       updatedContent = `${header}\n\n${newEntry}\n\n${restOfFile}\n`;
     } else {
       updatedContent = `# CHANGELOG\n\n${newEntry}\n\n${currentContent}\n`;
