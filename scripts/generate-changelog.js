@@ -2,6 +2,7 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
 
 if (!GROQ_API_KEY) {
   console.error("❌ Error: No se encontró GROQ_API_KEY en las variables de entorno.");
@@ -104,7 +105,7 @@ async function generateChangelog() {
         'Authorization': `Bearer ${GROQ_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
+        model: GROQ_MODEL,
         messages: [{ role: 'user', content: promptText }],
         temperature: 0.2
       })

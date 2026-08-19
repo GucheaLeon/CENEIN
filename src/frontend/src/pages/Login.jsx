@@ -109,12 +109,9 @@ export default function InicioSesion({ alIngresar }) {
                 >
                   Contraseña
                 </label>
-<<<<<<< Updated upstream
                 <span className="text-xs font-medium text-[#006d44] opacity-0 pointer-events-none">
                   ¿Olvidó su clave?
                 </span>
-=======
->>>>>>> Stashed changes
               </div>
               <div className="group relative">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
@@ -174,7 +171,6 @@ export default function InicioSesion({ alIngresar }) {
           </form>
         </div>
 
-<<<<<<< Updated upstream
         <footer className="mt-12 space-y-4 text-center">
           <p className="text-sm text-slate-500 hidden">
             ¿Necesita ayuda?{' '}
@@ -189,8 +185,6 @@ export default function InicioSesion({ alIngresar }) {
             <div className="h-px w-12 bg-slate-300/40" />
           </div>
         </footer>
-=======
->>>>>>> Stashed changes
       </main>
     </div>
   );
