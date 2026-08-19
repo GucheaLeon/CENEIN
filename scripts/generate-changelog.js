@@ -2,7 +2,17 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
-const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
+const GROQ_MODEL_OVERRIDE = process.env.GROQ_MODEL;
+const GROQ_API_URL = 'https://api.groq.com/openai/v1';
+const PREFERRED_GROQ_MODELS = [
+  'openai/gpt-oss-120b',
+  'openai/gpt-oss-20b',
+  'llama-4-scout-17b-16e-instruct',
+  'llama-3.3-70b-versatile',
+  'llama-3.1-8b-instant',
+  'mixtral-8x7b-32768',
+  'gemma2-9b-it',
+];
 
 if (!GROQ_API_KEY) {
   console.error("❌ Error: No se encontró GROQ_API_KEY en las variables de entorno.");
@@ -95,17 +105,47 @@ Commits a analizar:
 ${gitLog}
 `;
 
+async function obtenerModeloGroq() {
+  const response = await fetch(`${GROQ_API_URL}/models`, {
+    headers: { 'Authorization': `Bearer ${GROQ_API_KEY}` },
+  });
+  const data = await response.json();
+
+  if (!response.ok || !Array.isArray(data?.data)) {
+    throw new Error(`No se pudo consultar los modelos disponibles de Groq: ${JSON.stringify(data)}`);
+  }
+
+  const availableModels = data.data
+    .map((model) => String(model?.id || '').trim())
+    .filter((model) => model && !/(whisper|tts|guard|safeguard|distil)/i.test(model));
+
+  if (GROQ_MODEL_OVERRIDE && availableModels.includes(GROQ_MODEL_OVERRIDE)) {
+    return GROQ_MODEL_OVERRIDE;
+  }
+
+  const selectedModel = PREFERRED_GROQ_MODELS.find((model) => availableModels.includes(model));
+  if (selectedModel) return selectedModel;
+
+  const fallbackModel = availableModels[0];
+  if (fallbackModel) return fallbackModel;
+
+  throw new Error('Groq no devolvió ningún modelo compatible para generar el changelog.');
+}
+
 // 5. Generación del contenido con la API de Groq
 async function generateChangelog() {
   try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const model = await obtenerModeloGroq();
+    console.log(`🤖 Modelo de Groq seleccionado automáticamente: ${model}`);
+
+    const response = await fetch(`${GROQ_API_URL}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${GROQ_API_KEY}`
       },
       body: JSON.stringify({
-        model: GROQ_MODEL,
+        model,
         messages: [{ role: 'user', content: promptText }],
         temperature: 0.2
       })
