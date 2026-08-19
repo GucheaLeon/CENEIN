@@ -109,6 +109,19 @@ function validarDatosAdmision({ nombre, apellido, dni, fechaNacimiento, telefono
     if (isNaN(d.getTime())) return 'La fecha de nacimiento no es válida.';
     if (d > new Date()) return 'La fecha de nacimiento no puede ser en el futuro.';
     if (d.getFullYear() < 1900) return 'La fecha de nacimiento no es válida.';
+
+    const hoy = new Date();
+    let edad = hoy.getFullYear() - d.getFullYear();
+    const m = hoy.getMonth() - d.getMonth();
+    if (m < 0 || (m === 0 && hoy.getDate() < d.getDate())) {
+      edad--;
+    }
+    if (edad < 3) {
+      return 'El paciente no puede tener menos de 3 años de edad.';
+    }
+    if (edad > 18) {
+      return 'El paciente no puede tener más de 18 años de edad.';
+    }
   }
   if (telefono !== undefined && telefono !== null && String(telefono).trim() !== '') {
     const tel = String(telefono).trim();

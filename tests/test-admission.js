@@ -36,14 +36,44 @@ async function run() {
   const token = loginRes.json.token;
   console.log('[1] Login OK. Token obtenido.');
 
-  // 2. Crear admisión
+  // 2. Probar validaciones de edad (entre 3 y 18 años)
+  // Caso A: Menor a 3 años (1 año)
+  const fechaMenor3 = new Date(new Date().getFullYear() - 1, 0, 1).toISOString().split('T')[0];
+  const menor3Res = await request({
+    hostname: 'localhost',
+    port: 4000,
+    path: '/api/admisiones',
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
+  }, JSON.stringify({ nombre: 'Bebe', apellido: 'Perez', fechaNacimiento: fechaMenor3, dni: '55111222', telefono: '1122334455' }));
+  console.log('[2a] Rechazo menor a 3 años status:', menor3Res.status, 'Error:', menor3Res.json?.error);
+  if (menor3Res.status !== 400 || !menor3Res.json?.error?.includes('3 años')) {
+    throw new Error('Debería rechazar a menores de 3 años');
+  }
+
+  // Caso B: Mayor a 18 años (25 años)
+  const fechaMayor18 = new Date(new Date().getFullYear() - 25, 0, 1).toISOString().split('T')[0];
+  const mayor18Res = await request({
+    hostname: 'localhost',
+    port: 4000,
+    path: '/api/admisiones',
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
+  }, JSON.stringify({ nombre: 'Adulto', apellido: 'Perez', fechaNacimiento: fechaMayor18, dni: '30111222', telefono: '1122334455' }));
+  console.log('[2b] Rechazo mayor a 18 años status:', mayor18Res.status, 'Error:', mayor18Res.json?.error);
+  if (mayor18Res.status !== 400 || !mayor18Res.json?.error?.includes('18 años')) {
+    throw new Error('Debería rechazar a mayores de 18 años');
+  }
+
+  // Caso C: Edad válida (entre 3 y 18 años)
+  const fechaValida = new Date(new Date().getFullYear() - 10, 3, 12).toISOString().split('T')[0];
   const admBody = JSON.stringify({
     nombre: 'Juan',
     apellido: 'Garcia',
     dni: '42345678',
     telefono: '1145678901',
     domicilio: 'Av. Corrientes 1234',
-    fechaNacimiento: '2010-04-12',
+    fechaNacimiento: fechaValida,
     tieneObraSocial: true,
     obraSocialNombre: 'OSDE',
     tieneCUD: true
@@ -56,7 +86,7 @@ async function run() {
     headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(admBody), 'Authorization': 'Bearer ' + token }
   }, admBody);
   const adm = admRes.json;
-  console.log('[2] Admisión creada ID:', adm.id, adm.apellido, adm.nombre);
+  console.log('[2c] Admisión creada ID:', adm.id, adm.apellido, adm.nombre, 'Fecha Nac:', adm.fechaNacimiento);
 
   // 3. Revisión Fisiátrica
   const revBody = JSON.stringify({ fechaTurno: '2026-08-25', resultado: 'aprobado', devolucion: 'Aprobado para estimulación' });

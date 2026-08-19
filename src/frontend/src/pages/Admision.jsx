@@ -119,6 +119,14 @@ function WizardNuevaAdmision({ onGuardar, onCancelar }) {
       if (isNaN(d.getTime())) return 'La fecha de nacimiento no es válida.';
       if (d > new Date()) return 'La fecha de nacimiento no puede ser en el futuro.';
       if (d.getFullYear() < 1900) return 'La fecha de nacimiento no es válida.';
+      const hoy = new Date();
+      let edad = hoy.getFullYear() - d.getFullYear();
+      const m = hoy.getMonth() - d.getMonth();
+      if (m < 0 || (m === 0 && hoy.getDate() < d.getDate())) {
+        edad--;
+      }
+      if (edad < 3) return 'El paciente no puede tener menos de 3 años de edad.';
+      if (edad > 18) return 'El paciente no puede tener más de 18 años de edad.';
       if (!form.dni.trim()) return 'El DNI es obligatorio.';
       if (!soloNumerosDni.test(form.dni.trim())) return 'El DNI debe contener entre 6 y 9 números sin puntos ni letras.';
       if (!form.telefono.trim()) return 'El teléfono es obligatorio.';
@@ -275,13 +283,19 @@ function WizardNuevaAdmision({ onGuardar, onCancelar }) {
                 <span className="text-[#006d44]">{form.nombre} {form.apellido}</span>
               </p>
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                  Fecha de nacimiento <span className="text-rose-500">*</span>
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                    Fecha de nacimiento <span className="text-rose-500">*</span>
+                  </label>
+                  <span className="text-[11px] font-medium text-slate-500">
+                    (Entre 3 y 18 años)
+                  </span>
+                </div>
                 <input
                   id="wizard-fecha-nac"
                   type="date"
-                  max={new Date().toISOString().split('T')[0]}
+                  min={new Date(new Date().getFullYear() - 18, new Date().getMonth(), new Date().getDate()).toISOString().split('T')[0]}
+                  max={new Date(new Date().getFullYear() - 3, new Date().getMonth(), new Date().getDate()).toISOString().split('T')[0]}
                   value={form.fechaNacimiento}
                   onChange={(e) => cambiar('fechaNacimiento', e.target.value)}
                   className="w-full rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-base focus:border-[#006d44] focus:outline-none focus:bg-white transition"
