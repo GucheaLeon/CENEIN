@@ -533,6 +533,11 @@ async function initDb() {
       await db.run('INSERT INTO module (description) VALUES ($1) ON CONFLICT DO NOTHING', mod);
     } catch (err) {}
   }
+  for (const st of ['Nuevo', 'En_admision', 'En_expediente', 'Desestimado', 'Activo', 'Alta']) {
+    try {
+      await db.run('INSERT INTO patient_state (name) VALUES ($1) ON CONFLICT DO NOTHING', st);
+    } catch (err) {}
+  }
   // Correr migraciones pendientes automáticamente
   await runMigrations(db, pool);
   try {
