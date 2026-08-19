@@ -19,6 +19,7 @@ export default function InicioSesion({ alIngresar }) {
   const { iniciarSesion } = useAutenticacion();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [recordarSesion, setRecordarSesion] = useState(false);
   const [error, setError] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [retryAfterSeconds, setRetryAfterSeconds] = useState(0);
@@ -36,7 +37,7 @@ export default function InicioSesion({ alIngresar }) {
   const enviar = async (e) => {
     e.preventDefault();
     setEnviando(true);
-    const res = await iniciarSesion({ username, password });
+    const res = await iniciarSesion({ username, password, recordarSesion });
     setEnviando(false);
 
     if (!res?.ok) {
@@ -101,16 +102,19 @@ export default function InicioSesion({ alIngresar }) {
             </div>
 
             <div className="space-y-2">
-              <div className="flex items-center justify-between px-1">
+              <div className="px-1">
                 <label
                   className="block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500"
                   htmlFor="password"
                 >
                   Contraseña
                 </label>
+<<<<<<< Updated upstream
                 <span className="text-xs font-medium text-[#006d44] opacity-0 pointer-events-none">
                   ¿Olvidó su clave?
                 </span>
+=======
+>>>>>>> Stashed changes
               </div>
               <div className="group relative">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
@@ -134,6 +138,8 @@ export default function InicioSesion({ alIngresar }) {
                 id="remember-me"
                 name="remember-me"
                 type="checkbox"
+                checked={recordarSesion}
+                onChange={(e) => setRecordarSesion(e.target.checked)}
                 className="h-4 w-4 rounded border-slate-300 text-[#006d44] focus:ring-emerald-200"
               />
               <label className="ml-3 block text-sm text-slate-500" htmlFor="remember-me">
@@ -168,6 +174,7 @@ export default function InicioSesion({ alIngresar }) {
           </form>
         </div>
 
+<<<<<<< Updated upstream
         <footer className="mt-12 space-y-4 text-center">
           <p className="text-sm text-slate-500 hidden">
             ¿Necesita ayuda?{' '}
@@ -182,20 +189,9 @@ export default function InicioSesion({ alIngresar }) {
             <div className="h-px w-12 bg-slate-300/40" />
           </div>
         </footer>
+=======
+>>>>>>> Stashed changes
       </main>
-
-      <div className="fixed bottom-12 left-12 hidden max-w-xs lg:block">
-        <div className="space-y-1">
-          <div className="font-headline select-none text-[48px] font-extrabold leading-tight text-[#006d44]/10">
-            01
-          </div>
-          <p className="text-xs uppercase leading-relaxed tracking-[0.2em] text-slate-400/70">
-            Precision in recovery.
-            <br />
-            Excellence in administration.
-          </p>
-        </div>
-      </div>
     </div>
   );
 }
