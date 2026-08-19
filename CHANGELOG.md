@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## [1.2.0] - 2026/08/19
+
+### Agregado
+* Automatización de la API Groq para generar el CHANGELOG.  
+* Autocompletado por paciente en facturación, catálogo de módulos con precios y cálculo automático del importe.  
+* Módulo de facturación electrónica ARCA.  
+
+### Modificado
+* Limpieza y simplificación del front‑end en las pantallas de inicio y login, eliminando código innecesario y sin función.  
+* Corrección de la sintaxis del componente Badge en Facturacion.jsx.
+
+
+---
+
 ## [1.1.5] - 2026/08/14
 
 ### Modificado
