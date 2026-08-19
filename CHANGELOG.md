@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## [1.2.1] - 2026/08/19
+
+### Agregado
+* Validación del rango de edad (3‑18 años) al ingresar pacientes.
+* Pase automático de pacientes a la lista correspondiente.
+* Validaciones estrictas en los formularios de admisión.
+
+### Modificado
+* Corrección en el almacenamiento de archivos PDF.
+
+
+---
+
 ## [1.2.0] - 2026/08/19
 
 ### Agregado
