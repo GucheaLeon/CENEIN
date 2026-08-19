@@ -82,24 +82,19 @@ function incrementVersion(latestTag, commitsLog) {
 }
 
 function parseSections(markdown) {
-  const sections = [];
   const sectionPattern = /^###\s+(.+)\s*$/gm;
-  let match;
+  const matches = [...markdown.matchAll(sectionPattern)];
 
-  while ((match = sectionPattern.exec(markdown)) !== null) {
+  return matches.map((match, index) => {
     const contentStart = match.index + match[0].length;
-    const nextSection = sectionPattern.exec(markdown);
+    const nextSection = matches[index + 1];
     const contentEnd = nextSection ? nextSection.index : markdown.length;
 
-    sections.push({
+    return {
       title: match[1].trim(),
       content: markdown.slice(contentStart, contentEnd).trim(),
-    });
-
-    if (nextSection) sectionPattern.lastIndex = nextSection.index;
-  }
-
-  return sections;
+    };
+  });
 }
 
 function mergeChangelogSections(existingMarkdown, incomingMarkdown) {
