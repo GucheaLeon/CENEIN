@@ -32,3 +32,7 @@ src/backend/facturas/
 
 # Backup de Ticket de Acceso ARCA
 src/backend/ta_wsfe.backup.json
+
+# QA Reports and test artifacts
+Informe_QA_Senior_CENEIN.pdf
+qa-audit-results.json
