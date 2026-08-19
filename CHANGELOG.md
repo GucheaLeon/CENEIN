@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.2.4] - 2026/08/19
+
+### Agregado
+* Requerir la carga completa de los 8 PDFs antes de habilitar la validación y admisión de pacientes.
+
+
+---
+
 ## [1.2.3] - 2026/08/19
 
 ### Modificado
