@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.2.3] - 2026/08/19
+
+### Modificado
+* Rediseño visual de la pantalla de Alta de Pacientes y la gestión de asistencias en el frontend.
+
+
+---
+
 ## [1.2.2] - 2026/08/19
 
 ### Agregado
