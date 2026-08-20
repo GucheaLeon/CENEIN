@@ -1,5 +1,22 @@
 # CHANGELOG
 
+## [1.2.5] - 2026/08/20
+
+### Agregado
+* Modo oscuro global y menú de perfil con toggle en la UI.
+
+### Modificado
+* Sembrado automático de estados operativos en `patient_state`.
+* Corrección de consultas SQL con `patient_id` para generación de PDFs y exportación de asistencias.
+* Rediseño de la ficha de detalle del paciente con navegación por pestañas y banner clínico.
+* Rediseño integral del buscador de pacientes con control unificado y filtros avanzados.
+
+### Testing
+* Suite de pruebas automatizadas para QA senior y generador de reporte.
+
+
+---
+
 ## [1.2.4] - 2026/08/19
 
 ### Agregado
