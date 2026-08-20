@@ -753,36 +753,7 @@ export default function Users() {
           </section>
         )}
 
-        {/* Tarjetas informativas inferiores de buenas prácticas */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          <div className="rounded-2xl border-l-4 border-[#006d44] bg-white p-6 shadow-sm">
-            <div className="mb-2 flex items-center gap-2.5 text-[#006d44]">
-              <span className="material-symbols-outlined text-[20px]">verified_user</span>
-              <h4 className="text-sm font-bold text-slate-800">Política de Acceso</h4>
-            </div>
-            <p className="text-xs leading-relaxed text-slate-500">
-              Los usuarios con rol Administrador tienen control total sobre historias clínicas, facturación y trazabilidad.
-            </p>
-          </div>
-          <div className="rounded-2xl border-l-4 border-amber-500 bg-white p-6 shadow-sm">
-            <div className="mb-2 flex items-center gap-2.5 text-amber-600">
-              <span className="material-symbols-outlined text-[20px]">lock_reset</span>
-              <h4 className="text-sm font-bold text-slate-800">Seguridad de Claves</h4>
-            </div>
-            <p className="text-xs leading-relaxed text-slate-500">
-              Todas las contraseñas deben contener al menos 8 caracteres y se almacenan con hashing seguro en el servidor.
-            </p>
-          </div>
-          <div className="rounded-2xl border-l-4 border-blue-500 bg-white p-6 shadow-sm">
-            <div className="mb-2 flex items-center gap-2.5 text-blue-600">
-              <span className="material-symbols-outlined text-[20px]">history_edu</span>
-              <h4 className="text-sm font-bold text-slate-800">Auditoría Permanente</h4>
-            </div>
-            <p className="text-xs leading-relaxed text-slate-500">
-              Cualquier alta, baja o modificación de usuario queda registrada en la pestaña de Historial por usuario.
-            </p>
-          </div>
-        </div>
+
       </div>
 
       {/* Modal: Cambiar Contraseña */}

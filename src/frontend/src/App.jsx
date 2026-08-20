@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ProveedorAutenticacion, useAutenticacion } from './context/AuthContext';
 import { ProveedorPacientes, usePacientes } from './context/PatientsContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Distribucion from './components/Layout';
 import InicioSesion from './pages/Login';
 import PanelPrincipal from './pages/Dashboard';
@@ -67,10 +68,12 @@ function CapaApp() {
 
 export default function Aplicacion() {
   return (
-    <ProveedorAutenticacion>
-      <ProveedorPacientes>
-        <CapaApp />
-      </ProveedorPacientes>
-    </ProveedorAutenticacion>
+    <ThemeProvider>
+      <ProveedorAutenticacion>
+        <ProveedorPacientes>
+          <CapaApp />
+        </ProveedorPacientes>
+      </ProveedorAutenticacion>
+    </ThemeProvider>
   );
 }

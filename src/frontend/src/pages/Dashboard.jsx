@@ -372,38 +372,7 @@ export default function PanelPrincipal({ alAbrirPaciente }) {
           </div>
         </section>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          <div className="rounded-xl border-l-4 border-[#006d44] bg-white p-6 shadow-sm">
-            <div className="mb-3 flex items-center gap-3">
-              <span className="material-symbols-outlined text-[#006d44]">info</span>
-              <h4 className="text-sm font-bold text-[#2d3335]">Vista General</h4>
-            </div>
-            <p className="text-xs leading-relaxed text-slate-500">
-              Utiliza los filtros para separar rápidamente pacientes autorizados, pendientes o por
-              módulo sin salir de la grilla principal.
-            </p>
-          </div>
-          <div className="rounded-xl border-l-4 border-[#546537] bg-white p-6 shadow-sm">
-            <div className="mb-3 flex items-center gap-3">
-              <span className="material-symbols-outlined text-[#546537]">task_alt</span>
-              <h4 className="text-sm font-bold text-[#2d3335]">Seguimiento</h4>
-            </div>
-            <p className="text-xs leading-relaxed text-slate-500">
-              Desde esta lista podés autorizar, marcar baja o abrir el detalle completo de cada
-              paciente sin perder contexto.
-            </p>
-          </div>
-          <div className="rounded-xl border-l-4 border-[#4f6456] bg-white p-6 shadow-sm">
-            <div className="mb-3 flex items-center gap-3">
-              <span className="material-symbols-outlined text-[#4f6456]">shield</span>
-              <h4 className="text-sm font-bold text-[#2d3335]">Trazabilidad</h4>
-            </div>
-            <p className="text-xs leading-relaxed text-slate-500">
-              Los cambios administrativos siguen usando la misma lógica actual del sistema; este
-              ajuste es visual y conserva el comportamiento existente.
-            </p>
-          </div>
-        </div>
+
       </div>
     </div>
   );
