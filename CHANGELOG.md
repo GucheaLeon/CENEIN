@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.2.6] - 2026/08/27
+
+### Modificado
+* Normalización de tabla pacientes
+
+
+---
+
 ## [1.2.5] - 2026/08/20
 
 ### Agregado
