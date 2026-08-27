@@ -4,7 +4,7 @@
 
 ### Modificado
 * Normalización de tabla pacientes
-
+* Corrección del diagrama mermaid y actualización del SQL correspondiente.
 
 ---
 
