@@ -80,54 +80,59 @@ CREATE TABLE IF NOT EXISTS PATIENTS (
     patient_id TEXT PRIMARY KEY,
     first_name TEXT,
     last_name TEXT,
+    dni TEXT,
+    cuit TEXT,
     birth_date DATE,
     condition TEXT,
+    diagnosis TEXT,
     last_visit DATE,
     last_fisiatrico DATE,
     last_fisiatrico_alta DATE,
-    last_fisiatrico_vencimiento DATE,
-    last_trabajo_social DATE,
-    last_trabajo_social_alta DATE,
-    last_trabajo_social_vencimiento DATE,
-    dni TEXT,
-    cuit TEXT,
-    os_id BIGINT REFERENCES OS(id) ON DELETE SET NULL,
-    affiliate_number TEXT,
-    integracion_horario TEXT,
-    diagnosis TEXT,
-    father_tutor_name TEXT,
-    father_tutor_phone TEXT,
-    mother_tutor_name TEXT,
-    mother_tutor_phone TEXT,
-    address_street TEXT,
-    address_number TEXT,
-    address_neighborhood TEXT,
-    address_floor TEXT,
-    address_sector TEXT,
-    school_name TEXT,
-    school_grade TEXT,
-    school_shift TEXT,
-    car_years TEXT,
-    ppi_years TEXT,
-    acta_acuerdo_years TEXT,
-    notes TEXT,
-    authorization_expires_at DATE,
     is_active BOOLEAN,
     is_discharged BOOLEAN,
+    os_id BIGINT REFERENCES OS(id) ON DELETE SET NULL,
+    authorization_expires_at DATE,
+    affiliate_number TEXT,
     patient_state_id BIGINT REFERENCES PATIENT_STATE(id) ON DELETE SET NULL,
     discharged_at TIMESTAMPTZ,
-    parametro INTEGER,
-
+    notes TEXT,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE PATIENT_CONTACTS (
+CREATE TABLE IF NOT EXISTS PATIENT_ADDRESSES (
+    id BIGSERIAL PRIMARY KEY,
+    patient_id TEXT REFERENCES PATIENTS(patient_id) ON DELETE CASCADE,
+    street TEXT,
+    number TEXT,
+    neighborhood TEXT,
+    floor TEXT,
+    sector TEXT
+);
+
+CREATE TABLE IF NOT EXISTS PATIENT_CONTACTS (
     id BIGSERIAL PRIMARY KEY,
     patient_id TEXT REFERENCES PATIENTS(patient_id) ON DELETE CASCADE,
     full_name TEXT NOT NULL,
-    relationship TEXT NOT NULL, -- 'PADRE', 'MADRE', 'TUTOR_LEGAL', 'ABUELO/A', etc.
+    relationship TEXT NOT NULL,
     phone TEXT,
     is_primary BOOLEAN DEFAULT FALSE
+);
+
+CREATE TABLE IF NOT EXISTS PATIENT_EDUCATION (
+    id BIGSERIAL PRIMARY KEY,
+    patient_id TEXT REFERENCES PATIENTS(patient_id) ON DELETE CASCADE,
+    school_name TEXT,
+    grade TEXT,
+    shift TEXT,
+    integration_schedule TEXT
+);
+
+CREATE TABLE IF NOT EXISTS PATIENT_ANNUAL_DOCS (
+    id BIGSERIAL PRIMARY KEY,
+    patient_id TEXT REFERENCES PATIENTS(patient_id) ON DELETE CASCADE,
+    doc_type TEXT,
+    year INTEGER,
+    status TEXT
 );
 
 -- Tablas dependientes de Pacientes
