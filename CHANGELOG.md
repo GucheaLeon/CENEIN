@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## [1.2.7] - 2026/08/28
+
+### Modificado
+* Corregido un problema en los diagramas Mermaid y actualizado el script SQL correspondiente.
+
+### Testing
+* Añadidos tests unitarios.
+
+
+---
+
 ## [1.2.6] - 2026/08/27
 
 ### Modificado
