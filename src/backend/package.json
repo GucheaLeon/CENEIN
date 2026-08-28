@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "seed": "node scripts/seed.js",
+    "test": "node --test tests/**/*.test.js",
     "test:afip": "node scripts/testAfipConnection.js",
     "generate:csr": "node scripts/generateCsr.js"
   },
