@@ -19,6 +19,11 @@ erDiagram
     PATIENT_STATE ||--o{ PATIENT_STATE_HISTORY : records
     PATIENTS ||--o{ AUTHORIZATIONS : has
 
+    PATIENTS ||--o| PATIENT_ADDRESSES : tiene
+    PATIENTS ||--o{ PATIENT_CONTACTS : tiene
+    PATIENTS ||--o| PATIENT_EDUCATION : cursa
+    PATIENTS ||--o{ PATIENT_ANNUAL_DOCS : gestiona
+
     PATIENTS ||--o{ TREATMENT_PLANS : has
     TREATMENT_PLANS ||--o{ TREATMENT_PLAN_ITEMS : includes
     TREATMENTS ||--o{ TREATMENT_PLAN_ITEMS : contains
@@ -154,44 +159,55 @@ erDiagram
         string patient_id PK
         string first_name
         string last_name
+        string dni
+        string cuit
         date birth_date
         string condition
+        string diagnosis
         date last_visit
         date last_fisiatrico
         date last_fisiatrico_alta
-        date last_fisiatrico_vencimiento
-        date last_trabajo_social
-        date last_trabajo_social_alta
-        date last_trabajo_social_vencimiento
-        string dni
-        string cuit
-        bigint os_id FK
-        string affiliate_number
-        string integracion_horario
-        string diagnosis
-        string father_tutor_name
-        string father_tutor_phone
-        string mother_tutor_name
-        string mother_tutor_phone
-        string address_street
-        string address_number
-        string address_neighborhood
-        string address_floor
-        string address_sector
-        string school_name
-        string school_grade
-        string school_shift
-        string car_years
-        string ppi_years
-        string acta_acuerdo_years
-        string notes
-        date authorization_expires_at
         boolean is_active
         boolean is_discharged
+        bigint os_id FK
+        date authorization_expires_at
+        string affiliate_number
         bigint patient_state_id FK
         timestamptz discharged_at
-        int parametro
+        text notes
         timestamptz created_at
+    }
+    PATIENT_ADDRESSES {
+        bigserial id PK
+        string patient_id FK
+        string street
+        string number
+        string neighborhood
+        string floor
+        string sector
+    }
+    PATIENT_CONTACTS {
+        bigserial id PK
+        string patient_id FK
+        string full_name
+        string relationship
+        string phone
+        boolean is_primary
+    }
+    PATIENT_EDUCATION {
+        bigserial id PK
+        string patient_id FK
+        string school_name
+        string grade
+        string shift
+        string integration_schedule
+    }
+    PATIENT_ANNUAL_DOCS {
+        bigserial id PK
+        string patient_id FK
+        string doc_type
+        int year
+        string status
     }
     PATIENTS_SEDE {
         bigint patient_sede_id PK
