@@ -10,10 +10,10 @@ erDiagram
     %% Pacientes y tratamientos
     %% =========================
 
-    OS ||--o{ PATIENTS : covers
+    PATIENTS }o--|| OS : covers
     PATIENT_STATE ||--o{ PATIENTS : has
     PATIENTS ||--o{ PATIENTS_SEDE : serves
-    SEDE ||--o{ PATIENTS_SEDE : includes
+    PATIENTS_SEDE }o--|| SEDE : includes
 
     PATIENTS ||--o{ PATIENT_STATE_HISTORY : has
     PATIENT_STATE ||--o{ PATIENT_STATE_HISTORY : records
@@ -26,36 +26,36 @@ erDiagram
 
     PATIENTS ||--o{ TREATMENT_PLANS : has
     TREATMENT_PLANS ||--o{ TREATMENT_PLAN_ITEMS : includes
-    TREATMENTS ||--o{ TREATMENT_PLAN_ITEMS : contains
+    TREATMENT_PLAN_ITEMS }o--|| TREATMENTS : contains
     TREATMENT_PLANS ||--o{ PATIENT_RECORDS : generates
     PATIENTS ||--o{ PATIENT_RECORDS : has
     PATIENT_RECORDS ||--o{ PATIENT_DOCUMENTS : contains
-    DOCUMENTS_TYPE ||--o{ PATIENT_DOCUMENTS : classifies
+    PATIENT_DOCUMENTS }o--|| DOCUMENTS_TYPE : classifies
 
     PATIENTS ||--o{ PATIENT_TREATMENTS : has
-    TREATMENTS ||--o{ PATIENT_TREATMENTS : includes
+    PATIENT_TREATMENTS }o--|| TREATMENTS : includes
     PATIENTS ||--o{ PATIENT_TURNS : schedules
-    TREATMENTS ||--o{ PATIENT_TURNS : applies_to
+    PATIENT_TURNS }o--|| TREATMENTS : applies_to
     PATIENTS ||--o{ PATIENT_TURNS_MONTHLY : schedules
-    TREATMENTS ||--o{ PATIENT_TURNS_MONTHLY : applies_to
+    PATIENT_TURNS_MONTHLY }o--|| TREATMENTS : applies_to
     PATIENTS ||--o{ PATIENT_TURNS_OVERRIDES : overrides
-    TREATMENTS ||--o{ PATIENT_TURNS_OVERRIDES : applies_to
+    PATIENT_TURNS_OVERRIDES }o--|| TREATMENTS : applies_to
     PATIENTS ||--o{ ATTENDANCES : attends
-    TREATMENTS ||--o{ ATTENDANCES : belongs_to
+    ATTENDANCES }o--|| TREATMENTS : belongs_to
 
     PATIENTS ||--o{ PACIENT_REPORTS : has
-    REPORT_TYPES ||--o{ PACIENT_REPORTS : categorizes
+    PACIENT_REPORTS }o--|| REPORT_TYPES : categorizes
 
     PATIENTS ||--o{ PATIENT_REQUESTS : requests
     PATIENT_REQUESTS ||--o{ PATIENT_REQUEST_TREATMENTS : includes
-    TREATMENTS ||--o{ PATIENT_REQUEST_TREATMENTS : requested
+    PATIENT_REQUEST_TREATMENTS }o--|| TREATMENTS : requested
 
     %% =========================
     %% Usuarios y autenticacion
     %% =========================
 
-    ROLES ||--o{ USER_ROLES : assigned
-    USERS ||--o{ USER_ROLES : has
+    USER_ROLES }o--|| ROLES : assigned
+    USER_ROLES }o--|| USERS : has
     USERS ||--o{ SESSIONS : owns
     USERS ||--o{ USER_ACTIVITY_LOGS : generates
 
@@ -71,11 +71,11 @@ erDiagram
     %% Modulos y facturacion
     %% =========================
 
-    MODULE ||--o{ MODULE_PATIENT : assigns
+    MODULE_PATIENT }o--|| MODULE : assigns
     PATIENTS ||--o{ MODULE_PATIENT : belongs_to
     PATIENTS ||--o{ INVOICE : has
-    INVOICE_TYPE ||--o{ INVOICE : classifies
-    INVOICE_STATUS ||--o{ INVOICE : has_status
+    INVOICE }o--|| INVOICE_TYPE : classifies
+    INVOICE }o--|| INVOICE_STATUS : has_status
     MODULE_PATIENT ||--o{ INVOICE : generates
 
     %% =========================
