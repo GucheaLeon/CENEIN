@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.2.8] - 2026/09/03
+
+### Modificado
+* Reordenamiento de relaciones del DER.
+
+
+---
+
 ## [1.2.7] - 2026/08/28
 
 ### Modificado
