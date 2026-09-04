@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { key: 'alta', label: 'Alta Pacientes', icon: 'person_add' },
   { key: 'admision', label: 'Admisión', icon: 'assignment_ind' },
   { key: 'facturacion', label: 'Facturación', icon: 'receipt_long' },
+  { key: 'reports', label: 'Informes y planes', icon: 'clinical_notes' },
 ];
 
 const ADMIN_ITEMS = [
@@ -22,6 +23,7 @@ const PAGE_TITLES = {
   alta: 'Alta Pacientes',
   admision: 'Admisión',
   facturacion: 'Facturación',
+  reports: 'Informes y planes',
   users: 'Usuarios',
   'user-history': 'Historial por usuario',
   patient: 'Paciente',

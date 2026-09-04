@@ -26,6 +26,8 @@ services:
     restart: always
     ports:
       - "4000:4000"
+    volumes:
+      - ./docs/informes:/app/docs/informes:ro
     environment:
       - NODE_ENV=development
       - PORT=4000

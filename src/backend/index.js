@@ -14,6 +14,7 @@ const { registerAttendancesExportRoute } = require('./routes/attendancesExport')
 const { registerCatalogsRoutes } = require('./routes/catalogs');
 const { registerAdmisionsRoutes } = require('./routes/admisiones');
 const { registerFacturacionRoutes } = require('./routes/facturacion');
+const { registerReportsRoutes } = require('./routes/reports');
 
 const PORT = process.env.PORT || 4000;
 const SCHEMA_SQL_PATH = path.join(__dirname, 'schema.sql');
@@ -1460,6 +1461,8 @@ async function main() {
   registerAttendancesExportRoute(app, { db, construirPaciente });
 
   registerFacturacionRoutes(app, { db });
+
+  registerReportsRoutes(app, { db, authMiddleware });
 
   app.use('/api', (req, res) => {
     res.status(404).json({ error: 'Ruta no encontrada' });

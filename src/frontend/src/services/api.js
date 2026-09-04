@@ -494,6 +494,55 @@ export async function exportarAsistenciasPdf({
   });
 }
 
+export async function obtenerInformesApi(opciones = {}) {
+  const patientId = opciones.patientId ? `?patientId=${encodeURIComponent(opciones.patientId)}` : '';
+  return fetchJsonApi(`/api/reports${patientId}`, opciones);
+}
+
+export async function obtenerInformeApi(id) {
+  return fetchJsonApi(`/api/reports/${encodeURIComponent(id)}`);
+}
+
+export async function previsualizarInformeApi(data) {
+  return fetchJsonApi('/api/reports/preview', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+  });
+}
+
+export async function actualizarInformeApi(id, data) {
+  return fetchJsonApi(`/api/reports/${encodeURIComponent(id)}`, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+  });
+}
+
+export async function eliminarInformeApi(id) {
+  return fetchJsonApi(`/api/reports/${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+
+export async function obtenerPlantillasInformesApi(opciones = {}) {
+  return fetchJsonApi('/api/reports/templates', opciones);
+}
+
+export async function crearInformeApi(data) {
+  return fetchJsonApi('/api/reports', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+}
+
+export async function crearPlantillaInformeApi(data) {
+  return fetchJsonApi('/api/reports/templates', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+}
+
+export async function descargarInformePdfApi(id, opciones = {}) {
+  return fetchBlobApi(`/api/reports/${encodeURIComponent(id)}/pdf`, opciones);
+}
+
 export async function obtenerUsuariosApi(opciones = {}) {
   const data = await fetchJsonApi('/api/users', opciones);
   return Array.isArray(data) ? data : [];
