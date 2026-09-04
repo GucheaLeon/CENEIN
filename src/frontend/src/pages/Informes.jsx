@@ -17,7 +17,6 @@ const REPORT_TYPES = [
   { value: "initial", label: "Informe de evaluación inicial" },
   { value: "evolution", label: "Informe evolutivo de la prestación" },
 ];
-const MODULES = ["MII", "MIS", "MIE"];
 const EMPTY = { provider: "", notes: "" };
 const inputClass =
   "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20";
@@ -45,7 +44,6 @@ const downloadBlob = (blob, name) => {
 
 export default function Informes() {
   const { pacientes } = usePacientes();
-  const today = new Date();
   const patients = useMemo(
     () =>
       pacientes
@@ -68,9 +66,7 @@ export default function Informes() {
     documentType: "",
     reportType: "",
     reportDate: "",
-    periodYear: "",
     treatmentName: "",
-    moduleName: "",
     content: { ...EMPTY },
   });
   const patient = patients.find((item) => item.id === patientId);
@@ -104,7 +100,6 @@ export default function Informes() {
     setForm((current) => ({
       ...current,
       treatmentName: "",
-      moduleName: "",
       content: { ...EMPTY },
     }));
   };
@@ -112,7 +107,6 @@ export default function Informes() {
     setForm((current) => ({
       ...current,
       reportDate: value,
-      periodYear: value.slice(0, 4),
     }));
   const saveReport = async (event) => {
     event.preventDefault();
@@ -127,7 +121,6 @@ export default function Informes() {
       const payload = {
         patientId,
         ...form,
-        periodYear: Number(form.periodYear),
       };
       if (editingId) await actualizarInformeApi(editingId, payload);
       else await crearInformeApi(payload);
@@ -147,9 +140,7 @@ export default function Informes() {
       documentType: "evaluation",
       reportType: report.reportType,
       reportDate: report.reportDate,
-      periodYear: String(report.periodYear),
       treatmentName: report.treatmentName,
-      moduleName: "",
       content: { ...EMPTY, ...(report.content || {}) },
     });
     setEditingId(id);
@@ -382,33 +373,11 @@ export default function Informes() {
                       </label>
                       <label>
                         <span className="mb-1 block text-xs font-bold">
-                          Módulo clínico
-                        </span>
-                        <select
-                          required
-                          value={form.moduleName}
-                          onChange={(e) =>
-                            setForm({ ...form, moduleName: e.target.value })
-                          }
-                          className={inputClass}
-                        >
-                          <option value="" disabled>Seleccionar módulo</option>
-                          {(patient.modulos?.length
-                            ? patient.modulos
-                            : MODULES
-                          ).map((item) => (
-                            <option key={item}>{item}</option>
-                          ))}
-                        </select>
-                      </label>
-                      <label>
-                        <span className="mb-1 block text-xs font-bold">
                           Fecha
                         </span>
                         <input
                           required
                           type="date"
-                          max={today.toISOString().slice(0, 10)}
                           value={form.reportDate}
                           onChange={(e) => changeDate(e.target.value)}
                           className={inputClass}
@@ -487,10 +456,8 @@ export default function Informes() {
                     <button
                       disabled={
                         busy ||
-                        form.documentType !== "evaluation" ||
                         !form.reportType ||
                         !form.treatmentName ||
-                        !form.moduleName ||
                         !form.reportDate ||
                         !form.content.provider ||
                         !form.content.notes

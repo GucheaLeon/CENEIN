@@ -130,6 +130,7 @@ async function fetchJsonApi(path, opciones = {}) {
         }
         throw error;
       }
+      if (respuesta.status === 204) return null;
       return await respuesta.json();
     } catch (err) {
       lastError = err;

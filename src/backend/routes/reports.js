@@ -2,13 +2,16 @@
 
 const fs = require('fs');
 const path = require('path');
-const { PDFDocument, StandardFonts, rgb } = require('pdf-lib');
+const { PDFDocument, PDFName, StandardFonts, rgb } = require('pdf-lib');
 
 const REPORT_TYPES = new Set(['initial', 'evolution', 'treatment_plan']);
-const INFORMES_DIR = path.join(__dirname, '..', 'docs', 'informes');
+const INFORMES_DIR = [
+  path.join(__dirname, '..', 'docs', 'informes'),
+  path.join(__dirname, '..', '..', '..', 'docs', 'informes'),
+].find((directory) => fs.existsSync(directory)) || path.join(__dirname, '..', 'docs', 'informes');
 const DEFAULT_TEMPLATES = [
-  { match: /^12-MII-INFORME INICIAL\.pdf$/i, type: 'initial', code: 'MII-INFORME-INICIAL' },
-  { match: /^12-MII-INFORME INICIAL\.pdf$/i, type: 'evolution', code: 'MII-INFORME-EVOLUTIVO' },
+  { match: /^INFORMES_EVOLUTIVOS\.pdf$/i, type: 'initial', code: 'MII-INFORME-INICIAL' },
+  { match: /^INFORMES_EVOLUTIVOS\.pdf$/i, type: 'evolution', code: 'MII-INFORME-EVOLUTIVO' },
   { match: /^6-PLAN DE TRABAJO\.pdf$/i, type: 'treatment_plan', code: 'CENEIN-PLAN' },
 ];
 const typeLabel = { initial: 'Informe inicial', evolution: 'Informe evolutivo', treatment_plan: 'Plan de tratamiento' };
@@ -44,13 +47,20 @@ function snapshotPatient(patient, treatmentName) {
 
 async function ensureDefaultTemplates(db) {
   if (!fs.existsSync(INFORMES_DIR)) return;
-  for (const entry of fs.readdirSync(INFORMES_DIR)) {
-    const definition = DEFAULT_TEMPLATES.find((item) => item.match.test(entry));
-    if (!definition) continue;
-    const existing = await db.get('SELECT id FROM REPORT_TEMPLATES WHERE form_code = ? AND year_version = ?', definition.code, new Date().getFullYear());
-    if (existing) continue;
-    const data = fs.readFileSync(path.join(INFORMES_DIR, entry));
-    await db.run(`INSERT INTO REPORT_TEMPLATES (name, report_type, form_code, year_version, is_default, filename, file_data) VALUES (?, ?, ?, ?, true, ?, ?)`, typeLabel[definition.type], definition.type, definition.code, new Date().getFullYear(), entry, data);
+    for (const entry of fs.readdirSync(INFORMES_DIR)) {
+      const definitions = DEFAULT_TEMPLATES.filter((item) => item.match.test(entry));
+      if (!definitions.length) continue;
+      const data = fs.readFileSync(path.join(INFORMES_DIR, entry));
+      for (const definition of definitions) {
+        const existing = await db.get('SELECT id, file_data FROM REPORT_TEMPLATES WHERE form_code = ? AND year_version = ?', definition.code, new Date().getFullYear());
+        if (existing) {
+          if (!existing.file_data || !Buffer.from(existing.file_data).equals(data)) {
+            await db.run('UPDATE REPORT_TEMPLATES SET filename = ?, file_data = ? WHERE id = ?', entry, data, existing.id);
+          }
+          continue;
+      }
+        await db.run(`INSERT INTO REPORT_TEMPLATES (name, report_type, form_code, year_version, is_default, filename, file_data) VALUES (?, ?, ?, ?, true, ?, ?)`, typeLabel[definition.type], definition.type, new Date().getFullYear(), entry, data);
+    }
   }
 }
 
@@ -58,6 +68,61 @@ async function renderPdf(templateData, patient, content) {
   const pdf = await PDFDocument.load(templateData);
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+  const values = {
+    tipoDocumento: 'DNI',
+    tipo_documento: 'DNI',
+    nroDocumento: patient.dni,
+    nro_documento: patient.dni,
+    paciente: patient.name,
+    nombre: patient.name,
+    dni: patient.dni,
+    afiliado: patient.affiliateNumber,
+    obrasocial: patient.insurer,
+    prestacion: patient.treatment,
+    prestador: content.provider,
+    fecha: content.reportDate,
+    tipo: content.reportKind,
+    informe: content.notes,
+    tipoinicial: content.reportKind === 'Inicial' ? 'X' : '',
+    tipoevolutivo: content.reportKind === 'Evolutivo' ? 'X' : '',
+  };
+  const legacyFieldMap = {
+    Text1: 'tipoDocumento',
+    Text3: 'paciente',
+    Text4: 'nroDocumento',
+    Text5: 'prestacion',
+    Text6: 'prestador',
+    Text17: 'tipoinicial',
+    Text18: 'tipoevolutivo',
+    Text19: 'informe',
+    Text21: 'fecha',
+  };
+  const normalizedValues = Object.fromEntries(
+    Object.entries(values).map(([key, value]) => [
+      normalize(key).replace(/[^a-z0-9]/g, ''),
+      value,
+    ]),
+  );
+  const form = pdf.getForm();
+  const acroFields = form.getFields();
+  for (const field of acroFields) {
+    for (const widget of field.acroField.getWidgets()) {
+      widget.dict.delete(PDFName.of('MK'));
+      widget.dict.delete(PDFName.of('BS'));
+    }
+    const key = normalize(field.getName()).replace(/[^a-z0-9]/g, '');
+    const mappedKey = legacyFieldMap[field.getName()] || key;
+    const value = normalizedValues[normalize(mappedKey).replace(/[^a-z0-9]/g, '')];
+    if (value == null) continue;
+    if (typeof field.check === 'function' && typeof field.uncheck === 'function') {
+      if (String(value).trim()) field.check();
+      else field.uncheck();
+    } else if (typeof field.setText === 'function') {
+      field.setText(String(value));
+    }
+  }
+  if (acroFields.length) form.flatten();
+  if (acroFields.length) return Buffer.from(await pdf.save());
   const fields = [
     ['Paciente', patient.name], ['DNI', patient.dni], ['Afiliado', patient.affiliateNumber],
     ['Obra social', patient.insurer], ['Prestación', patient.treatment], ['Módulo clínico', patient.module], ['Prestador', content.provider],
@@ -90,12 +155,6 @@ async function prepararInforme(db, body, templateId = null) {
   const reportDate = String(body.reportDate || '').trim() || today.toISOString().slice(0, 10);
   const date = new Date(`${reportDate}T00:00:00Z`);
   const periodMonth = Number(body.periodMonth) || date.getUTCMonth() + 1;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(reportDate) || Number.isNaN(date.getTime()) || date > new Date(`${today.toISOString().slice(0, 10)}T23:59:59Z`)) {
-    const error = new Error('La fecha del informe no puede ser futura y debe ser válida.'); error.status = 400; throw error;
-  }
-  if (year > today.getFullYear() || (year === today.getFullYear() && periodMonth > today.getMonth() + 1)) {
-    const error = new Error('No se pueden cargar períodos futuros.'); error.status = 400; throw error;
-  }
   if (!patientId || !treatmentName || !REPORT_TYPES.has(reportType)) {
     const error = new Error('Paciente, prestación y tipo de documento son obligatorios.');
     error.status = 400;
