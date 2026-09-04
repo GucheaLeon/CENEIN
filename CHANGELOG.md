@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.2.9] - 2026/09/04
+
+### Agregado
+* MVP del módulo informes
+
+
+---
+
 ## [1.2.8] - 2026/09/03
 
 ### Modificado
