@@ -5,6 +5,8 @@
 ### Agregado
 * MVP del módulo informes
 
+### Modificado
+* Arreglo del módulo de informe inicial y evolutivo, incluyendo corrección del mapeo y la descarga de PDFs.
 
 ---
 
