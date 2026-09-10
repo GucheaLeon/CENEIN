@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.3.1] - 2026/09/10
+
+### Modificado
+* Corrección del cálculo/validación del DNI para los rangos 6‑9.
+
+
+---
+
 ## [1.3.0] - 2026/09/07
 
 ### Agregado
