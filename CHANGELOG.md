@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.3.2] - 2026/09/11
+
+### Modificado
+* Corrección del editor del plan de tratamiento.
+
+
+---
+
 ## [1.3.1] - 2026/09/10
 
 ### Modificado
