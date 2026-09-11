@@ -4,7 +4,7 @@
 
 ### Modificado
 * Corrección del editor del plan de tratamiento.
-
+* Arreglo del mapeo en la fecha de informes y planes.
 
 ---
 
