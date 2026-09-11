@@ -29,9 +29,24 @@ const EMPTY = {
 };
 const inputClass =
   "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20";
-const shiftDate = (value, days) => {
+const normalizeDateInput = (value) => {
   if (!value) return "";
-  const date = new Date(`${value}T00:00:00Z`);
+  const raw = String(value).trim();
+  const isoMatch = raw.match(/^(\d{4}-\d{2}-\d{2})/);
+  if (isoMatch) {
+    const date = new Date(`${isoMatch[1]}T00:00:00Z`);
+    return Number.isNaN(date.getTime()) ? "" : isoMatch[1];
+  }
+  const localMatch = raw.match(/^(\d{2})[/-](\d{2})[/-](\d{4})$/);
+  if (!localMatch) return "";
+  const candidate = `${localMatch[3]}-${localMatch[2]}-${localMatch[1]}`;
+  const date = new Date(`${candidate}T00:00:00Z`);
+  return Number.isNaN(date.getTime()) ? "" : candidate;
+};
+const shiftDate = (value, days) => {
+  const normalized = normalizeDateInput(value);
+  if (!normalized) return "";
+  const date = new Date(`${normalized}T00:00:00Z`);
   date.setUTCDate(date.getUTCDate() + days);
   return date.toISOString().slice(0, 10);
 };
@@ -162,20 +177,34 @@ export default function Informes() {
       setBusy(false);
     }
   };
-  const edit = async (id) => {
-    const report = await obtenerInformeApi(id);
-    setForm({
-      documentType:
-        report.reportType === "treatment_plan"
-          ? "treatment_plan"
-          : "evaluation",
-      reportType: report.reportType === "treatment_plan" ? "" : report.reportType,
-      reportDate: report.reportDate,
-      treatmentName: report.treatmentName,
-      content: { ...EMPTY, ...(report.content || {}) },
-    });
-    setEditingId(id);
-    setTab("generate");
+  const edit = async (reportId) => {
+    setBusy(true);
+    setMessage("");
+    try {
+      const report = await obtenerInformeApi(reportId);
+      const isTreatmentPlanReport = report.reportType === "treatment_plan";
+      setPatientId(report.patientId || patientId);
+      setForm({
+        documentType: isTreatmentPlanReport ? "treatment_plan" : "evaluation",
+        reportType: isTreatmentPlanReport ? "" : report.reportType || "",
+        reportDate: normalizeDateInput(report.reportDate),
+        treatmentName: report.treatmentName || "",
+        content: {
+          ...EMPTY,
+          ...(report.content && typeof report.content === "object"
+            ? report.content
+            : {}),
+          periodStart: normalizeDateInput(report.content?.periodStart),
+          periodEnd: normalizeDateInput(report.content?.periodEnd),
+        },
+      });
+      setEditingId(report.id);
+      setTab("generate");
+    } catch (error) {
+      setMessage(error.message || "No se pudo cargar el informe para editarlo.");
+    } finally {
+      setBusy(false);
+    }
   };
   const remove = async (report) => {
     const description = `${typeLabel(report.reportType)} - ${report.treatmentName} - ${report.lastName || patient?.apellido || ""} ${report.firstName || patient?.nombre || ""}`;
