@@ -325,7 +325,40 @@ function registerReportsRoutes(app, { db, authMiddleware }) {
     res.status(204).end();
   });
 
-  app.get('/api/reports/:id/pdf', authMiddleware, async (req, res) => { const row = await db.get('SELECT generated_pdf, form_code FROM CLINICAL_REPORTS WHERE id = ?', req.params.id); if (!row?.generated_pdf) return res.status(404).json({ error: 'PDF no encontrado.' }); res.type('application/pdf').set('Content-Disposition', `inline; filename=${row.form_code}.pdf`).send(row.generated_pdf); });
+  app.get('/api/reports/:id/pdf', authMiddleware, async (req, res) => {
+    try {
+      await ensureDefaultTemplates(db);
+      const row = await db.get(
+        `SELECT r.*, p.*, o.name AS obra_social_name
+         FROM CLINICAL_REPORTS r
+         JOIN PATIENTS p ON p.patient_id = r.patient_id
+         LEFT JOIN OS o ON o.id = p.os_id
+         WHERE r.id = ?`,
+        req.params.id,
+      );
+      if (!row) return res.status(404).json({ error: 'Informe no encontrado.' });
+      const template = await db.get('SELECT * FROM REPORT_TEMPLATES WHERE id = ?', row.template_id);
+      if (!template?.file_data) return res.status(404).json({ error: 'Plantilla del informe no encontrada.' });
+      const content = parseContent(row.clinical_content);
+      const pdf = await renderPdf(
+        template.file_data,
+        snapshotPatient(row, row.treatment_name),
+        content,
+      );
+      await db.run(
+        `UPDATE CLINICAL_REPORTS
+         SET generated_pdf = ?, form_code = ?, updated_at = CURRENT_TIMESTAMP
+         WHERE id = ?`,
+        pdf,
+        template.form_code,
+        req.params.id,
+      );
+      res.type('application/pdf').set('Content-Disposition', `inline; filename=${template.form_code}.pdf`).send(pdf);
+    } catch (error) {
+      console.error('[REPORTS] pdf', error);
+      res.status(error.status || 500).json({ error: error.status ? error.message : 'No se pudo generar el PDF.' });
+    }
+  });
 }
 
 module.exports = { registerReportsRoutes, chooseTemplate };
