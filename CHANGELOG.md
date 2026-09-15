@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## [1.3.3] - 2026/09/15
+
+### Modificado
+* Corrección del mapeo de la fecha en informes y planes.
+
+### Testing
+* Test de integración v1.
+
+
+---
+
 ## [1.3.2] - 2026/09/11
 
 ### Modificado
