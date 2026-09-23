@@ -2,11 +2,14 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   obtenerUsuariosApi,
   obtenerUsuariosBloqueadosApi,
+  obtenerRolesApi,
+  crearRolApi,
   crearUsuarioApi,
   actualizarUsuarioApi,
   eliminarUsuarioApi,
   desbloquearUsuarioApi,
 } from '../services/api';
+import { ROLE_MODULES } from '../permissions';
 
 function formatearFechaHora(valor) {
   const raw = String(valor || '').trim();
@@ -40,6 +43,7 @@ function formatearFechaRelativa(valor) {
 
 export default function Users() {
   const [usuarios, setUsuarios] = useState([]);
+  const [roles, setRoles] = useState([]);
   const [usuariosBloqueados, setUsuariosBloqueados] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
@@ -53,7 +57,11 @@ export default function Users() {
   // Formulario nuevo usuario
   const [mostrarFormCrear, setMostrarFormCrear] = useState(false);
   const [mostrarPasswordNuevo, setMostrarPasswordNuevo] = useState(false);
-  const [form, setForm] = useState({ username: '', password: '', isAdmin: false });
+  const [mostrarFormRol, setMostrarFormRol] = useState(false);
+  const [guardandoRol, setGuardandoRol] = useState(false);
+  const [errorRol, setErrorRol] = useState('');
+  const [formRol, setFormRol] = useState({ name: '', modules: [] });
+  const [form, setForm] = useState({ username: '', password: '', isAdmin: false, roleId: '' });
 
   // Modal cambio de contraseña
   const [usuarioParaPassword, setUsuarioParaPassword] = useState(null);
@@ -83,6 +91,17 @@ export default function Users() {
     try {
       const usuariosData = await obtenerUsuariosApi();
       setUsuarios(Array.isArray(usuariosData) ? usuariosData : []);
+      const rolesData = await obtenerRolesApi();
+      const rolesCargados = Array.isArray(rolesData) ? rolesData : [];
+      setRoles(rolesCargados);
+      const rolPorDefecto = rolesCargados.find((r) => String(r.name || '').toUpperCase() === 'USER')
+        || rolesCargados[0];
+      if (rolPorDefecto) {
+        setForm((actual) => ({
+          ...actual,
+          roleId: actual.roleId || String(rolPorDefecto.id),
+        }));
+      }
       try {
         const bloqueadosData = await obtenerUsuariosBloqueadosApi();
         setUsuariosBloqueados(Array.isArray(bloqueadosData) ? bloqueadosData : []);
@@ -140,6 +159,10 @@ export default function Users() {
       setError('La contraseña debe tener al menos 8 caracteres.');
       return;
     }
+    if (!form.isAdmin && !form.roleId) {
+      setError('Seleccioná un rol para este usuario.');
+      return;
+    }
     setError('');
     setGuardando(true);
     try {
@@ -147,15 +170,44 @@ export default function Users() {
         username: form.username.trim(),
         password: form.password,
         isAdmin: form.isAdmin,
+        roleId: form.isAdmin ? null : Number(form.roleId),
       });
-      setForm({ username: '', password: '', isAdmin: false });
+      setForm({ username: '', password: '', isAdmin: false, roleId: String(roles.find((r) => String(r.name || '').toUpperCase() === 'USER')?.id || roles[0]?.id || '') });
       setMostrarFormCrear(false);
+      setMostrarFormRol(false);
+      setFormRol({ name: '', modules: [] });
       mostrarNotif('exito', `Usuario @${form.username.trim()} creado exitosamente.`);
       await cargar();
     } catch (err) {
       setError(err.message || 'No se pudo crear el usuario.');
     } finally {
       setGuardando(false);
+    }
+  }
+
+  async function guardarRol() {
+    const name = formRol.name.trim();
+    if (name.length < 2 || name.length > 40) {
+      setErrorRol('El nombre del rol debe tener entre 2 y 40 caracteres.');
+      return;
+    }
+    if (formRol.modules.length === 0) {
+      setErrorRol('Elegí al menos un módulo.');
+      return;
+    }
+    setGuardandoRol(true);
+    setErrorRol('');
+    try {
+      const role = await crearRolApi({ name, modules: formRol.modules });
+      setRoles((actuales) => [...actuales, role].sort((a, b) => String(a.name).localeCompare(String(b.name), 'es')));
+      setForm((actual) => ({ ...actual, roleId: String(role.id), isAdmin: false }));
+      setFormRol({ name: '', modules: [] });
+      setMostrarFormRol(false);
+      mostrarNotif('exito', `Rol "${role.name}" creado. Quedó seleccionado para el nuevo usuario.`);
+    } catch (err) {
+      setErrorRol(err.message || 'No se pudo crear el rol.');
+    } finally {
+      setGuardandoRol(false);
     }
   }
 
@@ -456,6 +508,117 @@ export default function Users() {
                 </label>
               </div>
 
+              {!form.isAdmin && (
+                <div className="space-y-4 rounded-2xl border border-emerald-100 bg-white p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                    <div className="flex-1">
+                      <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-600">
+                        Rol del usuario
+                      </label>
+                      <select
+                        required
+                        value={form.roleId}
+                        onChange={(e) => setForm((f) => ({ ...f, roleId: e.target.value }))}
+                        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 focus:border-[#006d44] focus:ring-2 focus:ring-[#d6ffe8]"
+                      >
+                        <option value="" disabled>Seleccioná un rol</option>
+                        {roles.map((role) => (
+                          <option key={role.id} value={String(role.id)}>
+                            {String(role.name || '').toUpperCase() === 'USER' ? 'Operador estándar' : role.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMostrarFormRol((visible) => !visible);
+                        setErrorRol('');
+                      }}
+                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-[#006d44] transition hover:bg-emerald-100"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">
+                        {mostrarFormRol ? 'close' : 'add'}
+                      </span>
+                      {mostrarFormRol ? 'Cerrar' : 'Crear un rol'}
+                    </button>
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    El rol Operador estándar mantiene el acceso habitual. Los roles personalizados habilitan solo los módulos que marques.
+                  </p>
+
+                  {mostrarFormRol && (
+                    <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                      <div>
+                        <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-600">
+                          Nombre del rol nuevo
+                        </label>
+                        <input
+                          type="text"
+                          maxLength={40}
+                          value={formRol.name}
+                          onChange={(e) => setFormRol((actual) => ({ ...actual, name: e.target.value }))}
+                          placeholder="Ej. Secretaría"
+                          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#006d44] focus:ring-2 focus:ring-[#d6ffe8]"
+                        />
+                      </div>
+
+                      <fieldset>
+                        <legend className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-600">
+                          Módulos habilitados
+                        </legend>
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                          {ROLE_MODULES.map((module) => {
+                            const seleccionado = formRol.modules.includes(module.key);
+                            return (
+                              <label
+                                key={module.key}
+                                className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-3 text-sm transition ${
+                                  seleccionado
+                                    ? 'border-emerald-300 bg-emerald-50 text-slate-800'
+                                    : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                                }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={seleccionado}
+                                  onChange={(e) => setFormRol((actual) => ({
+                                    ...actual,
+                                    modules: e.target.checked
+                                      ? [...actual.modules, module.key]
+                                      : actual.modules.filter((key) => key !== module.key),
+                                  }))}
+                                  className="h-4 w-4 rounded border-slate-300 text-[#006d44] focus:ring-[#006d44]"
+                                />
+                                <span>{module.label}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </fieldset>
+
+                      {errorRol && (
+                        <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{errorRol}</p>
+                      )}
+
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={guardarRol}
+                          disabled={guardandoRol}
+                          className="inline-flex items-center gap-2 rounded-xl bg-[#006d44] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#005837] disabled:opacity-50"
+                        >
+                          <span className={`material-symbols-outlined text-[18px] ${guardandoRol ? 'animate-spin' : ''}`}>
+                            {guardandoRol ? 'progress_activity' : 'save'}
+                          </span>
+                          {guardandoRol ? 'Guardando rol…' : 'Guardar rol'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="flex justify-end gap-3">
                 <button
                   type="button"
@@ -466,7 +629,7 @@ export default function Users() {
                 </button>
                 <button
                   type="submit"
-                  disabled={guardando}
+                  disabled={guardando || guardandoRol}
                   className="inline-flex items-center gap-2 rounded-xl bg-[#006d44] px-6 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#005837] disabled:opacity-50"
                 >
                   {guardando ? (
@@ -625,7 +788,7 @@ export default function Users() {
                         ) : (
                           <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
                             <span className="material-symbols-outlined text-[14px]">person</span>
-                            Operador
+                            {u.roleName || 'Operador'}
                           </span>
                         )}
                       </div>

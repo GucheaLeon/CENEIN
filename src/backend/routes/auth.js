@@ -1,3 +1,5 @@
+const { getRoleAccess } = require('../permissions');
+
 function registerApiAuthGuard(app, { authMiddleware, publicPaths = ['/auth/login'] }) {
   const allowed = new Set(publicPaths.map((v) => String(v || '').trim()));
   app.use('/api', (req, res, next) => {
@@ -97,6 +99,7 @@ function registerAuthRoutes(
       await clearFailedLoginAttempts(ip, username);
       const session = await crearSesion(db, user.id);
       const jwtToken = crearJwtSesion(session.token, user);
+      const roleAccess = await getRoleAccess(db, user.id, Boolean(user.is_admin));
       res.cookie(JWT_COOKIE_NAME, jwtToken, {
         httpOnly: true,
         secure: JWT_COOKIE_SECURE,
@@ -107,7 +110,11 @@ function registerAuthRoutes(
       res.json({
         token: jwtToken,
         expiresAt: session.expiresAt,
-        user: { username: user.username, isAdmin: Boolean(user.is_admin) },
+        user: {
+          username: user.username,
+          isAdmin: Boolean(user.is_admin),
+          ...roleAccess,
+        },
       });
     } catch (err) {
       console.error('[AUTH] Error en login', err);
@@ -119,7 +126,13 @@ function registerAuthRoutes(
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
-    res.json({ username: req.auth?.username || '', isAdmin: Boolean(req.auth?.isAdmin) });
+    res.json({
+      username: req.auth?.username || '',
+      isAdmin: Boolean(req.auth?.isAdmin),
+      roleId: req.auth?.roleId || null,
+      roleName: req.auth?.roleName || '',
+      modules: Array.isArray(req.auth?.modules) ? req.auth.modules : [],
+    });
   });
 
   app.post('/api/auth/logout', authMiddleware, async (req, res) => {

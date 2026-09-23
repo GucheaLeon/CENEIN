@@ -39,6 +39,9 @@ export function ProveedorAutenticacion({ children }) {
           nombre: username,
           username,
           isAdmin: Boolean(data?.isAdmin),
+          roleId: data?.roleId ?? null,
+          roleName: String(data?.roleName || (data?.isAdmin ? 'Administrador' : 'Operador')),
+          modules: Array.isArray(data?.modules) ? data.modules.map(String) : [],
         });
       })
       .catch((err) => {
@@ -73,6 +76,9 @@ export function ProveedorAutenticacion({ children }) {
         nombre,
         username: nombre,
         isAdmin: Boolean(data?.user?.isAdmin),
+        roleId: data?.user?.roleId ?? null,
+        roleName: String(data?.user?.roleName || (data?.user?.isAdmin ? 'Administrador' : 'Operador')),
+        modules: Array.isArray(data?.user?.modules) ? data.user.modules.map(String) : [],
       });
       return { ok: true };
     } catch (err) {

@@ -2,13 +2,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
 
 const NAV_ITEMS = [
-  { key: 'dashboard', label: 'Lista de pacientes', icon: 'person_search' },
-  { key: 'patients', label: 'Buscador', icon: 'search_check' },
-  { key: 'attendances', label: 'Asistencias', icon: 'calendar_today' },
-  { key: 'alta', label: 'Alta Pacientes', icon: 'person_add' },
-  { key: 'admision', label: 'Admisión', icon: 'assignment_ind' },
-  { key: 'facturacion', label: 'Facturación', icon: 'receipt_long' },
-  { key: 'reports', label: 'Informes y planes', icon: 'clinical_notes' },
+  { key: 'dashboard', module: 'patients', label: 'Lista de pacientes', icon: 'person_search' },
+  { key: 'patients', module: 'patients', label: 'Buscador', icon: 'search_check' },
+  { key: 'attendances', module: 'attendances', label: 'Asistencias', icon: 'calendar_today' },
+  { key: 'alta', module: 'alta', label: 'Alta Pacientes', icon: 'person_add' },
+  { key: 'admision', module: 'admission', label: 'Admisión', icon: 'assignment_ind' },
+  { key: 'facturacion', module: 'billing', label: 'Facturación', icon: 'receipt_long' },
+  { key: 'reports', module: 'reports', label: 'Informes y planes', icon: 'clinical_notes' },
 ];
 
 const ADMIN_ITEMS = [
@@ -111,7 +111,7 @@ function MenuPerfil({ usuario, alCerrarSesion }) {
                   {usuario?.nombre || 'Usuario'}
                 </p>
                 <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
-                  {usuario?.isAdmin ? 'Administrador' : 'Operador'}
+                  {usuario?.isAdmin ? 'Administrador' : (usuario?.roleName || 'Operador')}
                 </p>
               </div>
             </div>
@@ -184,7 +184,9 @@ export default function Distribucion({
   usuario,
   alCerrarSesion,
 }) {
-  const items = usuario?.isAdmin ? [...NAV_ITEMS, ...ADMIN_ITEMS] : NAV_ITEMS;
+  const items = [
+    ...(usuario?.isAdmin ? [...NAV_ITEMS, ...ADMIN_ITEMS] : NAV_ITEMS),
+  ].filter((item) => usuario?.isAdmin || !item.module || usuario?.modules?.includes(item.module));
   const tituloPagina = PAGE_TITLES[paginaActual] || 'CENEIN';
   const [menuMovilAbierto, setMenuMovilAbierto] = useState(false);
 
@@ -270,7 +272,7 @@ export default function Distribucion({
                       {usuario?.nombre || 'Usuario'}
                     </p>
                     <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
-                      {usuario?.isAdmin ? 'Administrador' : 'Operador'}
+                      {usuario?.isAdmin ? 'Administrador' : (usuario?.roleName || 'Operador')}
                     </p>
                   </div>
 

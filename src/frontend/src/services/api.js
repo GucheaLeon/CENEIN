@@ -193,6 +193,8 @@ export async function obtenerPacientes(opciones = {}) {
   }
 }
 
+export const obtenerPacientesApi = obtenerPacientes;
+
 export async function obtenerPacientePorId(id, opciones = {}) {
   try {
     const data = await fetchJsonApi(`/api/patients/${id}`, opciones);
@@ -565,11 +567,24 @@ export async function desbloquearUsuarioApi(username) {
   });
 }
 
-export async function crearUsuarioApi({ username, password, isAdmin }) {
+export async function obtenerRolesApi(opciones = {}) {
+  const data = await fetchJsonApi('/api/roles', opciones);
+  return Array.isArray(data) ? data : [];
+}
+
+export async function crearRolApi({ name, modules }) {
+  return fetchJsonApi('/api/roles', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, modules }),
+  });
+}
+
+export async function crearUsuarioApi({ username, password, isAdmin, roleId }) {
   return fetchJsonApi('/api/users', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password, isAdmin: Boolean(isAdmin) }),
+    body: JSON.stringify({ username, password, isAdmin: Boolean(isAdmin), roleId }),
   });
 }
 

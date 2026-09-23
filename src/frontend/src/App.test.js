@@ -13,6 +13,6 @@ test('renderiza la aplicación y muestra pantalla de inicio de sesión cuando no
   });
 
   // Cuando no hay usuario logueado, debe renderizar la pantalla de Login
-  expect(screen.getByRole('heading', { level: 2 })).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: /iniciar/i })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { level: 1, name: /cenein/i })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /entrar/i })).toBeInTheDocument();
 });

@@ -15,6 +15,7 @@ const { registerCatalogsRoutes } = require('./routes/catalogs');
 const { registerAdmisionsRoutes } = require('./routes/admisiones');
 const { registerFacturacionRoutes } = require('./routes/facturacion');
 const { registerReportsRoutes } = require('./routes/reports');
+const { getRoleAccess, createModulePermissionMiddleware } = require('./permissions');
 
 const PORT = process.env.PORT || 4000;
 const SCHEMA_SQL_PATH = path.join(__dirname, 'schema.sql');
@@ -824,10 +825,13 @@ function crearAuthMiddleware(db) {
         res.status(401).json({ error: 'Sesion expirada' });
         return;
       }
+      const isAdmin = Boolean(session.is_admin);
+      const roleAccess = await getRoleAccess(db, session.user_id, isAdmin);
       req.auth = {
         userId: session.user_id,
         username: session.username,
-        isAdmin: Boolean(session.is_admin),
+        isAdmin,
+        ...roleAccess,
         token: session.token,
       };
       next();
@@ -1425,6 +1429,7 @@ async function main() {
   });
 
   registerApiAuthGuard(app, { authMiddleware });
+  app.use('/api', createModulePermissionMiddleware());
 
   registerAdmisionsRoutes(app, { db, authMiddleware });
 
