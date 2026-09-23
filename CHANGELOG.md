@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.4.0] - 2026/09/23
+
+### Agregado
+* Añadido módulo de permisos para roles personalizados.
+
+
+---
+
 ## [1.3.3] - 2026/09/15
 
 ### Modificado
