@@ -1,4 +1,8 @@
--- Catálogos e información estática
+-- ============================================================
+-- CENEIN - Schema Base de Datos PostgreSQL
+-- ============================================================
+
+-- ─── 1. Catálogos e Información Estática ───────────────────────
 CREATE TABLE IF NOT EXISTS OS (
     id BIGSERIAL PRIMARY KEY,
     name TEXT UNIQUE
@@ -34,12 +38,29 @@ CREATE TABLE IF NOT EXISTS ROLES (
     name TEXT UNIQUE
 );
 
--- Usuarios y Autenticación
+CREATE TABLE IF NOT EXISTS INVOICE_STATUS (
+    id BIGSERIAL PRIMARY KEY,
+    description TEXT UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS INVOICE_TYPE (
+    id BIGSERIAL PRIMARY KEY,
+    description TEXT UNIQUE
+);
+
+-- Catálogo de módulos clínicos (MII, MIS, MIE, etc.)
+CREATE TABLE IF NOT EXISTS MODULE (
+    id BIGSERIAL PRIMARY KEY,
+    description TEXT UNIQUE,
+    price DECIMAL(10,2) DEFAULT 0
+);
+
+-- ─── 2. Usuarios, Autenticación y Auditoría ────────────────────
 CREATE TABLE IF NOT EXISTS USERS (
     id BIGSERIAL PRIMARY KEY,
     username TEXT UNIQUE,
     password_hash TEXT,
-    is_admin BOOLEAN,
+    is_admin BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -69,13 +90,13 @@ CREATE TABLE IF NOT EXISTS USER_ACTIVITY_LOGS (
 );
 
 CREATE TABLE IF NOT EXISTS login_rate_limits (
-  scope_key TEXT PRIMARY KEY,
-  failed_count INTEGER NOT NULL DEFAULT 0,
-  blocked_until TIMESTAMPTZ,
-  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    scope_key TEXT PRIMARY KEY,
+    failed_count INTEGER NOT NULL DEFAULT 0,
+    blocked_until TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
--- Entidad Principal: Pacientes
+-- ─── 3. Entidad Principal: Pacientes ───────────────────────────
 CREATE TABLE IF NOT EXISTS PATIENTS (
     patient_id TEXT PRIMARY KEY,
     first_name TEXT,
@@ -117,11 +138,46 @@ CREATE TABLE IF NOT EXISTS PATIENTS (
     patient_state_id BIGINT REFERENCES PATIENT_STATE(id) ON DELETE SET NULL,
     discharged_at TIMESTAMPTZ,
     parametro INTEGER,
-
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tablas dependientes de Pacientes
+-- Tablas dependientes de Pacientes (Direcciones, Contactos, Escuela, Documentos anuales)
+CREATE TABLE IF NOT EXISTS PATIENT_ADDRESSES (
+    id BIGSERIAL PRIMARY KEY,
+    patient_id TEXT REFERENCES PATIENTS(patient_id) ON DELETE CASCADE,
+    street TEXT,
+    number TEXT,
+    neighborhood TEXT,
+    floor TEXT,
+    sector TEXT
+);
+
+CREATE TABLE IF NOT EXISTS PATIENT_CONTACTS (
+    id BIGSERIAL PRIMARY KEY,
+    patient_id TEXT REFERENCES PATIENTS(patient_id) ON DELETE CASCADE,
+    full_name TEXT NOT NULL,
+    relationship TEXT NOT NULL,
+    phone TEXT,
+    is_primary BOOLEAN DEFAULT FALSE
+);
+
+CREATE TABLE IF NOT EXISTS PATIENT_EDUCATION (
+    id BIGSERIAL PRIMARY KEY,
+    patient_id TEXT REFERENCES PATIENTS(patient_id) ON DELETE CASCADE,
+    school_name TEXT,
+    grade TEXT,
+    shift TEXT,
+    integration_schedule TEXT
+);
+
+CREATE TABLE IF NOT EXISTS PATIENT_ANNUAL_DOCS (
+    id BIGSERIAL PRIMARY KEY,
+    patient_id TEXT REFERENCES PATIENTS(patient_id) ON DELETE CASCADE,
+    doc_type TEXT,
+    year INTEGER,
+    status TEXT
+);
+
 CREATE TABLE IF NOT EXISTS PATIENTS_SEDE (
     patient_sede_id BIGSERIAL PRIMARY KEY,
     patient_id TEXT REFERENCES PATIENTS(patient_id) ON DELETE CASCADE,
@@ -233,7 +289,7 @@ CREATE TABLE IF NOT EXISTS PATIENT_REQUESTS (
     patient_id TEXT REFERENCES PATIENTS(patient_id) ON DELETE CASCADE,
     start_date DATE,
     end_date DATE,
-    apply_treatments BOOLEAN,
+    apply_treatments BOOLEAN DEFAULT FALSE,
     applied_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
@@ -245,31 +301,29 @@ CREATE TABLE IF NOT EXISTS PATIENT_REQUEST_TREATMENTS (
     treatment_id BIGINT REFERENCES TREATMENTS(id) ON DELETE CASCADE
 );
 
--- ============================================================
--- Módulo de Admisión de Pacientes
--- ============================================================
+-- Tabla intermedia: asignación de módulos a pacientes (M:N)
+CREATE TABLE IF NOT EXISTS MODULE_PATIENT (
+    id BIGSERIAL PRIMARY KEY,
+    patient_id TEXT REFERENCES PATIENTS(patient_id) ON DELETE CASCADE,
+    module_id BIGINT REFERENCES MODULE(id) ON DELETE SET NULL,
+    UNIQUE(patient_id, module_id)
+);
+
+-- ─── 4. Módulo de Admisión de Pacientes ─────────────────────────
 
 -- Etapa 1: Datos básicos + checkboxes (Obra Social / CUD)
 CREATE TABLE IF NOT EXISTS ADMISSIONS (
     id BIGSERIAL PRIMARY KEY,
-    -- Datos básicos del paciente
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
     birth_date DATE,
     dni TEXT,
     phone TEXT,
     address TEXT,
-    -- Checkboxes de documentación
     tiene_obra_social BOOLEAN DEFAULT FALSE,
     obra_social_nombre TEXT,
     tiene_cud BOOLEAN DEFAULT FALSE,
-    -- Estado del proceso de admisión
-    -- 'pendiente_turno': esperando turno con fisiatra
-    -- 'en_revision': turno asignado, esperando devolución
-    -- 'aprobado': fisiatra aprobó, pasar a expediente
-    -- 'desestimado': fisiatra rechazó
     estado TEXT DEFAULT 'pendiente_turno',
-    -- Referencia al paciente si fue dado de alta formalmente
     patient_id TEXT REFERENCES PATIENTS(patient_id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
@@ -279,63 +333,101 @@ CREATE TABLE IF NOT EXISTS ADMISSIONS (
 CREATE TABLE IF NOT EXISTS ADMISSION_FISIATRIC_REVIEW (
     id BIGSERIAL PRIMARY KEY,
     admission_id BIGINT NOT NULL REFERENCES ADMISSIONS(id) ON DELETE CASCADE,
-    -- Fecha del turno con la fisiatra
     fecha_turno DATE,
-    -- Resultado: 'aprobado' o 'desestimado'
     resultado TEXT,
-    -- Texto de devolución / observaciones de la fisiatra
     devolucion TEXT,
-    reviewed_by TEXT,  -- username del profesional que registró la revisión
+    reviewed_by TEXT,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
--- Etapa 3: Armado de expediente (documentos PDF y campos de texto)
+-- Etapa 3: Armado de expediente (documentos PDF BYTEA y campos de texto)
 CREATE TABLE IF NOT EXISTS ADMISSION_DOCUMENTS (
     id BIGSERIAL PRIMARY KEY,
     admission_id BIGINT NOT NULL REFERENCES ADMISSIONS(id) ON DELETE CASCADE,
-    -- Campos de texto
     dni_numero TEXT,
     numero_afiliado TEXT,
-    -- Documentos PDF: se guarda la ruta o nombre del archivo subido
     carnet_pdf BYTEA,
+    carnet_data BYTEA,
+    carnet_filename TEXT,
+    carnet_mimetype TEXT,
     cud_pdf BYTEA,
+    cud_data BYTEA,
+    cud_filename TEXT,
+    cud_mimetype TEXT,
     consentimiento_padres_pdf BYTEA,
+    consentimiento_data BYTEA,
+    consentimiento_filename TEXT,
+    consentimiento_mimetype TEXT,
     presupuesto_pdf BYTEA,
+    presupuesto_data BYTEA,
+    presupuesto_filename TEXT,
+    presupuesto_mimetype TEXT,
     informe_inicial_pdf BYTEA,
+    informe_data BYTEA,
+    informe_filename TEXT,
+    informe_mimetype TEXT,
     plan_trabajo_pdf BYTEA,
+    plan_data BYTEA,
+    plan_filename TEXT,
+    plan_mimetype TEXT,
     resumen_historial_pdf BYTEA,
+    historial_data BYTEA,
+    historial_filename TEXT,
+    historial_mimetype TEXT,
     pedidos_medicos_pdf BYTEA,
+    pedidos_data BYTEA,
+    pedidos_filename TEXT,
+    pedidos_mimetype TEXT,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS INVOICE_STATUS(
-    id BIGSERIAL PRIMARY KEY,
-    description TEXT
-);
-CREATE TABLE IF NOT EXISTS INVOICE_TYPE(
-    id BIGSERIAL PRIMARY KEY,
-    description TEXT
-);
-CREATE TABLE IF NOT EXISTS MODULE (
-    id BIGSERIAL PRIMARY KEY,
-    description TEXT UNIQUE
-);
-CREATE TABLE IF NOT EXISTS MODULE_PATIENT(
-    id BIGSERIAL PRIMARY KEY,
-    patient_id TEXT REFERENCES PATIENTS(patient_id) ON DELETE CASCADE,
-    module_id BIGINT REFERENCES MODULE(id) ON DELETE SET NULL
-);
-
+-- ─── 5. Módulo de Facturación Electrónica (ARCA / AFIP) ─────────
 CREATE TABLE IF NOT EXISTS INVOICE (
     id BIGSERIAL PRIMARY KEY,
     patient_id TEXT REFERENCES PATIENTS(patient_id) ON DELETE CASCADE,
+    receptor_nombre TEXT,
+    doc_tipo INTEGER DEFAULT 99,
+    doc_nro TEXT,
+    obra_social TEXT,
+    module_patient_id BIGINT REFERENCES MODULE_PATIENT(id) ON DELETE SET NULL,
+    module_direct_id BIGINT REFERENCES MODULE(id) ON DELETE SET NULL,
     amount DECIMAL(10,2),
-    invoice_type_id REFERENCES INVOICE_TYPE(id) ON DELETE SET NULL,
+    mon_id TEXT DEFAULT 'PES',
+    concepto INTEGER DEFAULT 2,
+    invoice_type_id BIGINT REFERENCES INVOICE_TYPE(id) ON DELETE SET NULL,
+    invoice_status_id BIGINT REFERENCES INVOICE_STATUS(id) ON DELETE SET NULL,
     payment_date DATE,
-    module_id BIGINT REFERENCES MODULE_PATIENT(id) ON DELETE SET NULL,
-    invoice_status_id REFERENCES INVOICE_STATUS(id) ON DELETE SET NULL,
+    cae TEXT,
+    cae_vto TEXT,
+    cbte_nro INTEGER,
+    cbte_tipo INTEGER DEFAULT 6,
+    pto_vta INTEGER DEFAULT 1,
+    fecha_emision DATE,
+    pdf_filename TEXT,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Tratamientos incluidos en cada factura (M:N)
+CREATE TABLE IF NOT EXISTS INVOICE_TREATMENTS (
+    invoice_id   BIGINT NOT NULL REFERENCES INVOICE(id) ON DELETE CASCADE,
+    treatment_id BIGINT NOT NULL REFERENCES TREATMENTS(id) ON DELETE CASCADE,
+    PRIMARY KEY (invoice_id, treatment_id)
+);
+
+-- ─── 6. Índices para Optimización de Consultas ─────────────────
+CREATE INDEX IF NOT EXISTS idx_patients_dni            ON PATIENTS(dni);
+CREATE INDEX IF NOT EXISTS idx_patients_os             ON PATIENTS(os_id);
+CREATE INDEX IF NOT EXISTS idx_patients_state          ON PATIENTS(patient_state_id);
+CREATE INDEX IF NOT EXISTS idx_patient_requests_p      ON PATIENT_REQUESTS(patient_id);
+CREATE INDEX IF NOT EXISTS idx_patient_requests_dates  ON PATIENT_REQUESTS(start_date, end_date);
+CREATE INDEX IF NOT EXISTS idx_module_patient_p        ON MODULE_PATIENT(patient_id);
+CREATE INDEX IF NOT EXISTS idx_module_patient_m        ON MODULE_PATIENT(module_id);
+CREATE INDEX IF NOT EXISTS idx_invoice_patient         ON INVOICE(patient_id);
+CREATE INDEX IF NOT EXISTS idx_invoice_cae             ON INVOICE(cae);
+CREATE INDEX IF NOT EXISTS idx_invoice_fecha           ON INVOICE(fecha_emision);
+CREATE INDEX IF NOT EXISTS idx_invoice_module          ON INVOICE(module_direct_id);
+CREATE INDEX IF NOT EXISTS idx_invoice_module_pat      ON INVOICE(module_patient_id);
+CREATE INDEX IF NOT EXISTS idx_invoice_status          ON INVOICE(invoice_status_id);
+CREATE INDEX IF NOT EXISTS idx_inv_treatments_inv      ON INVOICE_TREATMENTS(invoice_id);

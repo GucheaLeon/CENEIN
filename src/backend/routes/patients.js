@@ -70,14 +70,14 @@ function registerPatientsRoutes(
     const fallbackLista = Array.isArray(fallback)
       ? fallback
       : String(fallback || '')
-          .split(',')
-          .map((item) => String(item || '').trim())
-          .filter(Boolean);
+        .split(',')
+        .map((item) => String(item || '').trim())
+        .filter(Boolean);
     const entrada = Array.isArray(valor)
       ? valor
       : valor == null
-      ? []
-      : String(valor)
+        ? []
+        : String(valor)
           .split(',')
           .map((item) => String(item || '').trim())
           .filter(Boolean);
@@ -98,14 +98,14 @@ function registerPatientsRoutes(
     const fallbackLista = Array.isArray(fallback)
       ? fallback
       : String(fallback || '')
-          .split(',')
-          .map((item) => String(item || '').trim())
-          .filter(Boolean);
+        .split(',')
+        .map((item) => String(item || '').trim())
+        .filter(Boolean);
     const entrada = Array.isArray(valor)
       ? valor
       : valor == null
-      ? []
-      : String(valor)
+        ? []
+        : String(valor)
           .split(',')
           .map((item) => String(item || '').trim())
           .filter(Boolean);
@@ -282,10 +282,10 @@ function registerPatientsRoutes(
     const dniNormalizado = esActualizacion
       ? String(dniEntrada || filaExistente.dni || '').trim()
       : dniEntrada;
-    if (!/^\d{1,8}$/.test(dniNormalizado)) {
+    if (!/^\d{6,9}$/.test(dniNormalizado)) {
       res
         .status(400)
-        .json({ error: 'DNI invalido. Debe tener solo digitos y maximo 8.' });
+        .json({ error: 'DNI invalido. Debe tener entre 6 y 9 digitos.' });
       return;
     }
 
@@ -311,7 +311,7 @@ function registerPatientsRoutes(
       data.notes ||
       ''
     ).trim();
-    
+
     let osId = null;
     if (obraSocialText) {
       await db.run('INSERT INTO OS (name) VALUES ($1) ON CONFLICT (name) DO NOTHING', [obraSocialText]);
@@ -341,17 +341,17 @@ function registerPatientsRoutes(
     ].some((k) => tienePropiedad(data, k));
     const autorizadoDesdeInput = hasAutorizadoDesde
       ? normalizarFechaOpcional(
-          valorPorClaves(data, ['autorizadoDesde', 'authorizedAt', 'authorized_at'])
-        )
+        valorPorClaves(data, ['autorizadoDesde', 'authorizedAt', 'authorized_at'])
+      )
       : null;
     const autorizadoHastaInput = hasAutorizadoHasta
       ? normalizarFechaOpcional(
-          valorPorClaves(data, [
-            'autorizadoHasta',
-            'authorizationExpiresAt',
-            'authorization_expires_at',
-          ])
-        )
+        valorPorClaves(data, [
+          'autorizadoHasta',
+          'authorizationExpiresAt',
+          'authorization_expires_at',
+        ])
+      )
       : null;
     const bajaPayload =
       Object.prototype.hasOwnProperty.call(data, 'dadoDeBaja')
@@ -388,10 +388,10 @@ function registerPatientsRoutes(
     const cuit = data.cuit || '';
     const nroAfiliado = String(
       data.nroAfiliado ??
-        data.numeroAfiliado ??
-        data.affiliateNumber ??
-        data.affiliate_number ??
-        ''
+      data.numeroAfiliado ??
+      data.affiliateNumber ??
+      data.affiliate_number ??
+      ''
     ).trim();
     const integracionHorario = data.integracionHorario || data.integracion_horario || '';
     const padreTutor = String(
@@ -456,9 +456,9 @@ function registerPatientsRoutes(
       Object.prototype.hasOwnProperty.call(data, 'module_types');
     const moduloRecibido = hasModulo
       ? normalizarModulos(
-          valorPorClaves(data, ['modulo', 'modulos', 'moduleType', 'module_type', 'module_types']),
-          []
-        )
+        valorPorClaves(data, ['modulo', 'modulos', 'moduleType', 'module_type', 'module_types']),
+        []
+      )
       : null;
     if (esActualizacion) {
       const diagnosticoFinal =
@@ -529,7 +529,7 @@ function registerPatientsRoutes(
           id
         ]
       );
-      
+
       await db.run('DELETE FROM MODULE_PATIENT WHERE patient_id = $1', [id]);
       if (moduloFinalArray.length > 0) {
         for (const mod of moduloFinalArray) {
@@ -614,7 +614,7 @@ function registerPatientsRoutes(
           notesText
         ]
       );
-      
+
       if (moduloFinalArray.length > 0) {
         for (const mod of moduloFinalArray) {
           await db.run('INSERT INTO MODULE (description) VALUES ($1) ON CONFLICT (description) DO NOTHING', [mod]);
@@ -668,7 +668,7 @@ function registerPatientsRoutes(
   app.post('/api/patients/:id/state', async (req, res) => {
     if (!(await validarPacienteOperable(req.params.id, res))) return;
     const { newStateName, reason } = req.body;
-    
+
     if (!newStateName) {
       res.status(400).json({ error: 'Falta newStateName' });
       return;
@@ -681,7 +681,7 @@ function registerPatientsRoutes(
     }
 
     await db.run(`UPDATE PATIENTS SET patient_state_id = $1 WHERE patient_id = $2`, [stateRow.id, req.params.id]);
-    
+
     await db.run(
       `INSERT INTO PATIENT_STATE_HISTORY (patient_id, state_id, reason) VALUES ($1, $2, $3)`,
       [req.params.id, stateRow.id, reason || null]
@@ -1092,7 +1092,7 @@ function registerPatientsRoutes(
     } catch (err) {
       try {
         await db.run('ROLLBACK');
-      } catch (_) {}
+      } catch (_) { }
       console.error(err);
       res.status(500).json({ error: String(err?.message || 'No se pudo actualizar') });
       return;
@@ -1201,7 +1201,7 @@ function registerPatientsRoutes(
     } catch (err) {
       try {
         await db.run('ROLLBACK');
-      } catch (_) {}
+      } catch (_) { }
       console.error(err);
       res.status(500).json({ error: String(err?.message || 'No se pudo revertir') });
       return;
@@ -1280,8 +1280,8 @@ function registerPatientsRoutes(
       : (filaActual.authorized_at || null);
     const autorizadoHasta = hasAutorizadoHasta
       ? (normalizarFechaInput(
-          valorPorClaves(body, ['autorizadoHasta', 'authorizationExpiresAt', 'authorization_expires_at'])
-        ) || null)
+        valorPorClaves(body, ['autorizadoHasta', 'authorizationExpiresAt', 'authorization_expires_at'])
+      ) || null)
       : (filaActual.authorization_expires_at || null);
     if (activo && !autorizadoDesde) {
       autorizadoDesde = obtenerFechaActualIso();
@@ -1470,7 +1470,7 @@ function registerPatientsRoutes(
     } catch (err) {
       try {
         await db.run('ROLLBACK');
-      } catch (_) {}
+      } catch (_) { }
       console.error(err);
       res.status(500).json({ error: 'No se pudo guardar la solicitud.' });
       return;

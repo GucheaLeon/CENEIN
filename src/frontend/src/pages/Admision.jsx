@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { usePacientes } from '../context/PatientsContext';
 import {
   actualizarAdmisionApi,
   crearAdmisionApi,
   descargarArchivoExpedienteApi,
   eliminarAdmisionApi,
+  finalizarAdmisionApi,
   guardarExpedienteAdmisionApi,
   guardarRevisionAdmisionApi,
   obtenerAdmisionesApi,
@@ -32,7 +34,7 @@ const ESTADO_META = {
     dot: 'bg-amber-400',
   },
   completado: {
-    label: 'Expediente completo',
+    label: 'Expediente completo / Admitido',
     color: 'bg-emerald-100 text-emerald-700',
     dot: 'bg-emerald-400',
   },
@@ -100,9 +102,45 @@ function WizardNuevaAdmision({ onGuardar, onCancelar }) {
     setForm((prev) => ({ ...prev, [campo]: valor }));
 
   const validarPaso = () => {
+    const soloLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]{2,60}$/;
+    const soloNumerosDni = /^\d{6,9}$/;
+    const telValido = /^[\d\s+()-]{6,25}$/;
+    const alfanumericoDomicilio = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,#º°/-]{3,120}$/;
+
     if (paso === 1) {
       if (!form.nombre.trim()) return 'El nombre es obligatorio.';
+      if (!soloLetras.test(form.nombre.trim())) return 'El nombre solo puede contener letras y espacios (mínimo 2 letras).';
       if (!form.apellido.trim()) return 'El apellido es obligatorio.';
+      if (!soloLetras.test(form.apellido.trim())) return 'El apellido solo puede contener letras y espacios (mínimo 2 letras).';
+    }
+    if (paso === 2) {
+      if (!form.fechaNacimiento) return 'La fecha de nacimiento es obligatoria.';
+      const d = new Date(form.fechaNacimiento);
+      if (isNaN(d.getTime())) return 'La fecha de nacimiento no es válida.';
+      if (d > new Date()) return 'La fecha de nacimiento no puede ser en el futuro.';
+      if (d.getFullYear() < 1900) return 'La fecha de nacimiento no es válida.';
+      const hoy = new Date();
+      let edad = hoy.getFullYear() - d.getFullYear();
+      const m = hoy.getMonth() - d.getMonth();
+      if (m < 0 || (m === 0 && hoy.getDate() < d.getDate())) {
+        edad--;
+      }
+      if (edad < 3) return 'El paciente no puede tener menos de 3 años de edad.';
+      if (edad > 18) return 'El paciente no puede tener más de 18 años de edad.';
+      if (!form.dni.trim()) return 'El DNI es obligatorio.';
+      if (!soloNumerosDni.test(form.dni.trim())) return 'El DNI debe contener entre 6 y 9 números sin puntos ni letras.';
+      if (!form.telefono.trim()) return 'El teléfono es obligatorio.';
+      if (!telValido.test(form.telefono.trim())) return 'El teléfono debe contener al menos 6 dígitos válidos.';
+    }
+    if (paso === 3) {
+      if (form.domicilio.trim() && !alfanumericoDomicilio.test(form.domicilio.trim())) {
+        return 'El domicilio contiene caracteres no permitidos.';
+      }
+    }
+    if (paso === 4) {
+      if (form.tieneObraSocial && !form.obraSocialNombre.trim()) {
+        return 'Debe seleccionar o ingresar el nombre de la Obra Social.';
+      }
     }
     return '';
   };
@@ -122,6 +160,8 @@ function WizardNuevaAdmision({ onGuardar, onCancelar }) {
   };
 
   const handleSubmit = async () => {
+    const err = validarPaso();
+    if (err) { setError(err); return; }
     setGuardando(true);
     setError('');
     try {
@@ -211,7 +251,7 @@ function WizardNuevaAdmision({ onGuardar, onCancelar }) {
                   type="text"
                   autoFocus
                   value={form.nombre}
-                  onChange={(e) => cambiar('nombre', e.target.value)}
+                  onChange={(e) => cambiar('nombre', e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]/g, ''))}
                   onKeyDown={(e) => e.key === 'Enter' && avanzar()}
                   className="w-full rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-base focus:border-[#006d44] focus:outline-none focus:bg-white transition"
                   placeholder="Ej: Juan"
@@ -225,7 +265,7 @@ function WizardNuevaAdmision({ onGuardar, onCancelar }) {
                   id="wizard-apellido"
                   type="text"
                   value={form.apellido}
-                  onChange={(e) => cambiar('apellido', e.target.value)}
+                  onChange={(e) => cambiar('apellido', e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]/g, ''))}
                   onKeyDown={(e) => e.key === 'Enter' && avanzar()}
                   className="w-full rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-base focus:border-[#006d44] focus:outline-none focus:bg-white transition"
                   placeholder="Ej: García"
@@ -243,12 +283,19 @@ function WizardNuevaAdmision({ onGuardar, onCancelar }) {
                 <span className="text-[#006d44]">{form.nombre} {form.apellido}</span>
               </p>
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                  Fecha de nacimiento
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                    Fecha de nacimiento <span className="text-rose-500">*</span>
+                  </label>
+                  <span className="text-[11px] font-medium text-slate-500">
+                    (Entre 3 y 18 años)
+                  </span>
+                </div>
                 <input
                   id="wizard-fecha-nac"
                   type="date"
+                  min={new Date(new Date().getFullYear() - 18, new Date().getMonth(), new Date().getDate()).toISOString().split('T')[0]}
+                  max={new Date(new Date().getFullYear() - 3, new Date().getMonth(), new Date().getDate()).toISOString().split('T')[0]}
                   value={form.fechaNacimiento}
                   onChange={(e) => cambiar('fechaNacimiento', e.target.value)}
                   className="w-full rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-base focus:border-[#006d44] focus:outline-none focus:bg-white transition"
@@ -256,23 +303,29 @@ function WizardNuevaAdmision({ onGuardar, onCancelar }) {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-slate-500 uppercase tracking-wide">DNI</label>
+                  <label className="mb-1.5 block text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                    DNI <span className="text-rose-500">*</span>
+                  </label>
                   <input
                     id="wizard-dni"
                     type="text"
+                    inputMode="numeric"
+                    maxLength={9}
                     value={form.dni}
-                    onChange={(e) => cambiar('dni', e.target.value)}
+                    onChange={(e) => cambiar('dni', e.target.value.replace(/\D/g, '').slice(0, 9))}
                     className="w-full rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-base focus:border-[#006d44] focus:outline-none focus:bg-white transition"
                     placeholder="Ej: 40123456"
                   />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-slate-500 uppercase tracking-wide">Teléfono</label>
+                  <label className="mb-1.5 block text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                    Teléfono <span className="text-rose-500">*</span>
+                  </label>
                   <input
                     id="wizard-telefono"
-                    type="text"
+                    type="tel"
                     value={form.telefono}
-                    onChange={(e) => cambiar('telefono', e.target.value)}
+                    onChange={(e) => cambiar('telefono', e.target.value.replace(/[^\d\s+()-]/g, '').slice(0, 20))}
                     className="w-full rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-base focus:border-[#006d44] focus:outline-none focus:bg-white transition"
                     placeholder="Ej: 2634 123456"
                   />
@@ -291,14 +344,14 @@ function WizardNuevaAdmision({ onGuardar, onCancelar }) {
               </p>
               <div>
                 <label className="mb-1.5 block text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                  Domicilio
+                  Domicilio (Calle y número)
                 </label>
                 <input
                   id="wizard-domicilio"
                   type="text"
                   autoFocus
                   value={form.domicilio}
-                  onChange={(e) => cambiar('domicilio', e.target.value)}
+                  onChange={(e) => cambiar('domicilio', e.target.value.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,#º°/-]/g, ''))}
                   onKeyDown={(e) => e.key === 'Enter' && avanzar()}
                   className="w-full rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-base focus:border-[#006d44] focus:outline-none focus:bg-white transition"
                   placeholder="Ej: Av. San Martín 123, Mendoza"
@@ -398,7 +451,6 @@ function WizardNuevaAdmision({ onGuardar, onCancelar }) {
                           value={busquedaOS}
                           onChange={(e) => {
                             setBusquedaOS(e.target.value);
-                            cambiar('obraSocialNombre', e.target.value);
                           }}
                           placeholder="Buscar o escribir obra social..."
                           className="w-full rounded-md border border-slate-300 bg-white py-1 pl-6 pr-2 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#006d44] focus:outline-none focus:ring-1 focus:ring-[#006d44]"
@@ -430,8 +482,21 @@ function WizardNuevaAdmision({ onGuardar, onCancelar }) {
                           !busquedaOS ||
                           os.label.toLowerCase().includes(busquedaOS.toLowerCase())
                         ).length === 0 && (
-                          <li className="px-2 py-1 text-[11px] font-semibold text-slate-500">
-                            {busquedaOS ? `Se registrará: "${busquedaOS}"` : 'Cargando obras sociales...'}
+                          <li className="px-2 py-1">
+                            {busquedaOS ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  cambiar('obraSocialNombre', busquedaOS);
+                                  setBusquedaOS('');
+                                }}
+                                className="w-full text-left text-[11px] font-semibold text-slate-500 hover:text-[#006d44]"
+                              >
+                                Se registrará: "{busquedaOS}" (Click para confirmar)
+                              </button>
+                            ) : (
+                              <span className="text-[11px] font-semibold text-slate-500">Cargando obras sociales...</span>
+                            )}
                           </li>
                         )}
                       </ul>
@@ -854,14 +919,16 @@ const DOCUMENTOS_PDF = [
   { key: 'pedidos', field: 'pedidosPdf', tieneField: 'pedidosTiene', filenameField: 'pedidosFilename', label: 'Pedidos médicos' },
 ];
 
-function PanelExpediente({ admision, onActualizar }) {
+function PanelExpediente({ admision, onActualizar, alAbrirPaciente, alNavegar }) {
+  const { refrescarPacientes } = usePacientes();
   const [expediente, setExpediente] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [archivos, setArchivos] = useState({});
-  const [campos, setCampos] = useState({ dniNumero: '', numeroAfiliado: '' });
+  const [campos, setCampos] = useState({ numeroAfiliado: '' });
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState('');
   const [exito, setExito] = useState('');
+  const [admitidoModal, setAdmitidoModal] = useState(null); // { patientId, nombre, mensaje }
   const [visorAbierto, setVisorAbierto] = useState(null); // { key, label }
   const fileRefs = useRef({});
 
@@ -872,7 +939,6 @@ function PanelExpediente({ admision, onActualizar }) {
       if (data) {
         setExpediente(data);
         setCampos({
-          dniNumero: data.dniNumero || '',
           numeroAfiliado: data.numeroAfiliado || '',
         });
       }
@@ -886,6 +952,10 @@ function PanelExpediente({ admision, onActualizar }) {
   }, [cargar]);
 
   const handleFileChange = (campo, file) => {
+    if (file && file.size > 15 * 1024 * 1024) {
+      alert('El archivo no debe superar los 15MB.');
+      return;
+    }
     setArchivos((prev) => ({ ...prev, [campo]: file }));
   };
 
@@ -895,7 +965,7 @@ function PanelExpediente({ admision, onActualizar }) {
     setExito('');
     try {
       const fd = new FormData();
-      fd.append('dniNumero', campos.dniNumero || '');
+      fd.append('dniNumero', admision.dni || '');
       fd.append('numeroAfiliado', campos.numeroAfiliado || '');
       for (const doc of DOCUMENTOS_PDF) {
         if (archivos[doc.key]) {
@@ -906,7 +976,6 @@ function PanelExpediente({ admision, onActualizar }) {
       if (dataActualizada) {
         setExpediente(dataActualizada);
         setCampos({
-          dniNumero: dataActualizada.dniNumero || '',
           numeroAfiliado: dataActualizada.numeroAfiliado || '',
         });
       } else {
@@ -918,6 +987,48 @@ function PanelExpediente({ admision, onActualizar }) {
       setTimeout(() => setExito(''), 4000);
     } catch (err) {
       setError(err.message || 'No se pudo guardar el expediente.');
+      throw err;
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  const isDocCargado = (doc) => Boolean((expediente && expediente[doc.tieneField]) || archivos[doc.key]);
+  const docsCargadosCount = DOCUMENTOS_PDF.filter(isDocCargado).length;
+  const totalDocs = DOCUMENTOS_PDF.length;
+  const todosPdfsCargados = docsCargadosCount === totalDocs;
+  const docsFaltantes = DOCUMENTOS_PDF.filter((doc) => !isDocCargado(doc));
+
+  const handleFinalizar = async () => {
+    if (!todosPdfsCargados) {
+      setError(`Debés adjuntar todos los PDFs requeridos antes de admitir al paciente. Faltan: ${docsFaltantes.map(d => d.label).join(', ')}.`);
+      return;
+    }
+    if (!window.confirm('¿Finalizar los 3 pasos de admisión y admitir formalmente al paciente en el sistema?')) {
+      return;
+    }
+    setGuardando(true);
+    setError('');
+    try {
+      if (
+        Object.keys(archivos).length > 0 ||
+        campos.numeroAfiliado !== (expediente?.numeroAfiliado || '')
+      ) {
+        await handleGuardar();
+      }
+      const res = await finalizarAdmisionApi(admision.id);
+      if (refrescarPacientes) {
+        await refrescarPacientes();
+      }
+      setExito(res.mensaje || '¡Paciente admitido con éxito!');
+      setAdmitidoModal({
+        patientId: res.patientId,
+        nombre: `${admision.apellido}, ${admision.nombre}`,
+        mensaje: res.mensaje,
+      });
+      if (onActualizar) onActualizar();
+    } catch (err) {
+      setError(err.message || 'No se pudo finalizar la admisión.');
     } finally {
       setGuardando(false);
     }
@@ -954,21 +1065,97 @@ function PanelExpediente({ admision, onActualizar }) {
         />
       )}
 
-      <div className="space-y-5">
-        {/* Campos de texto */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-              DNI (Número)
-            </label>
-            <input
-              type="text"
-              value={campos.dniNumero}
-              onChange={(e) => setCampos((c) => ({ ...c, dniNumero: e.target.value }))}
-              placeholder="Ej: 40123456"
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-[#006d44] focus:outline-none"
-            />
+      {/* Modal de confirmación de admisión exitosa */}
+      {admitidoModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl animate-fade-in text-center">
+            <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-[#006d44]">
+              <span className="material-symbols-outlined text-3xl">how_to_reg</span>
+            </div>
+            <h3 className="text-xl font-extrabold text-slate-800">
+              ¡Paciente Admitido con Éxito!
+            </h3>
+            <p className="mt-2 text-sm text-slate-600">
+              El proceso de los 3 pasos (Datos, Revisión Fisiatra y Expediente) ha concluido.
+            </p>
+            <div className="mt-4 rounded-2xl bg-slate-50 p-3.5 border border-slate-200 text-left">
+              <p className="text-xs font-semibold text-slate-500 uppercase">Paciente</p>
+              <p className="text-sm font-bold text-slate-800">{admitidoModal.nombre}</p>
+              <p className="mt-1 text-xs text-[#006d44] font-semibold">
+                ID de paciente: <span className="font-mono">{admitidoModal.patientId}</span>
+              </p>
+            </div>
+            <div className="mt-6 flex flex-col gap-2.5">
+              {alAbrirPaciente && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAdmitidoModal(null);
+                    alAbrirPaciente(admitidoModal.patientId);
+                  }}
+                  className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#006d44] py-3 text-sm font-bold text-white shadow-md hover:bg-[#005a38] transition"
+                >
+                  <span className="material-symbols-outlined text-base">person</span>
+                  Ir a la ficha del paciente
+                </button>
+              )}
+              {alNavegar && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAdmitidoModal(null);
+                    alNavegar('patients');
+                  }}
+                  className="w-full flex items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                >
+                  <span className="material-symbols-outlined text-base">groups</span>
+                  Ver lista general de pacientes
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setAdmitidoModal(null)}
+                className="w-full py-2 text-xs font-semibold text-slate-500 hover:text-slate-700"
+              >
+                Permanecer en admisiones
+              </button>
+            </div>
           </div>
+        </div>
+      )}
+
+      <div className="space-y-5">
+        {/* Banner de estado completado */}
+        {admision.estado === 'completado' && (
+          <div className="rounded-2xl border-2 border-emerald-500/40 bg-emerald-50 p-4 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fade-in">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#006d44] text-white">
+                <span className="material-symbols-outlined text-xl">verified</span>
+              </span>
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-wide text-[#006d44]">
+                  Paciente Admitido en el Sistema
+                </p>
+                <p className="text-xs font-semibold text-slate-700">
+                  {admision.patientId ? `ID en padrón: ${admision.patientId}` : 'Proceso de admisión completado'}
+                </p>
+              </div>
+            </div>
+            {alAbrirPaciente && admision.patientId && (
+              <button
+                type="button"
+                onClick={() => alAbrirPaciente(admision.patientId)}
+                className="flex items-center gap-1.5 rounded-xl bg-[#006d44] px-3.5 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#005a38] transition"
+              >
+                <span className="material-symbols-outlined text-sm">open_in_new</span>
+                Ver en Lista de Pacientes
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Campos de texto */}
+        <div className="grid grid-cols-1 gap-4">
           <div>
             <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
               Número de afiliado
@@ -989,8 +1176,15 @@ function PanelExpediente({ admision, onActualizar }) {
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
               Documentos PDF del Expediente
             </p>
-            <span className="text-[11px] font-semibold text-slate-500">
-              Hacé clic en "Adjuntar PDF" en cada documento deseado
+            <span
+              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold border ${
+                todosPdfsCargados
+                  ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
+                  : 'border-amber-300 bg-amber-50 text-amber-800'
+              }`}
+            >
+              <span className={`h-1.5 w-1.5 rounded-full ${todosPdfsCargados ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+              {docsCargadosCount} de {totalDocs} PDFs cargados
             </span>
           </div>
 
@@ -1027,7 +1221,10 @@ function PanelExpediente({ admision, onActualizar }) {
                       {filename || 'Archivo guardado'}
                     </p>
                   ) : (
-                    <p className="text-[11px] font-medium text-slate-400">Sin archivo adjunto</p>
+                    <p className="text-[11px] font-medium text-amber-700 flex items-center gap-1">
+                      <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                      Sin archivo adjunto (Pendiente)
+                    </p>
                   )}
                 </div>
 
@@ -1083,6 +1280,55 @@ function PanelExpediente({ admision, onActualizar }) {
           </div>
         )}
 
+        {/* Aviso de validación de PDFs cuando está en estado aprobado */}
+        {admision.estado === 'aprobado' && (
+          !todosPdfsCargados ? (
+            <div className="rounded-2xl border border-amber-300 bg-amber-50/80 p-3.5 space-y-1.5">
+              <div className="flex items-center gap-2 text-amber-900 font-bold text-xs">
+                <span className="material-symbols-outlined text-amber-600 text-base">warning</span>
+                <span>Expediente incompleto ({docsCargadosCount}/{totalDocs} PDFs cargados)</span>
+              </div>
+              <p className="text-[11px] text-amber-800 leading-relaxed">
+                El botón para validar y admitir al paciente en la lista de pacientes aparecerá únicamente cuando se hayan adjuntado todos los PDFs requeridos.
+              </p>
+              {docsFaltantes.length > 0 && (
+                <div className="pt-1">
+                  <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider mb-1">
+                    Documentos pendientes ({docsFaltantes.length}):
+                  </p>
+                  <div className="flex flex-wrap gap-1">
+                    {docsFaltantes.map((d) => (
+                      <span
+                        key={d.key}
+                        className="inline-flex items-center gap-1 rounded-md bg-white border border-amber-200 px-2 py-0.5 text-[10px] font-semibold text-amber-800"
+                      >
+                        <span className="h-1 w-1 rounded-full bg-amber-400" />
+                        {d.label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-emerald-300 bg-emerald-50 p-3.5 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#006d44] text-white">
+                  <span className="material-symbols-outlined text-base">task_alt</span>
+                </span>
+                <div>
+                  <p className="text-xs font-bold text-[#006d44]">
+                    ¡Todos los PDFs cargados ({totalDocs}/{totalDocs})!
+                  </p>
+                  <p className="text-[11px] text-slate-600">
+                    El expediente está completo. Ya podés validar y admitir al paciente en la lista general.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )
+        )}
+
         {error && (
           <p className="rounded-xl bg-rose-50 px-4 py-2.5 text-xs font-semibold text-rose-600 flex items-center gap-2 border border-rose-200">
             <span className="material-symbols-outlined text-sm">error</span>
@@ -1097,12 +1343,12 @@ function PanelExpediente({ admision, onActualizar }) {
         )}
 
         {/* Botones de acción principal */}
-        <div className="flex gap-3 pt-1">
+        <div className="flex flex-col sm:flex-row gap-3 pt-1">
           <button
             type="button"
             onClick={handleGuardar}
             disabled={guardando}
-            className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#006d44] px-6 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#005a38] disabled:opacity-60 transition"
+            className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-slate-100 border border-slate-300 px-6 py-2.5 text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-200 disabled:opacity-60 transition"
           >
             {guardando ? (
               <>
@@ -1112,38 +1358,20 @@ function PanelExpediente({ admision, onActualizar }) {
             ) : (
               <>
                 <span className="material-symbols-outlined text-base">save</span>
-                {admision.estado === 'completado' ? 'Actualizar documentos' : 'Guardar expediente'}
+                {admision.estado === 'completado' ? 'Actualizar documentos' : 'Guardar borrador de expediente'}
               </>
             )}
           </button>
-          {admision.estado === 'aprobado' && (
+          {admision.estado === 'aprobado' && todosPdfsCargados && (
             <button
               type="button"
-              onClick={async () => {
-                if (window.confirm('¿Finalizar la admisión? Se marcará el expediente como completo.')) {
-                  setGuardando(true);
-                  try {
-                    if (
-                      Object.keys(archivos).length > 0 ||
-                      campos.dniNumero !== (expediente?.dniNumero || '') ||
-                      campos.numeroAfiliado !== (expediente?.numeroAfiliado || '')
-                    ) {
-                      await handleGuardar();
-                    }
-                    await actualizarAdmisionApi(admision.id, { estado: 'completado' });
-                    if (onActualizar) onActualizar();
-                  } catch (err) {
-                    setError(err.message || 'No se pudo finalizar la admisión.');
-                  } finally {
-                    setGuardando(false);
-                  }
-                }
-              }}
+              id="btn-validar-admitir"
+              onClick={handleFinalizar}
               disabled={guardando}
-              className="flex items-center gap-2 rounded-xl border border-[#006d44] px-4 py-3 text-sm font-semibold text-[#006d44] hover:bg-[#f0faf4] disabled:opacity-60 transition"
+              className="flex-1 flex items-center justify-center gap-2 rounded-xl border-2 border-[#006d44] bg-[#006d44] px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#005a38] disabled:opacity-60 transition animate-fade-in"
             >
-              <span className="material-symbols-outlined text-base">task_alt</span>
-              Finalizar
+              <span className="material-symbols-outlined text-base">how_to_reg</span>
+              Validar y Admitir Paciente
             </button>
           )}
         </div>
@@ -1155,7 +1383,7 @@ function PanelExpediente({ admision, onActualizar }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Panel lateral de detalle de admisión (gestor de pestañas)
 // ─────────────────────────────────────────────────────────────────────────────
-function PanelDetalle({ admision, onCerrar, onActualizar }) {
+function PanelDetalle({ admision, onCerrar, onActualizar, alAbrirPaciente, alNavegar }) {
   const [pestana, setPestana] = useState('datos');
   const [tieneOS, setTieneOS] = useState(admision.tieneObraSocial);
   const [nombreOS, setNombreOS] = useState(admision.obraSocialNombre || '');
@@ -1211,8 +1439,13 @@ function PanelDetalle({ admision, onCerrar, onActualizar }) {
             <h2 className="text-lg font-bold text-slate-800">
               {admision.apellido}, {admision.nombre}
             </h2>
-            <div className="mt-1">
+            <div className="mt-1 flex items-center gap-2">
               <BadgeEstado estado={admision.estado} />
+              {admision.patientId && (
+                <span className="text-[11px] font-mono font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                  ID: {admision.patientId}
+                </span>
+              )}
             </div>
           </div>
           <button
@@ -1269,6 +1502,26 @@ function PanelDetalle({ admision, onCerrar, onActualizar }) {
       <div className="flex-1 overflow-y-auto px-6 py-5">
         {pestana === 'datos' && (
           <div className="space-y-2">
+            {admision.patientId && alAbrirPaciente && (
+              <div className="mb-3 rounded-xl border border-emerald-300 bg-emerald-50 p-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#006d44]">check_circle</span>
+                  <div>
+                    <p className="text-xs font-bold text-[#006d44]">Paciente Admitido</p>
+                    <p className="text-[11px] text-slate-600">Este paciente ya forma parte del padrón de CENEIN.</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => alAbrirPaciente(admision.patientId)}
+                  className="flex items-center gap-1 rounded-lg bg-[#006d44] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#005a38] transition"
+                >
+                  <span className="material-symbols-outlined text-xs">open_in_new</span>
+                  Ver Ficha
+                </button>
+              </div>
+            )}
+
             {[
               ['Nombre completo', `${admision.apellido}, ${admision.nombre}`],
               ['DNI', admision.dni || '-'],
@@ -1419,7 +1672,14 @@ function PanelDetalle({ admision, onCerrar, onActualizar }) {
           <PanelRevisionFisiatra admision={admision} onActualizar={onActualizar} />
         )}
 
-        {pestana === 'expediente' && <PanelExpediente admision={admision} onActualizar={onActualizar} />}
+        {pestana === 'expediente' && (
+          <PanelExpediente
+            admision={admision}
+            onActualizar={onActualizar}
+            alAbrirPaciente={alAbrirPaciente}
+            alNavegar={alNavegar}
+          />
+        )}
       </div>
     </div>
   );
@@ -1428,7 +1688,7 @@ function PanelDetalle({ admision, onCerrar, onActualizar }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Página principal: Admision
 // ─────────────────────────────────────────────────────────────────────────────
-export default function Admision() {
+export default function Admision({ alAbrirPaciente, alNavegar }) {
   const [admisiones, setAdmisiones] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
@@ -1668,6 +1928,8 @@ export default function Admision() {
               admision={seleccionada}
               onCerrar={() => setSeleccionada(null)}
               onActualizar={handleActualizarDetalle}
+              alAbrirPaciente={alAbrirPaciente}
+              alNavegar={alNavegar}
             />
           </div>
         )}

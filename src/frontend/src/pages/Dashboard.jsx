@@ -222,6 +222,36 @@ export default function PanelPrincipal({ alAbrirPaciente }) {
               </div>
             </div>
 
+            <div className="flex flex-col gap-4 border-y border-slate-200 px-4 py-4 md:flex-row md:items-center md:justify-between md:px-8">
+              <span className="text-xs font-medium text-slate-500">
+                Mostrando {pacientesPaginados.length ? desde + 1 : 0}-{Math.min(hasta, pacientesFiltrados.length)} de{' '}
+                {pacientesFiltrados.length} pacientes
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPaginaActual((p) => Math.max(1, p - 1))}
+                  disabled={paginaSegura === 1}
+                  className="flex items-center gap-1 rounded-lg px-3 py-2 text-xs font-bold text-slate-500 transition hover:bg-[#f1f4f5] disabled:opacity-50"
+                >
+                  <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                  Anterior
+                </button>
+                <span className="rounded-lg bg-[#006d44] px-3 py-2 text-xs font-bold text-white">
+                  {paginaSegura}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPaginaActual((p) => Math.min(totalPaginas, p + 1))}
+                  disabled={paginaSegura === totalPaginas}
+                  className="flex items-center gap-1 rounded-lg px-3 py-2 text-xs font-bold text-[#006d44] transition hover:bg-[#ecfdf5] disabled:opacity-50"
+                >
+                  Siguiente
+                  <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                </button>
+              </div>
+            </div>
+
             <div className="hidden grid-cols-12 gap-4 border-b border-slate-200 bg-[#f5f7f8] px-8 py-4 text-xs font-bold uppercase tracking-[0.22em] text-slate-500 md:grid">
               <div className="col-span-5">Nombre y Perfil</div>
               <div className="col-span-3">Obra Social</div>
@@ -339,71 +369,10 @@ export default function PanelPrincipal({ alAbrirPaciente }) {
                 </div>
               ) : null}
             </div>
-
-            <div className="flex flex-col gap-4 px-8 py-4 md:flex-row md:items-center md:justify-between">
-              <span className="text-xs font-medium text-slate-500">
-                Mostrando {pacientesPaginados.length ? desde + 1 : 0}-{Math.min(hasta, pacientesFiltrados.length)} de{' '}
-                {pacientesFiltrados.length} pacientes
-              </span>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPaginaActual((p) => Math.max(1, p - 1))}
-                  disabled={paginaSegura === 1}
-                  className="flex items-center gap-1 rounded-lg px-3 py-2 text-xs font-bold text-slate-500 transition hover:bg-[#f1f4f5] disabled:opacity-50"
-                >
-                  <span className="material-symbols-outlined text-[18px]">chevron_left</span>
-                  Anterior
-                </button>
-                <span className="rounded-lg bg-[#006d44] px-3 py-2 text-xs font-bold text-white">
-                  {paginaSegura}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setPaginaActual((p) => Math.min(totalPaginas, p + 1))}
-                  disabled={paginaSegura === totalPaginas}
-                  className="flex items-center gap-1 rounded-lg px-3 py-2 text-xs font-bold text-[#006d44] transition hover:bg-[#ecfdf5] disabled:opacity-50"
-                >
-                  Siguiente
-                  <span className="material-symbols-outlined text-[18px]">chevron_right</span>
-                </button>
-              </div>
-            </div>
           </div>
         </section>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          <div className="rounded-xl border-l-4 border-[#006d44] bg-white p-6 shadow-sm">
-            <div className="mb-3 flex items-center gap-3">
-              <span className="material-symbols-outlined text-[#006d44]">info</span>
-              <h4 className="text-sm font-bold text-[#2d3335]">Vista General</h4>
-            </div>
-            <p className="text-xs leading-relaxed text-slate-500">
-              Utiliza los filtros para separar rápidamente pacientes autorizados, pendientes o por
-              módulo sin salir de la grilla principal.
-            </p>
-          </div>
-          <div className="rounded-xl border-l-4 border-[#546537] bg-white p-6 shadow-sm">
-            <div className="mb-3 flex items-center gap-3">
-              <span className="material-symbols-outlined text-[#546537]">task_alt</span>
-              <h4 className="text-sm font-bold text-[#2d3335]">Seguimiento</h4>
-            </div>
-            <p className="text-xs leading-relaxed text-slate-500">
-              Desde esta lista podés autorizar, marcar baja o abrir el detalle completo de cada
-              paciente sin perder contexto.
-            </p>
-          </div>
-          <div className="rounded-xl border-l-4 border-[#4f6456] bg-white p-6 shadow-sm">
-            <div className="mb-3 flex items-center gap-3">
-              <span className="material-symbols-outlined text-[#4f6456]">shield</span>
-              <h4 className="text-sm font-bold text-[#2d3335]">Trazabilidad</h4>
-            </div>
-            <p className="text-xs leading-relaxed text-slate-500">
-              Los cambios administrativos siguen usando la misma lógica actual del sistema; este
-              ajuste es visual y conserva el comportamiento existente.
-            </p>
-          </div>
-        </div>
+
       </div>
     </div>
   );

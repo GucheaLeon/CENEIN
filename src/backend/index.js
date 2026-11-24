@@ -13,6 +13,9 @@ const { registerPatientsRoutes } = require('./routes/patients');
 const { registerAttendancesExportRoute } = require('./routes/attendancesExport');
 const { registerCatalogsRoutes } = require('./routes/catalogs');
 const { registerAdmisionsRoutes } = require('./routes/admisiones');
+const { registerFacturacionRoutes } = require('./routes/facturacion');
+const { registerReportsRoutes } = require('./routes/reports');
+const { getRoleAccess, createModulePermissionMiddleware } = require('./permissions');
 
 const PORT = process.env.PORT || 4000;
 const SCHEMA_SQL_PATH = path.join(__dirname, 'schema.sql');
@@ -519,12 +522,29 @@ async function initDb() {
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
   const db = createPostgresDb(pool);
   const schemaSql = fs.readFileSync(SCHEMA_SQL_PATH, 'utf8');
-  await db.exec(schemaSql);
+  try {
+    await db.exec(schemaSql);
+  } catch (err) {
+    console.warn('[DB] Schema inicial parcial (se completará con migraciones):', err.message);
+  }
   for (const nombre of TRATAMIENTOS_BASE) {
     await db.run('INSERT INTO treatments (name) VALUES ($1) ON CONFLICT DO NOTHING', nombre);
   }
+  for (const mod of ['MII', 'MIS', 'MIE']) {
+    try {
+      await db.run('INSERT INTO module (description) VALUES ($1) ON CONFLICT DO NOTHING', mod);
+    } catch (err) {}
+  }
+  for (const st of ['Nuevo', 'En_admision', 'En_expediente', 'Desestimado', 'Activo', 'Alta']) {
+    try {
+      await db.run('INSERT INTO patient_state (name) VALUES ($1) ON CONFLICT DO NOTHING', st);
+    } catch (err) {}
+  }
   // Correr migraciones pendientes automáticamente
   await runMigrations(db, pool);
+  try {
+    await db.exec(schemaSql);
+  } catch (err) {}
   try {
     await db.run(`DELETE FROM sessions WHERE expires_at <= now()`);
   } catch (err) {}
@@ -805,10 +825,13 @@ function crearAuthMiddleware(db) {
         res.status(401).json({ error: 'Sesion expirada' });
         return;
       }
+      const isAdmin = Boolean(session.is_admin);
+      const roleAccess = await getRoleAccess(db, session.user_id, isAdmin);
       req.auth = {
         userId: session.user_id,
         username: session.username,
-        isAdmin: Boolean(session.is_admin),
+        isAdmin,
+        ...roleAccess,
         token: session.token,
       };
       next();
@@ -1406,6 +1429,7 @@ async function main() {
   });
 
   registerApiAuthGuard(app, { authMiddleware });
+  app.use('/api', createModulePermissionMiddleware());
 
   registerAdmisionsRoutes(app, { db, authMiddleware });
 
@@ -1440,6 +1464,10 @@ async function main() {
   registerObrasSocialesRoutes(app, { db, construirPaciente });
 
   registerAttendancesExportRoute(app, { db, construirPaciente });
+
+  registerFacturacionRoutes(app, { db });
+
+  registerReportsRoutes(app, { db, authMiddleware });
 
   app.use('/api', (req, res) => {
     res.status(404).json({ error: 'Ruta no encontrada' });

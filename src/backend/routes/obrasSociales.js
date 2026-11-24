@@ -22,13 +22,13 @@ function enviarPdfDescarga(res, result) {
 function registerObrasSocialesRoutes(app, { db, construirPaciente }) {
   async function buscarPacienteParaObraSocial(patientId) {
     if (patientId) {
-      return db.get('SELECT * FROM patients WHERE id = ?', patientId);
+      return db.get('SELECT * FROM PATIENTS WHERE patient_id = ?', patientId);
     }
-    return db.get('SELECT * FROM patients ORDER BY created_at DESC LIMIT 1');
+    return db.get('SELECT * FROM PATIENTS ORDER BY created_at DESC LIMIT 1');
   }
 
   async function generarObraSocial(req, res) {
-    const fila = await db.get('SELECT * FROM patients WHERE id = ?', req.params.id);
+    const fila = await db.get('SELECT * FROM PATIENTS WHERE patient_id = ?', req.params.id);
     const paciente = await construirPaciente(db, fila);
     if (!paciente) {
       res.status(404).json({ error: 'Paciente no encontrado' });

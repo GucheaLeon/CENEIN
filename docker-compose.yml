@@ -10,6 +10,8 @@ services:
       POSTGRES_USER: cenein
       POSTGRES_PASSWORD: ${DB_PASSWORD:-supersecret}
       POSTGRES_DB: cenein_db
+    ports:
+      - "5432:5432"
     volumes:
       - cenein-db-data:/var/lib/postgresql/data
     networks:
@@ -24,9 +26,14 @@ services:
     restart: always
     ports:
       - "4000:4000"
+    volumes:
+      - ./docs/informes:/app/docs/informes:ro
     environment:
       - NODE_ENV=development
       - PORT=4000
+      # ARCA: usar homologación mientras se realizan las pruebas.
+      # Para pasar a producción, cambiar explícitamente a true.
+      - AFIP_IS_PRODUCTION=false
       - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
       # Le pasamos la URL para conectarse al contenedor 'db'
       - DATABASE_URL=postgres://cenein:${DB_PASSWORD:-supersecret}@db:5432/cenein_db

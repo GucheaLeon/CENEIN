@@ -10,57 +10,45 @@ const TRATAMIENTOS = [
   'TO Terapia Ocupacional',
   'Integracion',
 ];
+
 const MODULOS = ['MII', 'MIS', 'MIE'];
+
 const MODULO_ESTILOS = {
   MII: {
     punto: 'bg-emerald-500',
-    ficha: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-    opcion: 'border-emerald-200 bg-emerald-50/70',
+    badge: 'border-emerald-200 bg-emerald-50 text-emerald-800',
+    botonActivo: 'border-emerald-500 bg-emerald-50 text-emerald-800 ring-2 ring-emerald-500/20',
   },
   MIS: {
     punto: 'bg-amber-500',
-    ficha: 'border-amber-200 bg-amber-50 text-amber-700',
-    opcion: 'border-amber-200 bg-amber-50/70',
+    badge: 'border-amber-200 bg-amber-50 text-amber-800',
+    botonActivo: 'border-amber-500 bg-amber-50 text-amber-800 ring-2 ring-amber-500/20',
   },
   MIE: {
     punto: 'bg-sky-500',
-    ficha: 'border-sky-200 bg-sky-50 text-sky-700',
-    opcion: 'border-sky-200 bg-sky-50/70',
+    badge: 'border-sky-200 bg-sky-50 text-sky-800',
+    botonActivo: 'border-sky-500 bg-sky-50 text-sky-800 ring-2 ring-sky-500/20',
   },
 };
+
 const ANIOS_DOCUMENTACION = [2026, 2027, 2028, 2029, 2030];
+
 const CAMPOS_FECHA_SECTORIZADOS = [
-  {
-    value: 'fechaVencimientoControlTrabajoSocial',
-    label: 'Vencimiento control de trabajo social',
-  },
-  {
-    value: 'fechaAltaControlTrabajoSocial',
-    label: 'Alta control de trabajo social',
-  },
-  {
-    value: 'ultimoControlTrabajoSocial',
-    label: 'Fecha control de trabajo social',
-  },
-  {
-    value: 'fechaVencimientoControlFisiatrico',
-    label: 'Vencimiento control fisiatrico',
-  },
-  {
-    value: 'fechaAltaControlFisiatrico',
-    label: 'Alta control fisiatrico',
-  },
-  {
-    value: 'ultimoControlFisiatrico',
-    label: 'Fecha control fisiatrico',
-  },
+  { value: 'fechaVencimientoControlTrabajoSocial', label: 'Vencimiento control de trabajo social' },
+  { value: 'fechaAltaControlTrabajoSocial', label: 'Alta control de trabajo social' },
+  { value: 'ultimoControlTrabajoSocial', label: 'Fecha control de trabajo social' },
+  { value: 'fechaVencimientoControlFisiatrico', label: 'Vencimiento control fisiatrico' },
+  { value: 'fechaAltaControlFisiatrico', label: 'Alta control fisiatrico' },
+  { value: 'ultimoControlFisiatrico', label: 'Fecha control fisiatrico' },
 ];
+
 const CAMPOS_CUMPLIMIENTO = [
   { value: 'car', label: 'CAR' },
   { value: 'ppi', label: 'PPI' },
-  { value: 'controlTrabajoSocial', label: 'Control de trabajo social' },
-  { value: 'controlFisiatrico', label: 'Control fisiatrico' },
+  { value: 'controlTrabajoSocial', label: 'Control Trabajo Social' },
+  { value: 'controlFisiatrico', label: 'Control Fisiátrico' },
 ];
+
 const CAMPOS_FECHA_POR_CUMPLIMIENTO = {
   controlTrabajoSocial: [
     'fechaVencimientoControlTrabajoSocial',
@@ -74,56 +62,21 @@ const CAMPOS_FECHA_POR_CUMPLIMIENTO = {
   ],
 };
 
-const normalizarModulos = (valor) => {
-  const lista = Array.isArray(valor)
-    ? valor
-    : String(valor || '')
-        .split(',')
-        .map((item) => String(item || '').trim().toUpperCase())
-        .filter(Boolean);
-  return Array.from(new Set(lista.filter((item) => MODULOS.includes(item))));
-};
-const clasesModulo = (modulo) => MODULO_ESTILOS[modulo] || MODULO_ESTILOS.MII;
-const renderModuloBadge = (modulo, { compacto = false } = {}) => {
-  const estilos = clasesModulo(modulo);
-  return (
-    <span
-      key={`modulo-badge-${modulo}`}
-      className={`inline-flex items-center rounded-lg border font-bold uppercase tracking-wide ${
-        compacto ? 'gap-1.5 px-2 py-1 text-[10px]' : 'gap-2 px-2.5 py-1.5 text-xs'
-      } ${estilos.ficha}`}
-    >
-      <span className={`h-2.5 w-2.5 rounded-[4px] ${estilos.punto}`} />
-      {modulo}
-    </span>
-  );
-};
-
 const DIAS = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie'];
 const ETIQUETAS_DIAS = {
   Lun: 'Lun',
   Mar: 'Mar',
-  Mie: 'Mie',
+  Mie: 'Mié',
   Jue: 'Jue',
-  Vie: 'Viernes',
+  Vie: 'Vie',
 };
 const DIAS_COMPLETO = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
 const MESES = [
-  'Enero',
-  'Febrero',
-  'Marzo',
-  'Abril',
-  'Mayo',
-  'Junio',
-  'Julio',
-  'Agosto',
-  'Septiembre',
-  'Octubre',
-  'Noviembre',
-  'Diciembre',
+  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
 ];
 const ANIO_BASE = new Date().getFullYear();
-const RESULTADOS_POR_PAGINA = 10;
+const RESULTADOS_POR_PAGINA = 8;
 
 const generarHorarios = () => {
   const horarios = [];
@@ -140,50 +93,22 @@ const generarHorarios = () => {
 
 const HORARIOS = generarHorarios();
 const HORARIOS_EXTRA_ALTA = [
-  '08:00',
-  '09:00',
-  '10:00',
-  '11:00',
-  '12:00',
-  '14:00',
-  '15:00',
-  '16:00',
-  '17:00',
-  '18:00',
-  '19:00',
-  '09:15',
-  '09:45',
-  '10:45',
-  '14:30',
-  '14:45',
-  '15:15',
-  '15:30',
-  '16:15',
-  '16:45',
-  '17:30',
-  '17:45',
-  '18:15',
-  '18:30',
-  '19:45',
+  '08:00', '09:00', '10:00', '11:00', '12:00', '14:00',
+  '15:00', '16:00', '17:00', '18:00', '19:00', '09:15',
+  '09:45', '10:45', '14:30', '14:45', '15:15', '15:30',
+  '16:15', '16:45', '17:30', '17:45', '18:15', '18:30', '19:45',
 ];
+
 const HORARIOS_POR_OBRA_SOCIAL = {
   ospe: ['8', '9', '10', '11', '12', '14', '15', '16', '17', '18', '19'],
   galeno: ['9', '9.45', '14.45', '15.30', '16.15', '17', '17.45', '18.30'],
   osolsac: [
-    '9.15',
-    '10',
-    '10.45',
-    '14.30',
-    '15.15',
-    '16',
-    '16.45',
-    '17.30',
-    '18.15',
-    '19',
-    '19.45',
+    '9.15', '10', '10.45', '14.30', '15.15', '16',
+    '16.45', '17.30', '18.15', '19', '19.45'
   ],
   omin: ['14', '14.45', '15.30'],
 };
+
 const pad2 = (valor) => String(valor).padStart(2, '0');
 const normalizarTexto = (valor) =>
   String(valor || '')
@@ -191,16 +116,19 @@ const normalizarTexto = (valor) =>
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '');
+
 const tokenizarBusqueda = (valor) =>
   normalizarTexto(valor)
     .split(/\s+/)
     .map((item) => item.trim())
     .filter(Boolean);
+
 const normalizarHora = (valor) => {
   const m = String(valor || '').trim().match(/^(\d{1,2}):(\d{2})$/);
   if (!m) return String(valor || '').trim();
   return `${String(Number(m[1])).padStart(2, '0')}:${m[2]}`;
 };
+
 const toHora = (valor) => {
   const raw = String(valor || '').trim().replace('.', ':');
   if (!raw) return '';
@@ -213,11 +141,13 @@ const toHora = (valor) => {
   if (hh < 0 || hh > 23 || mm < 0 || mm > 59) return '';
   return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
 };
+
 const minHora = (hora) => {
   const m = String(hora || '').trim().match(/^(\d{2}):(\d{2})$/);
   if (!m) return Number.MAX_SAFE_INTEGER;
   return Number(m[1]) * 60 + Number(m[2]);
 };
+
 const resolverHorariosPorObraSocial = (obraSocialId) => {
   const base = [...HORARIOS, ...HORARIOS_EXTRA_ALTA];
   const os = normalizarTexto(obraSocialId);
@@ -230,7 +160,19 @@ const resolverHorariosPorObraSocial = (obraSocialId) => {
   const set = new Set([...base, ...normalizados]);
   return Array.from(set).sort((a, b) => minHora(a) - minHora(b));
 };
+
+const normalizarModulos = (valor) => {
+  const lista = Array.isArray(valor)
+    ? valor
+    : String(valor || '')
+        .split(',')
+        .map((item) => String(item || '').trim().toUpperCase())
+        .filter(Boolean);
+  return Array.from(new Set(lista.filter((item) => MODULOS.includes(item))));
+};
+
 const normalizarFechaIso = (valor) => String(valor || '').trim().slice(0, 10);
+
 const normalizarAnios = (valor) => {
   if (Array.isArray(valor)) {
     return Array.from(
@@ -248,7 +190,9 @@ const normalizarAnios = (valor) => {
     .filter((item, index, arr) => arr.indexOf(item) === index)
     .sort((a, b) => a - b);
 };
+
 const tieneDato = (valor) => String(valor || '').trim() !== '';
+
 const resolverEstadoCumplimiento = (paciente, campo, anio) => {
   if (campo === 'car') {
     const anios = normalizarAnios(paciente?.carAnios);
@@ -274,22 +218,10 @@ const resolverEstadoCumplimiento = (paciente, campo, anio) => {
   }
   return true;
 };
-const describirDocumentacionPaciente = (paciente) => {
-  const car = normalizarAnios(paciente?.carAnios);
-  const ppi = normalizarAnios(paciente?.ppiAnios);
-  return [
-    `CAR: ${car.length ? car.join(', ') : 'No'}`,
-    `PPI: ${ppi.length ? ppi.join(', ') : 'No'}`,
-    `Trabajo social: ${
-      resolverEstadoCumplimiento(paciente, 'controlTrabajoSocial') ? 'Si' : 'No'
-    }`,
-    `Fisiatrico: ${
-      resolverEstadoCumplimiento(paciente, 'controlFisiatrico') ? 'Si' : 'No'
-    }`,
-  ].join(' | ');
-};
+
 const claveTurnoNormalizada = (tratamiento, hora) =>
   `${normalizarTexto(tratamiento)}|${normalizarHora(hora)}`;
+
 const resolverNombreApellido = (paciente) => {
   const nombreRaw = String(paciente?.nombre || '').trim();
   const apellidoRaw = String(paciente?.apellido || '').trim();
@@ -303,16 +235,19 @@ const resolverNombreApellido = (paciente) => {
     apellido: partes.slice(corte).join(' ').trim(),
   };
 };
+
 const formatearEtiquetaPaciente = (paciente) => {
   const datos = resolverNombreApellido(paciente);
   const etiqueta = `${datos.apellido} ${datos.nombre}`.trim();
-  return etiqueta || '-';
+  return etiqueta || paciente?.nombre || '-';
 };
+
 const obtenerInicialesPaciente = (paciente) => {
   const datos = resolverNombreApellido(paciente);
   const iniciales = `${datos.nombre.charAt(0)}${datos.apellido.charAt(0)}`.trim();
   return iniciales.toUpperCase() || 'P';
 };
+
 const compararPacientesPorApellidoNombre = (a, b) => {
   const datosA = resolverNombreApellido(a);
   const datosB = resolverNombreApellido(b);
@@ -326,33 +261,29 @@ const compararPacientesPorApellidoNombre = (a, b) => {
   if (cmpNombre !== 0) return cmpNombre;
   return String(a?.id || '').localeCompare(String(b?.id || ''), 'es');
 };
-const coincideBusquedaNombrePaciente = (paciente, consulta) => {
-  const tokensConsulta = tokenizarBusqueda(consulta);
-  if (!tokensConsulta.length) return true;
+
+const coincideBusquedaGeneral = (paciente, query) => {
+  if (!query) return true;
+  const q = normalizarTexto(query);
+  const tokens = tokenizarBusqueda(query);
+
   const dniPaciente = String(paciente?.dni || '').replace(/\D/g, '');
-  if (dniPaciente) {
-    const consultaDni = String(consulta || '').replace(/\D/g, '');
-    if (consultaDni && dniPaciente.includes(consultaDni)) {
-      return true;
-    }
-  }
+  const qDni = query.replace(/\D/g, '');
+  if (qDni && dniPaciente.includes(qDni)) return true;
+
   const datos = resolverNombreApellido(paciente);
-  const variantes = [
-    `${datos.apellido} ${datos.nombre}`.trim(),
-    `${datos.nombre} ${datos.apellido}`.trim(),
-    String(paciente?.nombre || '').trim(),
-    String(paciente?.apellido || '').trim(),
-  ];
-  const tokensPaciente = Array.from(
-    new Set(
-      variantes.flatMap((texto) => tokenizarBusqueda(texto))
-    )
-  );
-  if (!tokensPaciente.length) return false;
-  return tokensConsulta.every((token) =>
-    tokensPaciente.some((tokenPaciente) => tokenPaciente.startsWith(token))
-  );
+  const textos = [
+    `${datos.apellido} ${datos.nombre}`,
+    `${datos.nombre} ${datos.apellido}`,
+    paciente?.nombre,
+    paciente?.apellido,
+    paciente?.obraSocial,
+    ...(paciente?.tratamientos || []),
+  ].map(normalizarTexto);
+
+  return tokens.every((token) => textos.some((t) => t.includes(token)));
 };
+
 const obtenerSemanasMes = (mes, anio) => {
   const year = Number(anio) || ANIO_BASE;
   const diasEnMes = new Date(year, mes, 0).getDate();
@@ -374,11 +305,7 @@ const obtenerSemanasMes = (mes, anio) => {
   }
   return semanas;
 };
-const generarEtiquetaSemana = (semana, index) => {
-  const dias = semana.filter((d) => d);
-  if (!dias.length) return `Semana ${index + 1}`;
-  return `Semana ${index + 1} (${dias[0]}-${dias[dias.length - 1]})`;
-};
+
 const tieneTurnoEnFecha = (paciente, mes, diaNumero, tratamientoFiltro, anio) => {
   if (!paciente || !mes || !diaNumero) return false;
   const year = Number(anio) || ANIO_BASE;
@@ -423,7 +350,7 @@ const tieneTurnoEnFecha = (paciente, mes, diaNumero, tratamientoFiltro, anio) =>
 };
 
 const filtrarPacientes = (lista, filtros) => {
-  const qNombre = String(filtros.nombre || '').trim();
+  const query = String(filtros.query || '').trim();
   const qObra = normalizarTexto(filtros.obraSocial);
   const mes = Number(filtros.mes);
   const dia = Number(filtros.dia);
@@ -438,18 +365,15 @@ const filtrarPacientes = (lista, filtros) => {
   const anioCumplimiento = Number(filtros.anioCumplimiento);
   const autorizacion = String(filtros.autorizacion || '').trim();
   const estadoPaciente = String(filtros.estadoPaciente || '').trim();
+
   return lista.filter((p) => {
-    if (!coincideBusquedaNombrePaciente(p, qNombre)) return false;
-    if (qObra && !normalizarTexto(p?.obraSocial).includes(qObra)) {
-      return false;
-    }
+    if (!coincideBusquedaGeneral(p, query)) return false;
+    if (qObra && !normalizarTexto(p?.obraSocial).includes(qObra)) return false;
     if (estadoPaciente === 'activo' && p.dadoDeBaja === true) return false;
     if (estadoPaciente === 'baja' && p.dadoDeBaja !== true) return false;
     if (autorizacion === 'autorizado' && p.activo === false) return false;
     if (autorizacion === 'no_autorizado' && p.activo !== false) return false;
-    if (tratamiento && !(p.tratamientos || []).includes(tratamiento)) {
-      return false;
-    }
+    if (tratamiento && !(p.tratamientos || []).includes(tratamiento)) return false;
     if (modulo && modulo !== 'TODOS') {
       const modulosPaciente = normalizarModulos(p?.modulos || p?.modulo);
       if (!modulosPaciente.includes(modulo)) return false;
@@ -487,76 +411,85 @@ const filtrarPacientes = (lista, filtros) => {
   });
 };
 
-function AlternarLista({ seleccionados, alCambiar, deshabilitados = [] }) {
-  const bloqueados = new Set(
-    Array.isArray(deshabilitados) ? deshabilitados : []
-  );
+function AlternarTratamientosList({ seleccionados, alCambiar, deshabilitados = [] }) {
+  const bloqueados = new Set(Array.isArray(deshabilitados) ? deshabilitados : []);
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
-      {TRATAMIENTOS.map((t) => (
-        <label
-          key={t}
-          style={{
-            display: 'flex',
-            gap: 8,
-            alignItems: 'center',
-            border: '1px solid #ddd',
-            padding: '6px 10px',
-            borderRadius: 6,
-            opacity: bloqueados.has(t) ? 0.6 : 1,
-          }}
-        >
-          <input
-            type="checkbox"
-            checked={seleccionados.includes(t)}
-            disabled={bloqueados.has(t)}
-            onChange={() => {
-              if (bloqueados.has(t)) return;
-              alCambiar(t);
-            }}
-          />
-          {t}
-        </label>
-      ))}
+    <div className="flex flex-wrap gap-2">
+      {TRATAMIENTOS.map((t) => {
+        const estaSeleccionado = seleccionados.includes(t);
+        const estaDeshabilitado = bloqueados.has(t);
+        return (
+          <button
+            key={t}
+            type="button"
+            disabled={estaDeshabilitado}
+            onClick={() => alCambiar(t)}
+            className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all ${
+              estaDeshabilitado
+                ? 'bg-slate-100 text-slate-400 opacity-60'
+                : estaSeleccionado
+                ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-600/20'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[14px]">
+              {estaSeleccionado ? 'check' : estaDeshabilitado ? 'lock' : 'add'}
+            </span>
+            {t}
+          </button>
+        );
+      })}
     </div>
   );
 }
 
-function Cronograma({ tratamiento, turnosSeleccionados, alAlternar, horarios }) {
+function CronogramaMatrix({ tratamiento, turnosSeleccionados, alAlternar, horarios }) {
   const listaHorarios = Array.isArray(horarios) && horarios.length ? horarios : HORARIOS;
   return (
-    <div style={{ marginTop: 12, border: '1px solid #ddd', padding: 12 }}>
-      <strong>{tratamiento}</strong>
+    <div className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-sm">
+      <div className="mb-2.5 flex items-center justify-between">
+        <span className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+          <span className="h-2 w-2 rounded-full bg-emerald-500" />
+          {tratamiento}
+        </span>
+        <span className="text-[10px] font-medium text-slate-400">
+          {turnosSeleccionados.length} turno(s)
+        </span>
+      </div>
+
       {tratamiento === 'Integracion' ? (
-        <div style={{ marginTop: 6, color: '#666' }}>
-          Horarios de Integracion se configuran mas adelante.
+        <div className="rounded-lg bg-slate-50 p-3 text-center text-xs text-slate-500">
+          Los horarios de Integración se coordinan individualmente con la institución escolar.
         </div>
       ) : (
-        <div style={{ overflowX: 'auto', marginTop: 8 }}>
-          <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-            <thead>
+        <div className="max-h-56 overflow-y-auto rounded-lg border border-slate-100">
+          <table className="w-full text-left text-xs">
+            <thead className="sticky top-0 bg-slate-50 font-semibold text-slate-600 shadow-sm">
               <tr>
-                <th style={{ textAlign: 'left', padding: '4px 6px' }}>Hora</th>
+                <th className="py-2 pl-3 pr-2 text-[11px]">Hora</th>
                 {DIAS.map((d) => (
-                  <th key={d} style={{ textAlign: 'left', padding: '4px 6px' }}>
+                  <th key={d} className="px-2 py-2 text-center text-[11px]">
                     {ETIQUETAS_DIAS[d] || d}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-100">
               {listaHorarios.map((hora) => (
-                <tr key={hora}>
-                  <td style={{ padding: '4px 6px', whiteSpace: 'nowrap' }}>{hora}</td>
+                <tr key={hora} className="hover:bg-slate-50/70">
+                  <td className="py-1.5 pl-3 pr-2 font-mono text-[11px] font-medium text-slate-600">
+                    {hora}
+                  </td>
                   {DIAS.map((dia) => {
                     const clave = `${dia}-${hora}`;
                     const marcado = turnosSeleccionados.includes(clave);
                     return (
-                      <td key={clave} style={{ padding: '4px 6px' }}>
+                      <td key={clave} className="px-2 py-1.5 text-center">
                         <input
                           type="checkbox"
                           checked={marcado}
                           onChange={() => alAlternar(clave)}
+                          className="h-4 w-4 cursor-pointer rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
                         />
                       </td>
                     );
@@ -582,12 +515,16 @@ export default function Pacientes({ alAbrirPaciente }) {
     actualizarPaciente,
   } = usePacientes();
 
-  const [filtroNombre, setFiltroNombre] = useState('');
+  // Primary Query & Filter States
+  const [query, setQuery] = useState('');
   const [filtroObraSocial, setFiltroObraSocial] = useState('');
   const [filtroTratamiento, setFiltroTratamiento] = useState('');
   const [filtroModulo, setFiltroModulo] = useState('TODOS');
   const [filtroAutorizacion, setFiltroAutorizacion] = useState('');
-  const [filtroEstadoPaciente, setFiltroEstadoPaciente] = useState('');
+  const [filtroEstadoPaciente, setFiltroEstadoPaciente] = useState('activo');
+  
+  // Advanced Filter Drawer
+  const [mostrarFiltrosAvanzados, setMostrarFiltrosAvanzados] = useState(false);
   const [filtroMes, setFiltroMes] = useState('');
   const [filtroAnio, setFiltroAnio] = useState(String(ANIO_BASE));
   const [filtroTipoFecha, setFiltroTipoFecha] = useState('');
@@ -597,18 +534,19 @@ export default function Pacientes({ alAbrirPaciente }) {
   const [filtroCampoCumplimiento, setFiltroCampoCumplimiento] = useState('');
   const [filtroEstadoCumplimiento, setFiltroEstadoCumplimiento] = useState('');
   const [filtroAnioCumplimiento, setFiltroAnioCumplimiento] = useState('');
-  const [filtrosAplicados, setFiltrosAplicados] = useState(null);
-  const [mensajeBusqueda, setMensajeBusqueda] = useState('');
+
+  // UI Selection & Pagination
   const [idSeleccionado, setIdSeleccionado] = useState('');
-  const [tratamientosAgregar, setTratamientosAgregar] = useState([]);
-  const [mesSeleccionado, setMesSeleccionado] = useState(1);
   const [paginaResultados, setPaginaResultados] = useState(1);
+  const [mesSeleccionado, setMesSeleccionado] = useState(new Date().getMonth() + 1);
   const [moduloEdicion, setModuloEdicion] = useState([]);
+  const [guardandoModulo, setGuardandoModulo] = useState(false);
   const [mensajeModulo, setMensajeModulo] = useState('');
+  const [tratamientosAgregar, setTratamientosAgregar] = useState([]);
 
   const filtrosActuales = useMemo(
     () => ({
-      nombre: filtroNombre,
+      query,
       obraSocial: filtroObraSocial,
       tratamiento: filtroTratamiento,
       modulo: filtroModulo,
@@ -625,7 +563,7 @@ export default function Pacientes({ alAbrirPaciente }) {
       anioCumplimiento: filtroAnioCumplimiento,
     }),
     [
-      filtroNombre,
+      query,
       filtroObraSocial,
       filtroTratamiento,
       filtroModulo,
@@ -651,6 +589,14 @@ export default function Pacientes({ alAbrirPaciente }) {
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [pacientes]);
 
+  const obrasSocialesDisponibles = useMemo(() => {
+    const set = new Set();
+    pacientes.forEach((p) => {
+      if (p.obraSocial) set.add(p.obraSocial);
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [pacientes]);
+
   const semanasDisponibles = useMemo(() => {
     const mes = Number(filtroMes);
     const anio = Number(filtroAnio) || ANIO_BASE;
@@ -665,6 +611,7 @@ export default function Pacientes({ alAbrirPaciente }) {
     const total = new Date(anio, mes, 0).getDate();
     return Array.from({ length: total }, (_, i) => i + 1);
   }, [filtroMes, filtroAnio]);
+
   const camposFechaSectorizadaDisponibles = useMemo(() => {
     if (!filtroCampoCumplimiento) return CAMPOS_FECHA_SECTORIZADOS;
     const camposCompatibles = CAMPOS_FECHA_POR_CUMPLIMIENTO[filtroCampoCumplimiento];
@@ -675,13 +622,8 @@ export default function Pacientes({ alAbrirPaciente }) {
   }, [filtroCampoCumplimiento]);
 
   const pacientesFiltrados = useMemo(() => {
-    const filtros = filtrosAplicados || filtrosActuales;
-    return filtrarPacientes(pacientes, filtros).slice().sort(compararPacientesPorApellidoNombre);
-  }, [
-    pacientes,
-    filtrosAplicados,
-    filtrosActuales,
-  ]);
+    return filtrarPacientes(pacientes, filtrosActuales).slice().sort(compararPacientesPorApellidoNombre);
+  }, [pacientes, filtrosActuales]);
 
   const totalPaginasResultados = Math.max(
     1,
@@ -691,91 +633,113 @@ export default function Pacientes({ alAbrirPaciente }) {
     paginaResultados,
     totalPaginasResultados
   );
-  const inicioResultados =
-    (paginaResultadosSegura - 1) * RESULTADOS_POR_PAGINA;
+  const inicioResultados = (paginaResultadosSegura - 1) * RESULTADOS_POR_PAGINA;
   const finResultados = inicioResultados + RESULTADOS_POR_PAGINA;
-  const pacientesPaginados = pacientesFiltrados.slice(
-    inicioResultados,
-    finResultados
-  );
+  const pacientesPaginados = pacientesFiltrados.slice(inicioResultados, finResultados);
+
   const desgloseObrasSociales = useMemo(() => {
     const conteo = new Map();
     pacientesFiltrados.forEach((p) => {
       const obra = String(p.obraSocial || '').trim() || 'Sin obra social';
       conteo.set(obra, (conteo.get(obra) || 0) + 1);
     });
-    return Array.from(conteo.entries())
-      .sort((a, b) => (b[1] - a[1]) || a[0].localeCompare(b[0]));
+    return Array.from(conteo.entries()).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
   }, [pacientesFiltrados]);
-  const resumenObrasSociales = useMemo(
-    () => desgloseObrasSociales.slice(0, 4),
-    [desgloseObrasSociales]
-  );
+
+  const resumenObrasSociales = useMemo(() => desgloseObrasSociales.slice(0, 4), [desgloseObrasSociales]);
 
   const pacienteActual = useMemo(
     () => pacientes.find((p) => p.id === idSeleccionado) || null,
     [pacientes, idSeleccionado]
   );
+
   const horariosDisponiblesPaciente = useMemo(
     () => resolverHorariosPorObraSocial(String(pacienteActual?.obraSocial || '').trim()),
     [pacienteActual?.obraSocial]
   );
+
   const pacienteBloqueado = pacienteActual?.dadoDeBaja === true;
 
-  useEffect(() => {
-    if (paginaResultados > totalPaginasResultados) {
-      setPaginaResultados(totalPaginasResultados);
-    }
-  }, [paginaResultados, totalPaginasResultados]);
+  // Active Filter Count for badge
+  const filtrosActivosCount = useMemo(() => {
+    let c = 0;
+    if (query) c++;
+    if (filtroObraSocial) c++;
+    if (filtroTratamiento) c++;
+    if (filtroModulo && filtroModulo !== 'TODOS') c++;
+    if (filtroAutorizacion) c++;
+    if (filtroEstadoPaciente && filtroEstadoPaciente !== 'activo') c++;
+    if (filtroMes) c++;
+    if (filtroCampoCumplimiento) c++;
+    if (filtroCampoFecha) c++;
+    return c;
+  }, [
+    query,
+    filtroObraSocial,
+    filtroTratamiento,
+    filtroModulo,
+    filtroAutorizacion,
+    filtroEstadoPaciente,
+    filtroMes,
+    filtroCampoCumplimiento,
+    filtroCampoFecha,
+  ]);
 
   useEffect(() => {
-    if (!filtroCampoFecha) return;
-    const sigueDisponible = camposFechaSectorizadaDisponibles.some(
-      (campo) => campo.value === filtroCampoFecha
-    );
-    if (!sigueDisponible) {
-      setFiltroCampoFecha('');
-    }
-  }, [filtroCampoFecha, camposFechaSectorizadaDisponibles]);
+    setPaginaResultados(1);
+  }, [query, filtroObraSocial, filtroTratamiento, filtroModulo, filtroAutorizacion, filtroEstadoPaciente, filtroMes]);
 
   useEffect(() => {
     setModuloEdicion(normalizarModulos(pacienteActual?.modulos || pacienteActual?.modulo));
     setMensajeModulo('');
+    setTratamientosAgregar([]);
   }, [pacienteActual?.id, pacienteActual?.modulo, pacienteActual?.modulos]);
 
-  const alternarAgregar = (t) => {
+  const alternarAgregarTratamiento = (t) => {
     if ((pacienteActual?.tratamientos || []).includes(t)) return;
     setTratamientosAgregar((prev) =>
       prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
     );
   };
 
-  const agregarAlPaciente = (e) => {
+  const guardarTratamientosNuevos = (e) => {
     e.preventDefault();
-    if (!pacienteActual) return;
-    if (pacienteBloqueado) return;
+    if (!pacienteActual || pacienteBloqueado || !tratamientosAgregar.length) return;
     agregarTratamientos(pacienteActual.id, tratamientosAgregar);
     setTratamientosAgregar([]);
   };
 
+  const alternarModuloEdicion = (m) => {
+    setModuloEdicion((prev) =>
+      prev.includes(m) ? prev.filter((item) => item !== m) : [...prev, m]
+    );
+  };
+
   const guardarModuloPaciente = async () => {
     if (!pacienteActual) return;
+    setGuardandoModulo(true);
     const moduloNormalizado = normalizarModulos(moduloEdicion);
     try {
-      await actualizarPaciente(pacienteActual.id, { modulo: moduloNormalizado, modulos: moduloNormalizado });
-      setMensajeModulo('Modulo guardado.');
+      await actualizarPaciente(pacienteActual.id, {
+        modulo: moduloNormalizado,
+        modulos: moduloNormalizado,
+      });
+      setMensajeModulo('Módulos actualizados correctamente');
+      setTimeout(() => setMensajeModulo(''), 3000);
     } catch (err) {
-      setMensajeModulo('No se pudo guardar el modulo.');
+      setMensajeModulo('Error al guardar módulos');
+    } finally {
+      setGuardandoModulo(false);
     }
   };
 
   const limpiarFiltros = () => {
-    setFiltroNombre('');
+    setQuery('');
     setFiltroObraSocial('');
     setFiltroTratamiento('');
     setFiltroModulo('TODOS');
     setFiltroAutorizacion('');
-    setFiltroEstadoPaciente('');
+    setFiltroEstadoPaciente('activo');
     setFiltroMes('');
     setFiltroAnio(String(ANIO_BASE));
     setFiltroTipoFecha('');
@@ -785,769 +749,801 @@ export default function Pacientes({ alAbrirPaciente }) {
     setFiltroCampoCumplimiento('');
     setFiltroEstadoCumplimiento('');
     setFiltroAnioCumplimiento('');
-    setFiltrosAplicados(null);
-    setMensajeBusqueda('');
     setPaginaResultados(1);
   };
-
-  const buscarPacientes = () => {
-    const resultados = filtrarPacientes(pacientes, filtrosActuales);
-    setFiltrosAplicados(filtrosActuales);
-    setMensajeBusqueda(
-      `Busqueda realizada. Resultados: ${resultados.length}`
-    );
-    setPaginaResultados(1);
-  };
-
-  const inputClass =
-    'w-full rounded-lg border-none bg-surface-container-lowest px-4 py-3 text-sm text-on-surface focus:ring-2 focus:ring-primary/40';
-  const selectClass =
-    'w-full rounded-lg border-none bg-surface-container-lowest px-4 py-3 text-sm text-on-surface focus:ring-2 focus:ring-primary/40';
-  const filterLabelClass =
-    'mb-2 block text-[11px] font-bold uppercase tracking-widest text-on-surface-variant';
-  const filtroActivoClass =
-    'border shadow-sm';
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8 p-4 sm:p-6 lg:p-8">
-      <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-        <div>
-          <h2 className="mb-2 text-3xl font-extrabold tracking-tight text-on-surface">
-            Buscador Avanzado
-          </h2>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={limpiarFiltros}
-            className="inline-flex items-center gap-2 rounded-lg border border-outline-variant/20 bg-white px-6 py-2.5 text-sm font-semibold text-on-surface transition-all hover:bg-surface-container"
-          >
-            <span className="material-symbols-outlined text-[20px]">filter_alt_off</span>
-            Limpiar filtros
-          </button>
-          <button
-            type="button"
-            onClick={buscarPacientes}
-            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-br from-primary to-primary-dim px-8 py-2.5 text-sm font-semibold text-on-primary shadow-lg shadow-primary/20 transition-all hover:opacity-90"
-          >
-            <span className="material-symbols-outlined text-[20px]">search</span>
-            Buscar pacientes
-          </button>
-        </div>
-      </div>
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl space-y-6">
+        {/* Header Title Section */}
+        <section className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+          <div>
+            <nav className="mb-2 flex items-center gap-2 text-xs text-slate-400">
+              <span>Administración</span>
+              <span className="material-symbols-outlined text-[12px]">chevron_right</span>
+              <span className="font-semibold text-[#006d44]">Buscador Clínico</span>
+            </nav>
+            <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+              Buscador de Pacientes
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Búsqueda en tiempo real por datos de filiación, obra social, terapias, cronograma y controles.
+            </p>
+          </div>
 
-      <section className="grid grid-cols-1 gap-6 md:grid-cols-4">
-        <div className="rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/10 to-white p-6 shadow-sm shadow-primary/5 md:col-span-2">
-          <label className="mb-3 block text-[11px] font-bold uppercase tracking-widest text-primary">
-            Identificación Principal
-          </label>
-          <div className="space-y-4">
-            <div className="relative">
-              <span className="material-symbols-outlined absolute left-3 top-3 text-outline text-lg">
-                person
-              </span>
-              <input
-                value={filtroNombre}
-                onChange={(e) => setFiltroNombre(e.target.value)}
-                placeholder="Apellido y nombre o DNI, por ejemplo: rodriguez p o 30123456"
-                className={`w-full rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 ${
-                  filtroNombre
-                    ? `${filtroActivoClass} border-primary/35 bg-primary/10 text-on-surface shadow-primary/10 focus:ring-primary/25`
-                    : 'border-none bg-surface-container-lowest text-on-surface placeholder:text-outline/60 focus:ring-primary/40'
-                }`}
-              />
-            </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-3 text-outline text-lg">
-                  admin_panel_settings
-                </span>
-                <input
-                  value={filtroObraSocial}
-                  onChange={(e) => setFiltroObraSocial(e.target.value)}
-                  placeholder="Obra social"
-                  className={`w-full rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 ${
-                    filtroObraSocial
-                      ? `${filtroActivoClass} border-sky-300 bg-sky-50 text-on-surface shadow-sky-100 focus:ring-sky-200`
-                      : 'border-none bg-surface-container-lowest text-on-surface placeholder:text-outline/60 focus:ring-primary/40'
-                  }`}
-                />
-              </div>
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-3 text-outline text-lg">
-                  medical_services
-                </span>
-                <select
-                  value={filtroTratamiento}
-                  onChange={(e) => setFiltroTratamiento(e.target.value)}
-                  className={`w-full appearance-none rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 ${
-                    filtroTratamiento
-                      ? `${filtroActivoClass} border-emerald-300 bg-emerald-50 text-emerald-800 shadow-emerald-100 focus:ring-emerald-200`
-                      : 'border-none bg-surface-container-lowest text-on-surface focus:ring-primary/40'
-                  }`}
-                >
-                  <option value="">Terapias</option>
-                  {tratamientosFiltro.map((t) => (
-                    <option key={`filtro-${t}`} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-3xl border border-outline-variant/10 bg-gradient-to-br from-surface-container-low to-white p-6 shadow-sm shadow-black/5 md:col-span-2">
-          <label className="mb-3 block text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">
-            Administrativo y Estado
-          </label>
-          <div className="grid h-full grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-4">
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-3 text-outline text-lg">
-                  view_module
-                </span>
-                <select
-                  value={filtroModulo}
-                  onChange={(e) => setFiltroModulo(e.target.value)}
-                  className={`w-full appearance-none rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 ${
-                    filtroModulo && filtroModulo !== 'TODOS'
-                      ? `${filtroActivoClass} border-primary/35 bg-primary/10 text-primary shadow-primary/10 focus:ring-primary/25`
-                      : 'border-none bg-surface-container-lowest text-on-surface focus:ring-primary/40'
-                  }`}
-                >
-                  <option value="TODOS">Módulo</option>
-                  {MODULOS.map((m) => (
-                    <option key={`modulo-${m}`} value={m}>
-                      {m}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-3 text-outline text-lg">
-                  verified
-                </span>
-                <select
-                  value={filtroAutorizacion}
-                  onChange={(e) => setFiltroAutorizacion(e.target.value)}
-                  className={`w-full appearance-none rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 ${
-                    filtroAutorizacion === 'autorizado'
-                      ? `${filtroActivoClass} border-emerald-300 bg-emerald-50 text-emerald-800 shadow-emerald-100 focus:ring-emerald-200`
-                      : filtroAutorizacion === 'no_autorizado'
-                      ? `${filtroActivoClass} border-amber-300 bg-amber-50 text-amber-800 shadow-amber-100 focus:ring-amber-200`
-                      : 'border-none bg-surface-container-lowest text-on-surface focus:ring-primary/40'
-                  }`}
-                >
-                  <option value="">Autorización</option>
-                  <option value="autorizado">Autorizado</option>
-                  <option value="no_autorizado">No autorizado</option>
-                </select>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-3 text-outline text-lg">
-                  clinical_notes
-                </span>
-                <select
-                  value={filtroEstadoPaciente}
-                  onChange={(e) => setFiltroEstadoPaciente(e.target.value)}
-                  className={`w-full appearance-none rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 ${
-                    filtroEstadoPaciente === 'activo'
-                      ? `${filtroActivoClass} border-sky-300 bg-sky-50 text-sky-800 shadow-sky-100 focus:ring-sky-200`
-                      : filtroEstadoPaciente === 'baja'
-                      ? `${filtroActivoClass} border-rose-300 bg-rose-50 text-rose-800 shadow-rose-100 focus:ring-rose-200`
-                      : 'border-none bg-surface-container-lowest text-on-surface focus:ring-primary/40'
-                  }`}
-                >
-                  <option value="">Estado paciente</option>
-                  <option value="activo">Activo</option>
-                  <option value="baja">Dado de baja</option>
-                </select>
-              </div>
-              <div className="flex min-h-[88px] items-center justify-center rounded-lg border border-dashed border-outline-variant/30 bg-surface-container px-4">
-                <p className="text-center text-[10px] font-medium text-outline-variant">
-                  Utilice varios filtros y luego busque para congelar los resultados.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 rounded-3xl border border-outline-variant/10 bg-gradient-to-br from-surface-container-low/70 to-white p-6 shadow-sm shadow-black/5 md:col-span-4 md:grid-cols-4">
-          <div>
-            <label className={filterLabelClass}>Fecha Sectorizada</label>
-            <select
-              value={filtroCampoFecha}
-              onChange={(e) => setFiltroCampoFecha(e.target.value)}
-              disabled={
-                Boolean(filtroCampoCumplimiento) &&
-                camposFechaSectorizadaDisponibles.length === 0
-              }
-              className={`${selectClass} ${
-                filtroCampoFecha
-                  ? 'border border-primary/30 bg-primary/10 text-primary shadow-sm shadow-primary/10 focus:ring-primary/25'
-                  : ''
-              }`}
-            >
-              <option value="">Ninguna</option>
-              {camposFechaSectorizadaDisponibles.map((campo) => (
-                <option key={campo.value} value={campo.value}>
-                  {campo.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className={filterLabelClass}>CAR / PPI / Controles</label>
-            <select
-              value={filtroCampoCumplimiento}
-              onChange={(e) => {
-                const valor = e.target.value;
-                setFiltroCampoCumplimiento(valor);
-                setFiltroCampoFecha('');
-                if (valor !== 'car' && valor !== 'ppi') {
-                  setFiltroAnioCumplimiento('');
-                }
-              }}
-              className={`${selectClass} ${
-                filtroCampoCumplimiento
-                  ? 'border border-amber-300 bg-amber-50 text-amber-800 shadow-sm shadow-amber-100 focus:ring-amber-200'
-                  : ''
-              }`}
-            >
-              <option value="">Seleccionar</option>
-              {CAMPOS_CUMPLIMIENTO.map((campo) => (
-                <option key={campo.value} value={campo.value}>
-                  {campo.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className={filterLabelClass}>Tiene / No Tiene</label>
-            <select
-              value={filtroEstadoCumplimiento}
-              onChange={(e) => setFiltroEstadoCumplimiento(e.target.value)}
-              disabled={!filtroCampoCumplimiento}
-              className={`${selectClass} ${
-                filtroEstadoCumplimiento === 'tiene'
-                  ? 'border border-emerald-300 bg-emerald-50 text-emerald-800 shadow-sm shadow-emerald-100 focus:ring-emerald-200'
-                  : filtroEstadoCumplimiento === 'no_tiene'
-                  ? 'border border-rose-300 bg-rose-50 text-rose-800 shadow-sm shadow-rose-100 focus:ring-rose-200'
-                  : ''
-              }`}
-            >
-              <option value="">Todos</option>
-              <option value="tiene">Tiene</option>
-              <option value="no_tiene">No tiene</option>
-            </select>
-          </div>
-          <div>
-            <label className={filterLabelClass}>Año documental</label>
-            <select
-              value={filtroAnioCumplimiento}
-              onChange={(e) => setFiltroAnioCumplimiento(e.target.value)}
-              disabled={
-                filtroCampoCumplimiento !== 'car' &&
-                filtroCampoCumplimiento !== 'ppi'
-              }
-              className={`${selectClass} ${
-                filtroAnioCumplimiento
-                  ? 'border border-sky-300 bg-sky-50 text-sky-800 shadow-sm shadow-sky-100 focus:ring-sky-200'
-                  : ''
-              }`}
-            >
-              <option value="">Todos</option>
-              {ANIOS_DOCUMENTACION.map((anioItem) => (
-                <option key={`anio-doc-${anioItem}`} value={anioItem}>
-                  {anioItem}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className={filterLabelClass}>Mes</label>
-            <select
-              value={filtroMes}
-              onChange={(e) => {
-                setFiltroMes(e.target.value);
-                setFiltroDia('');
-                setFiltroSemana('');
-              }}
-              className={`${selectClass} ${
-                filtroMes
-                  ? 'border border-primary/30 bg-primary/10 text-primary shadow-sm shadow-primary/10 focus:ring-primary/25'
-                  : ''
-              }`}
-            >
-              <option value="">Mes</option>
-              {MESES.map((m, idx) => (
-                <option key={`mes-filtro-${m}`} value={idx + 1}>
-                  {m}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className={filterLabelClass}>Año</label>
-            <input
-              type="number"
-              value={filtroAnio}
-              onChange={(e) => setFiltroAnio(e.target.value)}
-              placeholder="Año"
-              className={`${inputClass} ${
-                filtroAnio
-                  ? 'border border-sky-300 bg-sky-50 text-sky-800 shadow-sm shadow-sky-100 focus:ring-sky-200'
-                  : ''
-              }`}
-            />
-          </div>
-          <div>
-            <label className={filterLabelClass}>Periodo</label>
-            <select
-              value={filtroTipoFecha}
-              onChange={(e) => {
-                setFiltroTipoFecha(e.target.value);
-                setFiltroDia('');
-                setFiltroSemana('');
-              }}
-              className={`${selectClass} ${
-                filtroTipoFecha
-                  ? 'border border-violet-300 bg-violet-50 text-violet-800 shadow-sm shadow-violet-100 focus:ring-violet-200'
-                  : ''
-              }`}
-            >
-              <option value="">Día o semana</option>
-              <option value="dia">Día específico</option>
-              <option value="semana">Semana del mes</option>
-            </select>
-          </div>
-          <div>
-            <label className={filterLabelClass}>
-              {filtroTipoFecha === 'semana' ? 'Semana' : 'Día'}
-            </label>
-            {filtroTipoFecha === 'semana' ? (
-              <select
-                value={filtroSemana}
-                onChange={(e) => setFiltroSemana(e.target.value)}
-                disabled={!filtroMes}
-                className={`${selectClass} ${
-                  filtroSemana
-                    ? 'border border-violet-300 bg-violet-50 text-violet-800 shadow-sm shadow-violet-100 focus:ring-violet-200'
-                    : ''
-                }`}
+          <div className="flex items-center gap-3">
+            {filtrosActivosCount > 0 && (
+              <button
+                type="button"
+                onClick={limpiarFiltros}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
               >
-                <option value="">Semana</option>
-                {semanasDisponibles.map((semana, idx) => (
-                  <option key={`semana-${idx + 1}`} value={idx + 1}>
-                    {generarEtiquetaSemana(semana, idx)}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <select
-                value={filtroDia}
-                onChange={(e) => setFiltroDia(e.target.value)}
-                disabled={!filtroMes}
-                className={`${selectClass} ${
-                  filtroDia
-                    ? 'border border-violet-300 bg-violet-50 text-violet-800 shadow-sm shadow-violet-100 focus:ring-violet-200'
-                    : ''
-                }`}
-              >
-                <option value="">Día</option>
-                {diasDisponibles.map((d) => (
-                  <option key={`dia-${d}`} value={d}>
-                    {d}
-                  </option>
-                ))}
-              </select>
+                <span className="material-symbols-outlined text-[18px] text-slate-400">
+                  filter_alt_off
+                </span>
+                Limpiar filtros ({filtrosActivosCount})
+              </button>
             )}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {mensajeBusqueda ? (
-        <div style={{ marginTop: 10, color: '#1b7f3a' }}>
-          {mensajeBusqueda}
-        </div>
-      ) : null}
-
-      <div className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <div>
-          <div className="mb-6 flex flex-col gap-4 rounded-[28px] border border-outline-variant/10 bg-gradient-to-r from-primary/5 via-transparent to-transparent p-4 md:flex-row md:items-center md:justify-between sm:p-5">
-            <div>
-              <h4 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-on-surface">
-                <span className="h-2 w-2 rounded-full bg-primary"></span>
-                Resultados encontrados ({pacientesFiltrados.length})
-              </h4>
-              {resumenObrasSociales.length ? (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {resumenObrasSociales.map(([obra, cantidad]) => (
-                    <span
-                      key={`obra-resumen-${obra}`}
-                      className="rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold text-primary"
-                    >
-                      {obra}: {cantidad}
-                    </span>
-                  ))}
-                  {desgloseObrasSociales.length > resumenObrasSociales.length ? (
-                    <span className="rounded-full bg-surface-container-low px-3 py-1 text-[11px] font-semibold text-on-surface-variant">
-                      +{desgloseObrasSociales.length - resumenObrasSociales.length} obras sociales
-                    </span>
-                  ) : null}
-                </div>
-              ) : null}
+        {/* Command Search Control Bar */}
+        <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
+          {/* Top Row: Search Input + Quick Segmented Chips */}
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+            {/* Search Input Box */}
+            <div className="relative flex-1">
+              <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
+                search
+              </span>
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Buscar por Apellido, Nombre, DNI, Obra Social o Terapia..."
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-10 text-sm text-slate-800 placeholder-slate-400 transition focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  <span className="material-symbols-outlined text-[18px]">close</span>
+                </button>
+              )}
             </div>
-            {pacientesFiltrados.length ? (
-              <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-surface-container-low px-3 py-2 text-xs font-semibold text-on-surface-variant shadow-sm">
-                <button
-                  type="button"
-                  onClick={() => setPaginaResultados((p) => Math.max(1, p - 1))}
-                  disabled={paginaResultadosSegura === 1}
-                  className="rounded-lg bg-surface-container-lowest px-3 py-2 transition-colors hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  Anterior
-                </button>
-                <span>
-                  Página {paginaResultadosSegura} de {totalPaginasResultados}
-                </span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setPaginaResultados((p) => Math.min(totalPaginasResultados, p + 1))
-                  }
-                  disabled={paginaResultadosSegura === totalPaginasResultados}
-                  className="rounded-lg bg-surface-container-lowest px-3 py-2 transition-colors hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  Siguiente
-                </button>
-              </div>
-            ) : null}
-          </div>
 
-          {pacientesFiltrados.length ? (
-            <div className="grid grid-cols-1 gap-4 xl:gap-5">
-              {pacientesPaginados.map((p) => {
-                const seleccionado = pacienteActual?.id === p.id;
-                const modulosPaciente = normalizarModulos(p?.modulos || p?.modulo);
-                return (
-                  <div
-                    key={`resultado-${p.id}`}
-                    className={`relative overflow-hidden rounded-[24px] border-2 p-3.5 pl-4 transition-all duration-200 sm:p-4 sm:pl-5 ${
-                      seleccionado
-                        ? 'border-primary bg-gradient-to-br from-emerald-50 via-white to-white shadow-lg shadow-primary/10 ring-2 ring-primary/15'
-                        : 'border-primary/35 bg-gradient-to-br from-emerald-50/80 via-white to-white shadow-sm shadow-primary/10 hover:-translate-y-0.5 hover:border-primary hover:shadow-lg hover:shadow-on-surface/5'
+            {/* Quick Segmented Controls */}
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Status Segment */}
+              <div className="inline-flex rounded-xl bg-slate-100 p-1">
+                {[
+                  { key: 'activo', label: 'Activos' },
+                  { key: '', label: 'Todos' },
+                  { key: 'baja', label: 'Bajas' },
+                ].map((st) => (
+                  <button
+                    key={`st-filter-${st.key}`}
+                    type="button"
+                    onClick={() => setFiltroEstadoPaciente(st.key)}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                      filtroEstadoPaciente === st.key
+                        ? 'bg-white text-slate-900 shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
-                    <div
-                      className={`absolute inset-y-3 left-0 w-3 rounded-r-full ${
-                        seleccionado ? 'bg-primary shadow-[0_0_0_1px_rgba(0,109,68,0.08)]' : 'bg-primary'
-                      }`}
-                    />
-                    <div className="mb-3 rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/10 to-primary/5 px-3 py-2.5 shadow-sm sm:px-4">
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex items-start gap-3">
-                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary text-sm font-extrabold text-on-primary shadow-md shadow-primary/20">
-                            {obtenerInicialesPaciente(p)}
-                          </div>
-                          <div className="min-w-0">
-                            <h5 className="text-base font-bold leading-tight text-on-surface sm:text-lg">
-                              {formatearEtiquetaPaciente(p)}
-                            </h5>
-                            <p className="mt-1 text-xs font-medium text-on-surface-variant">
-                              {p.edad ?? '-'} años
-                              {' · '}
-                              {p.obraSocial || 'Sin obra social'}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex flex-col gap-1.5 items-end">
-                          {p.dadoDeBaja ? (
-                            <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-tight text-amber-700">
-                              Baja
-                            </span>
-                          ) : (
-                            <>
-                              <span className="rounded-full bg-blue-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-tight text-blue-800">
-                                {String(p.patient_state_name || 'Nuevo').replace('_', ' ')}
-                              </span>
-                              <span
-                                className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-tight ${
-                                  p.activo === false
-                                    ? 'bg-error-container/20 text-error-dim'
-                                    : 'bg-tertiary-container text-on-tertiary-container'
-                                }`}
-                              >
-                                {p.activo === false ? 'No autorizado' : 'Autorizado'}
-                              </span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+                    {st.label}
+                  </button>
+                ))}
+              </div>
 
-                    <div className="mb-3 flex flex-wrap items-start gap-2.5 rounded-2xl bg-surface-container-low/70 px-3 py-2.5">
-                      <div className="min-w-[110px]">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-outline">
-                          Estado
-                        </p>
-                        <p className="text-xs font-semibold text-on-surface-variant">
-                          {p.dadoDeBaja
-                            ? `Baja${p.fechaBaja ? ` (${String(p.fechaBaja).slice(0, 10)})` : ''}`
-                            : 'Activo'}
-                        </p>
-                      </div>
-                      <div className="min-w-[140px] flex-1">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-outline">
-                          Módulos
-                        </p>
-                        <div className="mt-1 flex flex-wrap gap-1.5">
-                          {modulosPaciente.length ? (
-                            modulosPaciente.map((modulo) =>
-                              renderModuloBadge(modulo, { compacto: true })
-                            )
-                          ) : (
-                            <span className="text-xs font-semibold text-on-surface-variant">Sin módulos</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+              {/* Authorization Filter */}
+              <div className="inline-flex rounded-xl bg-slate-100 p-1">
+                {[
+                  { key: '', label: 'Cualquier Auth' },
+                  { key: 'autorizado', label: 'Autorizados' },
+                  { key: 'no_autorizado', label: 'Pendientes' },
+                ].map((auth) => (
+                  <button
+                    key={`auth-filter-${auth.key}`}
+                    type="button"
+                    onClick={() => setFiltroAutorizacion(auth.key)}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                      filtroAutorizacion === auth.key
+                        ? auth.key === 'no_autorizado'
+                          ? 'bg-rose-50 text-rose-700 shadow-sm'
+                          : 'bg-emerald-50 text-emerald-800 shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    {auth.label}
+                  </button>
+                ))}
+              </div>
 
-                    <p className="mb-3 rounded-2xl border border-outline-variant/10 bg-surface-container-low/50 px-3 py-2 text-[11px] leading-relaxed text-on-surface-variant">
-                      {describirDocumentacionPaciente(p)}
-                    </p>
+              {/* Module Filter */}
+              <div className="inline-flex rounded-xl bg-slate-100 p-1">
+                {['TODOS', ...MODULOS].map((m) => (
+                  <button
+                    key={`mod-filter-${m}`}
+                    type="button"
+                    onClick={() => setFiltroModulo(m)}
+                    className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition ${
+                      filtroModulo === m
+                        ? 'bg-white text-slate-900 shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    {m !== 'TODOS' && (
+                      <span className={`h-2 w-2 rounded-full ${MODULO_ESTILOS[m].punto}`} />
+                    )}
+                    {m}
+                  </button>
+                ))}
+              </div>
 
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        disabled={p.dadoDeBaja === true}
-                        onClick={() => {
-                          setIdSeleccionado(p.id);
-                          seleccionarPaciente(p.id);
-                        }}
-                        className="inline-flex min-h-9 items-center justify-center gap-2 rounded-xl bg-primary px-3.5 py-2 text-xs font-bold text-on-primary shadow-sm shadow-primary/20 transition-all hover:-translate-y-0.5 hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        Seleccionar
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => alAbrirPaciente(p.id)}
-                        className="min-h-9 rounded-xl bg-sky-100 px-3.5 py-2 text-xs font-bold text-sky-700 shadow-sm transition-colors hover:bg-sky-200"
-                      >
-                        Ver ficha
-                      </button>
-                      <button
-                        type="button"
-                        disabled={p.dadoDeBaja === true}
-                        onClick={() => cambiarEstadoPaciente(p.id, p.activo === false)}
-                        className={`min-h-9 rounded-xl px-3 py-2 text-xs font-bold shadow-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-                          p.activo === false
-                            ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
-                            : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
-                        }`}
-                      >
-                        {p.activo === false ? 'Autorizar' : 'No autorizar'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => cambiarBajaPaciente(p.id, p.dadoDeBaja !== true)}
-                        className={`min-h-9 rounded-xl px-3 py-2 text-xs font-bold shadow-sm transition-colors ${
-                          p.dadoDeBaja === true
-                            ? 'bg-rose-600 text-white hover:bg-rose-500'
-                            : 'bg-rose-100 text-rose-700 hover:bg-rose-200'
-                        }`}
-                      >
-                        {p.dadoDeBaja === true ? 'Reactivar' : 'Dar de baja'}
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+              {/* Toggle Advanced Filters */}
+              <button
+                type="button"
+                onClick={() => setMostrarFiltrosAvanzados((prev) => !prev)}
+                className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-semibold transition ${
+                  mostrarFiltrosAvanzados || filtrosActivosCount > 2
+                    ? 'border-emerald-300 bg-emerald-50 text-emerald-800 ring-2 ring-emerald-500/10'
+                    : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[18px]">tune</span>
+                Filtros Avanzados
+                <span className="material-symbols-outlined text-[16px]">
+                  {mostrarFiltrosAvanzados ? 'expand_less' : 'expand_more'}
+                </span>
+              </button>
             </div>
-          ) : (
-            <div className="rounded-xl bg-surface-container-low p-8 text-center text-sm text-on-surface-variant">
-              No hay resultados con los filtros actuales.
+          </div>
+
+          {/* Collapsible Advanced Filters Drawer */}
+          {mostrarFiltrosAvanzados && (
+            <div className="mt-5 border-t border-slate-100 pt-5">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {/* Obra Social Selector */}
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-600">
+                    Obra Social
+                  </label>
+                  <select
+                    value={filtroObraSocial}
+                    onChange={(e) => setFiltroObraSocial(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  >
+                    <option value="">Todas las Obras Sociales</option>
+                    {obrasSocialesDisponibles.map((os) => (
+                      <option key={os} value={os}>
+                        {os}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Terapia Selector */}
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-600">
+                    Terapia Específica
+                  </label>
+                  <select
+                    value={filtroTratamiento}
+                    onChange={(e) => setFiltroTratamiento(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  >
+                    <option value="">Todas las Terapias</option>
+                    {tratamientosFiltro.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Mes y Año de Turnos */}
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-600">
+                    Mes y Año de Cronograma
+                  </label>
+                  <div className="flex gap-2">
+                    <select
+                      value={filtroMes}
+                      onChange={(e) => {
+                        setFiltroMes(e.target.value);
+                        setFiltroDia('');
+                        setFiltroSemana('');
+                      }}
+                      className="w-2/3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    >
+                      <option value="">Cualquier Mes</option>
+                      {MESES.map((m, idx) => (
+                        <option key={m} value={idx + 1}>
+                          {m}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="number"
+                      value={filtroAnio}
+                      onChange={(e) => setFiltroAnio(e.target.value)}
+                      placeholder="Año"
+                      className="w-1/3 rounded-xl border border-slate-200 bg-slate-50 px-2 py-2 text-center text-xs font-medium text-slate-700 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    />
+                  </div>
+                </div>
+
+                {/* Periodo: Día o Semana */}
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-600">
+                    Filtro por Día / Semana
+                  </label>
+                  <div className="flex gap-2">
+                    <select
+                      value={filtroTipoFecha}
+                      onChange={(e) => {
+                        setFiltroTipoFecha(e.target.value);
+                        setFiltroDia('');
+                        setFiltroSemana('');
+                      }}
+                      disabled={!filtroMes}
+                      className="w-1/2 rounded-xl border border-slate-200 bg-slate-50 px-2 py-2 text-xs font-medium text-slate-700 disabled:opacity-50 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    >
+                      <option value="">Todo el mes</option>
+                      <option value="dia">Día puntual</option>
+                      <option value="semana">Semana</option>
+                    </select>
+                    {filtroTipoFecha === 'semana' ? (
+                      <select
+                        value={filtroSemana}
+                        onChange={(e) => setFiltroSemana(e.target.value)}
+                        className="w-1/2 rounded-xl border border-slate-200 bg-slate-50 px-2 py-2 text-xs font-medium text-slate-700 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                      >
+                        <option value="">Semana</option>
+                        {semanasDisponibles.map((sem, idx) => (
+                          <option key={`sem-${idx + 1}`} value={idx + 1}>
+                            Semana {idx + 1}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <select
+                        value={filtroDia}
+                        onChange={(e) => setFiltroDia(e.target.value)}
+                        disabled={filtroTipoFecha !== 'dia'}
+                        className="w-1/2 rounded-xl border border-slate-200 bg-slate-50 px-2 py-2 text-xs font-medium text-slate-700 disabled:opacity-50 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                      >
+                        <option value="">Día</option>
+                        {diasDisponibles.map((d) => (
+                          <option key={`dia-${d}`} value={d}>
+                            {d}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                </div>
+
+                {/* Controles / Documentación */}
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-600">
+                    CAR / PPI / Controles
+                  </label>
+                  <select
+                    value={filtroCampoCumplimiento}
+                    onChange={(e) => {
+                      setFiltroCampoCumplimiento(e.target.value);
+                      setFiltroCampoFecha('');
+                      if (e.target.value !== 'car' && e.target.value !== 'ppi') {
+                        setFiltroAnioCumplimiento('');
+                      }
+                    }}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  >
+                    <option value="">Sin filtrar documentación</option>
+                    {CAMPOS_CUMPLIMIENTO.map((c) => (
+                      <option key={c.value} value={c.value}>
+                        {c.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Estado de Documentación */}
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-600">
+                    Estado de Cumplimiento
+                  </label>
+                  <select
+                    value={filtroEstadoCumplimiento}
+                    onChange={(e) => setFiltroEstadoCumplimiento(e.target.value)}
+                    disabled={!filtroCampoCumplimiento}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 disabled:opacity-50 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  >
+                    <option value="">Todos</option>
+                    <option value="tiene">Tiene presentado / vigente</option>
+                    <option value="no_tiene">No tiene presentado</option>
+                  </select>
+                </div>
+
+                {/* Año Documental */}
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-600">
+                    Año Documental (CAR/PPI)
+                  </label>
+                  <select
+                    value={filtroAnioCumplimiento}
+                    onChange={(e) => setFiltroAnioCumplimiento(e.target.value)}
+                    disabled={filtroCampoCumplimiento !== 'car' && filtroCampoCumplimiento !== 'ppi'}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 disabled:opacity-50 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  >
+                    <option value="">Cualquier Año</option>
+                    {ANIOS_DOCUMENTACION.map((anio) => (
+                      <option key={anio} value={anio}>
+                        {anio}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Fechas Sectorizadas */}
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-600">
+                    Fecha Específica de Control
+                  </label>
+                  <select
+                    value={filtroCampoFecha}
+                    onChange={(e) => setFiltroCampoFecha(e.target.value)}
+                    disabled={Boolean(filtroCampoCumplimiento) && camposFechaSectorizadaDisponibles.length === 0}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 disabled:opacity-50 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  >
+                    <option value="">Ninguna</option>
+                    {camposFechaSectorizadaDisponibles.map((campo) => (
+                      <option key={campo.value} value={campo.value}>
+                        {campo.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
           )}
-        </div>
+        </section>
 
-        <aside className="h-fit rounded-[28px] border border-outline-variant/10 bg-gradient-to-br from-surface-container-lowest to-white p-6 shadow-sm shadow-black/5">
-          {pacienteActual ? (
-            <div className="space-y-6">
-              <div>
-                <p className="mb-1 text-xs font-bold uppercase tracking-wider text-outline">
-                  Paciente seleccionado
-                </p>
-                <h3 className="text-2xl font-extrabold text-on-surface">
-                  {formatearEtiquetaPaciente(pacienteActual)}
-                </h3>
-                <p className="mt-2 text-sm text-on-surface-variant">
-                  Edad: {pacienteActual.edad || '-'} | Obra social:{' '}
-                  {pacienteActual.obraSocial || '-'}
-                </p>
-              </div>
-
-              <div className="flex flex-col gap-2 items-start">
-                {pacienteActual.dadoDeBaja ? (
-                  <span className="rounded-full bg-amber-100 px-3 py-1 text-[10px] font-bold uppercase tracking-tight text-amber-700">
-                    Dado de baja
+        {/* Master - Detail Split Section */}
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+          {/* Left Column: Search Results Feed */}
+          <div className="space-y-4">
+            {/* Results Header Bar */}
+            <div className="flex flex-col justify-between gap-3 rounded-2xl border border-slate-200/80 bg-white p-4 sm:flex-row sm:items-center">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="flex items-center gap-2 text-sm font-bold text-slate-800">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-xs text-emerald-800">
+                    {pacientesFiltrados.length}
                   </span>
-                ) : (
-                  <>
-                    <span className="rounded-full bg-blue-100 px-3 py-1 text-[10px] font-bold uppercase tracking-tight text-blue-800">
-                      {String(pacienteActual.patient_state_name || 'Nuevo').replace('_', ' ')}
-                    </span>
-                    <span
-                      className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-tight ${
-                        pacienteActual.activo === false
-                          ? 'bg-error-container/20 text-error-dim'
-                          : 'bg-tertiary-container text-on-tertiary-container'
-                      }`}
-                    >
-                      {pacienteActual.activo === false ? 'No autorizado' : 'Autorizado'}
-                    </span>
-                  </>
-                )}
-              </div>
+                  Resultados encontrados
+                </span>
 
-              {pacienteBloqueado ? (
-                <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                  Paciente dado de baja: solo se puede consultar y reactivar.
-                </div>
-              ) : null}
-
-              <div>
-                <p className="mb-3 text-xs font-bold uppercase tracking-widest text-on-surface-variant">
-                  Módulo
-                </p>
-                <div className="mb-3 flex flex-wrap gap-2">
-                  {moduloEdicion.length ? (
-                    moduloEdicion.map((modulo) => renderModuloBadge(modulo))
-                  ) : (
-                    <span className="text-sm font-medium text-on-surface-variant">Sin módulos asignados</span>
-                  )}
-                </div>
-                <div className="space-y-3">
-                  {MODULOS.map((m) => (
-                    <label
-                      key={`detalle-mod-${m}`}
-                      className={`flex items-center gap-3 rounded-xl border p-4 transition-all hover:border-primary/20 ${
-                        clasesModulo(m).opcion
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={moduloEdicion.includes(m)}
-                        onChange={() =>
-                          setModuloEdicion((prev) =>
-                            prev.includes(m)
-                              ? prev.filter((item) => item !== m)
-                              : [...prev, m]
-                          )
-                        }
-                        className="rounded border-outline-variant/50 text-primary focus:ring-primary/30"
-                      />
-                      <span className={`h-3 w-3 rounded-[4px] ${clasesModulo(m).punto}`} />
-                      <span className="text-sm font-medium text-on-surface">{m}</span>
-                    </label>
-                  ))}
-                </div>
-                <div className="mt-3 flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={guardarModuloPaciente}
-                    className="rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-on-primary transition-all hover:opacity-90"
-                  >
-                    Guardar módulo
-                  </button>
-                  {mensajeModulo ? (
-                    <span
-                      className={`text-xs font-semibold ${
-                        mensajeModulo.includes('No se pudo') ? 'text-error' : 'text-primary'
-                      }`}
-                    >
-                      {mensajeModulo}
-                    </span>
-                  ) : null}
-                </div>
-              </div>
-
-              <div>
-                <label className={filterLabelClass}>Mes</label>
-                <select
-                  value={mesSeleccionado}
-                  onChange={(e) => setMesSeleccionado(Number(e.target.value))}
-                  className={selectClass}
-                >
-                  {MESES.map((nombreMes, index) => (
-                    <option key={nombreMes} value={index + 1}>
-                      {nombreMes}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <p className="mb-3 text-xs font-bold uppercase tracking-widest text-on-surface-variant">
-                  Tratamientos actuales
-                </p>
-                {(pacienteActual.tratamientos || []).length ? (
-                  <div className="flex flex-wrap gap-2">
-                    {pacienteActual.tratamientos.map((t) => (
+                {resumenObrasSociales.length > 0 && (
+                  <div className="hidden items-center gap-1.5 md:flex">
+                    <span className="text-slate-300">|</span>
+                    {resumenObrasSociales.map(([obra, cantidad]) => (
                       <span
-                        key={t}
-                        className="rounded-lg bg-surface-container-low px-3 py-2 text-xs font-bold text-on-surface-variant"
+                        key={`os-tag-${obra}`}
+                        className="rounded-lg bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600"
                       >
-                        {t}
+                        {obra}: {cantidad}
                       </span>
                     ))}
                   </div>
-                ) : (
-                  <p className="text-sm text-on-surface-variant">Sin tratamientos.</p>
                 )}
               </div>
 
-              <form onSubmit={agregarAlPaciente} className="space-y-3">
-                <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">
-                  Agregar tratamientos
-                </p>
-                <AlternarLista
-                  seleccionados={tratamientosAgregar}
-                  deshabilitados={pacienteActual?.tratamientos || []}
-                  alCambiar={pacienteBloqueado ? () => {} : alternarAgregar}
-                />
-                <button
-                  type="submit"
-                  disabled={pacienteBloqueado}
-                  className="rounded-xl bg-gradient-to-br from-primary to-primary-dim px-5 py-2.5 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Agregar al paciente
-                </button>
-              </form>
-
-              <div>
-                <div className="mb-3 flex items-center justify-between">
-                  <h4 className="text-lg font-bold text-on-surface">Cronograma de turnos</h4>
+              {/* Pagination Controls */}
+              {pacientesFiltrados.length > 0 && (
+                <div className="flex items-center gap-1 text-xs">
+                  <span className="mr-2 text-slate-500">
+                    Página {paginaResultadosSegura} de {totalPaginasResultados}
+                  </span>
                   <button
                     type="button"
-                    onClick={() => alAbrirPaciente(pacienteActual.id)}
-                    className="text-xs font-bold text-primary"
+                    onClick={() => setPaginaResultados((p) => Math.max(1, p - 1))}
+                    disabled={paginaResultadosSegura === 1}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40"
                   >
-                    Ver detalle
+                    <span className="material-symbols-outlined text-[16px]">chevron_left</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaginaResultados((p) => Math.min(totalPaginasResultados, p + 1))}
+                    disabled={paginaResultadosSegura === totalPaginasResultados}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">chevron_right</span>
                   </button>
                 </div>
-                {(pacienteActual.tratamientos || []).length ? (
-                  <div className="space-y-4">
-                    {(pacienteActual.tratamientos || []).map((t) => (
+              )}
+            </div>
+
+            {/* Patients List Grid */}
+            {pacientesPaginados.length > 0 ? (
+              <div className="space-y-3">
+                {pacientesPaginados.map((p) => {
+                  const seleccionado = pacienteActual?.id === p.id;
+                  const modulosPaciente = normalizarModulos(p?.modulos || p?.modulo);
+                  const iniciales = obtenerInicialesPaciente(p);
+                  const estaDeBaja = p?.dadoDeBaja === true;
+                  const estaAutorizado = p?.activo !== false;
+
+                  return (
+                    <div
+                      key={`card-${p.id}`}
+                      className={`group relative overflow-hidden rounded-2xl border transition-all duration-200 ${
+                        seleccionado
+                          ? 'border-emerald-500 bg-emerald-50/30 shadow-md ring-2 ring-emerald-500/20'
+                          : 'border-slate-200/80 bg-white shadow-sm hover:border-emerald-300 hover:shadow-md'
+                      }`}
+                    >
+                      {/* Left Accent Color Indicator */}
                       <div
-                        key={t}
-                        className="overflow-hidden rounded-xl border border-outline-variant/20"
-                      >
-                        <Cronograma
+                        className={`absolute bottom-0 left-0 top-0 w-1.5 transition-colors ${
+                          seleccionado ? 'bg-emerald-600' : 'bg-transparent group-hover:bg-emerald-300'
+                        }`}
+                      />
+
+                      <div className="p-4 sm:p-5 pl-5 sm:pl-6">
+                        {/* Top Row: Avatar + Name + Badges */}
+                        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                          <div className="flex items-center gap-3.5">
+                            <div
+                              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm font-bold shadow-sm ${
+                                seleccionado
+                                  ? 'bg-emerald-700 text-white'
+                                  : 'bg-emerald-100 text-emerald-800'
+                              }`}
+                            >
+                              {iniciales}
+                            </div>
+                            <div>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <h4 className="text-base font-bold text-slate-900">
+                                  {formatearEtiquetaPaciente(p)}
+                                </h4>
+                                {p.dni && (
+                                  <span className="font-mono text-xs text-slate-400">
+                                    DNI {p.dni}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-slate-500">
+                                {p.edad ? `${p.edad} años` : 'Edad no especificada'} •{' '}
+                                <span className="font-medium text-slate-700">
+                                  {p.obraSocial || 'Sin obra social'}
+                                </span>
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Status Pills */}
+                          <div className="flex flex-wrap items-center gap-1.5 sm:justify-end">
+                            {estaDeBaja ? (
+                              <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-800">
+                                Baja
+                              </span>
+                            ) : (
+                              <>
+                                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-semibold text-slate-700">
+                                  {String(p.patient_state_name || 'Admisión').replace('_', ' ')}
+                                </span>
+                                <span
+                                  className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${
+                                    estaAutorizado
+                                      ? 'bg-emerald-100 text-emerald-800'
+                                      : 'bg-rose-100 text-rose-700'
+                                  }`}
+                                >
+                                  {estaAutorizado ? 'Autorizado' : 'Pendiente'}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Mid Row: Modules & Treatments */}
+                        <div className="mt-3.5 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
+                          {/* Modules Badges */}
+                          <div className="flex items-center gap-1.5">
+                            {modulosPaciente.length > 0 ? (
+                              modulosPaciente.map((mod) => (
+                                <span
+                                  key={`mod-badge-${p.id}-${mod}`}
+                                  className={`inline-flex items-center gap-1 rounded-lg border px-2 py-0.5 text-[10px] font-bold uppercase ${
+                                    MODULO_ESTILOS[mod].badge
+                                  }`}
+                                >
+                                  <span
+                                    className={`h-1.5 w-1.5 rounded-full ${MODULO_ESTILOS[mod].punto}`}
+                                  />
+                                  {mod}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-[11px] text-slate-400">Sin módulos</span>
+                            )}
+                          </div>
+
+                          <span className="text-slate-300">•</span>
+
+                          {/* Treatments */}
+                          <div className="flex flex-wrap items-center gap-1 text-[11px] text-slate-600">
+                            {(p.tratamientos || []).length > 0 ? (
+                              (p.tratamientos || []).map((t) => (
+                                <span
+                                  key={`treat-${p.id}-${t}`}
+                                  className="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600"
+                                >
+                                  {t}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-slate-400">Sin terapias activas</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Action Buttons Toolbar */}
+                        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3">
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIdSeleccionado(p.id);
+                                seleccionarPaciente(p.id);
+                              }}
+                              className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
+                                seleccionado
+                                  ? 'bg-emerald-600 text-white shadow-sm'
+                                  : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+                              }`}
+                            >
+                              <span className="material-symbols-outlined text-[16px]">
+                                {seleccionado ? 'edit_note' : 'dashboard_customize'}
+                              </span>
+                              {seleccionado ? 'Editando en Panel' : 'Panel Rápido'}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => alAbrirPaciente(p.id)}
+                              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                            >
+                              <span className="material-symbols-outlined text-[16px] text-slate-400">
+                                open_in_new
+                              </span>
+                              Ver Ficha
+                            </button>
+                          </div>
+
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              disabled={estaDeBaja}
+                              onClick={() => cambiarEstadoPaciente(p.id, p.activo === false)}
+                              title={estaAutorizado ? 'Suspender autorización' : 'Habilitar autorización'}
+                              className={`flex h-8 items-center gap-1 rounded-xl px-2.5 text-xs font-semibold transition disabled:opacity-40 ${
+                                estaAutorizado
+                                  ? 'bg-slate-100 text-slate-600 hover:bg-rose-50 hover:text-rose-600'
+                                  : 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
+                              }`}
+                            >
+                              <span className="material-symbols-outlined text-[15px]">
+                                {estaAutorizado ? 'block' : 'check_circle'}
+                              </span>
+                              {estaAutorizado ? 'Suspender' : 'Autorizar'}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => cambiarBajaPaciente(p.id, !estaDeBaja)}
+                              title={estaDeBaja ? 'Reactivar paciente' : 'Dar de baja administrativa'}
+                              className={`flex h-8 items-center gap-1 rounded-xl px-2.5 text-xs font-semibold transition ${
+                                estaDeBaja
+                                  ? 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                                  : 'bg-slate-100 text-slate-600 hover:bg-rose-50 hover:text-rose-600'
+                              }`}
+                            >
+                              <span className="material-symbols-outlined text-[15px]">
+                                {estaDeBaja ? 'restart_alt' : 'person_off'}
+                              </span>
+                              {estaDeBaja ? 'Reactivar' : 'Baja'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center">
+                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                  <span className="material-symbols-outlined text-2xl">person_search</span>
+                </div>
+                <h4 className="text-base font-bold text-slate-800">
+                  No se encontraron pacientes
+                </h4>
+                <p className="mt-1 text-xs text-slate-500">
+                  Prueba modificando los términos de búsqueda o limpiando los filtros seleccionados.
+                </p>
+                <button
+                  type="button"
+                  onClick={limpiarFiltros}
+                  className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+                >
+                  Restablecer todos los filtros
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Right Column: Interactive Inspector / Quick Dock */}
+          <aside className="sticky top-20 h-fit space-y-5 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
+            {pacienteActual ? (
+              <div className="space-y-5">
+                {/* Selected Patient Hero Header */}
+                <div className="flex items-start justify-between border-b border-slate-100 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-600 text-base font-bold text-white shadow-sm">
+                      {obtenerInicialesPaciente(pacienteActual)}
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">
+                        Panel de Gestión Rápida
+                      </p>
+                      <h3 className="text-lg font-extrabold text-slate-900">
+                        {formatearEtiquetaPaciente(pacienteActual)}
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        {pacienteActual.obraSocial || 'Sin obra social'} •{' '}
+                        {pacienteActual.edad ? `${pacienteActual.edad} años` : 'Edad -'}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIdSeleccionado('')}
+                    title="Cerrar panel de edición"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">close</span>
+                  </button>
+                </div>
+
+                {pacienteBloqueado && (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+                    <strong>Paciente dado de baja:</strong> Edición de módulos y turnos restringida hasta reactivación.
+                  </div>
+                )}
+
+                {/* Section 1: Module Assignment */}
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-800">Módulos Clínicos</span>
+                    <span className="text-[10px] font-semibold text-slate-400">
+                      {moduloEdicion.length} asignado(s)
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2">
+                    {MODULOS.map((m) => {
+                      const activo = moduloEdicion.includes(m);
+                      return (
+                        <button
+                          key={`dock-mod-${m}`}
+                          type="button"
+                          disabled={pacienteBloqueado}
+                          onClick={() => alternarModuloEdicion(m)}
+                          className={`flex items-center justify-center gap-1.5 rounded-xl border p-2.5 text-xs font-bold transition ${
+                            activo
+                              ? MODULO_ESTILOS[m].botonActivo
+                              : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
+                          }`}
+                        >
+                          <span className={`h-2 w-2 rounded-full ${MODULO_ESTILOS[m].punto}`} />
+                          {m}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <button
+                      type="button"
+                      disabled={pacienteBloqueado || guardandoModulo}
+                      onClick={guardarModuloPaciente}
+                      className="rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
+                    >
+                      {guardandoModulo ? 'Guardando...' : 'Guardar Módulo'}
+                    </button>
+                    {mensajeModulo && (
+                      <span className="text-xs font-semibold text-emerald-700">
+                        {mensajeModulo}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Section 2: Assigned Treatments + Add */}
+                <div className="space-y-2.5 border-t border-slate-100 pt-4">
+                  <span className="block text-xs font-bold text-slate-800">
+                    Terapias Asignadas
+                  </span>
+
+                  <div className="flex flex-wrap gap-1.5">
+                    {(pacienteActual.tratamientos || []).length > 0 ? (
+                      (pacienteActual.tratamientos || []).map((t) => (
+                        <span
+                          key={`dock-assigned-${t}`}
+                          className="rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800 border border-emerald-200"
+                        >
+                          {t}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-xs text-slate-400">Sin terapias activas</span>
+                    )}
+                  </div>
+
+                  {!pacienteBloqueado && (
+                    <form onSubmit={guardarTratamientosNuevos} className="space-y-2 pt-2">
+                      <span className="block text-[11px] font-semibold text-slate-500">
+                        Agregar nuevas terapias:
+                      </span>
+                      <AlternarTratamientosList
+                        seleccionados={tratamientosAgregar}
+                        deshabilitados={pacienteActual?.tratamientos || []}
+                        alCambiar={alternarAgregarTratamiento}
+                      />
+                      {tratamientosAgregar.length > 0 && (
+                        <button
+                          type="submit"
+                          className="mt-2 inline-flex items-center gap-1 rounded-xl bg-slate-800 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-slate-900"
+                        >
+                          <span className="material-symbols-outlined text-[15px]">add</span>
+                          Confirmar Terapias ({tratamientosAgregar.length})
+                        </button>
+                      )}
+                    </form>
+                  )}
+                </div>
+
+                {/* Section 3: Monthly Schedule / Turnos */}
+                <div className="space-y-2.5 border-t border-slate-100 pt-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-800">
+                      Cronograma Mensual
+                    </span>
+                    <select
+                      value={mesSeleccionado}
+                      onChange={(e) => setMesSeleccionado(Number(e.target.value))}
+                      className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700"
+                    >
+                      {MESES.map((nombreMes, index) => (
+                        <option key={nombreMes} value={index + 1}>
+                          {nombreMes}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {(pacienteActual.tratamientos || []).length > 0 ? (
+                    <div className="space-y-3">
+                      {(pacienteActual.tratamientos || []).map((t) => (
+                        <CronogramaMatrix
+                          key={`dock-crono-${t}`}
                           tratamiento={t}
                           turnosSeleccionados={
                             ((pacienteActual.turnosPorMes || {})[mesSeleccionado] || {})[t] || []
@@ -1559,25 +1555,42 @@ export default function Pacientes({ alAbrirPaciente }) {
                               : alternarTurno(pacienteActual.id, t, clave, mesSeleccionado)
                           }
                         />
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-on-surface-variant">
-                    Asigna tratamientos para habilitar el cronograma.
-                  </p>
-                )}
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center text-xs text-slate-500">
+                      Asigna al menos una terapia para habilitar la grilla de turnos.
+                    </div>
+                  )}
+                </div>
+
+                {/* Full Patient Detail Action Link */}
+                <div className="border-t border-slate-100 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => alAbrirPaciente(pacienteActual.id)}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-100 py-2.5 text-xs font-bold text-slate-700 transition hover:bg-slate-200"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">person</span>
+                    Abrir Ficha Completa del Paciente
+                  </button>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="rounded-xl border border-dashed border-outline-variant/40 bg-surface-container-low p-8 text-center">
-              <p className="text-sm font-semibold text-on-surface">Sin paciente seleccionado</p>
-              <p className="mt-2 text-xs text-on-surface-variant">
-                Elija un resultado para habilitar edición rápida, módulo y cronograma.
-              </p>
-            </div>
-          )}
-        </aside>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                  <span className="material-symbols-outlined text-3xl">touch_app</span>
+                </div>
+                <h4 className="text-base font-bold text-slate-900">
+                  Panel de Gestión Rápida
+                </h4>
+                <p className="mt-1.5 max-w-[280px] text-xs leading-relaxed text-slate-500">
+                  Selecciona cualquier paciente del listado para editar sus módulos clínicos, asignar terapias o configurar su cronograma mensual.
+                </p>
+              </div>
+            )}
+          </aside>
+        </div>
       </div>
     </div>
   );

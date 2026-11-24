@@ -4,18 +4,8 @@ import { useAutenticacion } from '../context/AuthContext';
 import { obtenerToken, resolverApiUrl } from '../services/api';
 
 const MESES = [
-  'Enero',
-  'Febrero',
-  'Marzo',
-  'Abril',
-  'Mayo',
-  'Junio',
-  'Julio',
-  'Agosto',
-  'Septiembre',
-  'Octubre',
-  'Noviembre',
-  'Diciembre',
+  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
 ];
 const ANIO_BASE = new Date().getFullYear();
 const DIAS_SEMANA = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
@@ -23,11 +13,12 @@ const DIAS = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie'];
 const ETIQUETAS_DIAS = {
   Lun: 'Lun',
   Mar: 'Mar',
-  Mie: 'Mie',
+  Mie: 'Mié',
   Jue: 'Jue',
-  Vie: 'Viernes',
+  Vie: 'Vie',
 };
 const ORDEN_DIAS_RESUMEN = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'];
+
 const TRATAMIENTOS_BASE = [
   'Fonoaudiologia',
   'Psicologia',
@@ -37,11 +28,13 @@ const TRATAMIENTOS_BASE = [
   'TO Terapia Ocupacional',
   'Integracion',
 ];
+
 const MODULOS_PACIENTE = [
-  { id: 'MII', label: 'Modulo integral intensivo (MII)' },
-  { id: 'MIS', label: 'Modulo integral simple (MIS)' },
-  { id: 'MIE', label: 'Modulo integracion escolar (MIE)' },
+  { id: 'MII', label: 'MII - Módulo Integral Intensivo', color: 'emerald' },
+  { id: 'MIS', label: 'MIS - Módulo Integral Simple', color: 'amber' },
+  { id: 'MIE', label: 'MIE - Integración Escolar', color: 'sky' },
 ];
+
 const ANIOS_ESCOLARES = ['2026', '2027', '2028', '2029', '2030'];
 
 const normalizarModulosPaciente = (valor) => {
@@ -79,56 +72,29 @@ const generarHorarios = () => {
 
 const HORARIOS = generarHorarios();
 const HORARIOS_EXTRA_ALTA = [
-  '08:00',
-  '09:00',
-  '10:00',
-  '11:00',
-  '12:00',
-  '14:00',
-  '15:00',
-  '16:00',
-  '17:00',
-  '18:00',
-  '19:00',
-  '09:15',
-  '09:45',
-  '10:45',
-  '14:30',
-  '14:45',
-  '15:15',
-  '15:30',
-  '16:15',
-  '16:45',
-  '17:30',
-  '17:45',
-  '18:15',
-  '18:30',
-  '19:45',
+  '08:00', '09:00', '10:00', '11:00', '12:00', '14:00',
+  '15:00', '16:00', '17:00', '18:00', '19:00', '09:15',
+  '09:45', '10:45', '14:30', '14:45', '15:15', '15:30',
+  '16:15', '16:45', '17:30', '17:45', '18:15', '18:30', '19:45',
 ];
+
 const HORARIOS_POR_OBRA_SOCIAL = {
   ospe: ['8', '9', '10', '11', '12', '14', '15', '16', '17', '18', '19'],
   galeno: ['9', '9.45', '14.45', '15.30', '16.15', '17', '17.45', '18.30'],
   osolsac: [
-    '9.15',
-    '10',
-    '10.45',
-    '14.30',
-    '15.15',
-    '16',
-    '16.45',
-    '17.30',
-    '18.15',
-    '19',
-    '19.45',
+    '9.15', '10', '10.45', '14.30', '15.15', '16',
+    '16.45', '17.30', '18.15', '19', '19.45'
   ],
   omin: ['14', '14.45', '15.30'],
 };
+
 const normalizarTexto = (valor) =>
   String(valor || '')
     .trim()
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '');
+
 const toHora = (valor) => {
   const raw = String(valor || '').trim().replace('.', ':');
   if (!raw) return '';
@@ -141,11 +107,13 @@ const toHora = (valor) => {
   if (hh < 0 || hh > 23 || mm < 0 || mm > 59) return '';
   return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
 };
+
 const minHora = (hora) => {
   const m = String(hora || '').trim().match(/^(\d{2}):(\d{2})$/);
   if (!m) return Number.MAX_SAFE_INTEGER;
   return Number(m[1]) * 60 + Number(m[2]);
 };
+
 const resolverHorariosPorObraSocial = (obraSocialId) => {
   const base = [...HORARIOS, ...HORARIOS_EXTRA_ALTA];
   const os = normalizarTexto(obraSocialId);
@@ -158,11 +126,13 @@ const resolverHorariosPorObraSocial = (obraSocialId) => {
   const set = new Set([...base, ...normalizados]);
   return Array.from(set).sort((a, b) => minHora(a) - minHora(b));
 };
+
 const normalizarHora = (valor) => {
   const m = String(valor || '').trim().match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
   if (!m) return String(valor || '').trim();
   return `${String(Number(m[1])).padStart(2, '0')}:${m[2]}`;
 };
+
 const normalizarBooleano = (valor) => {
   if (typeof valor === 'boolean') return valor;
   const num = Number(valor);
@@ -193,6 +163,14 @@ const ordenarDiasResumen = (dias = []) => {
   });
 };
 
+const TABS = [
+  { id: 'general', label: 'Filiación & Clínica', icon: 'person' },
+  { id: 'contacto', label: 'Familia & Domicilio', icon: 'home' },
+  { id: 'obrasocial', label: 'Obra Social & PDF', icon: 'badge' },
+  { id: 'terapias', label: 'Terapias & Solicitudes', icon: 'medical_services' },
+  { id: 'cronograma', label: 'Cronograma de Turnos', icon: 'calendar_month' },
+];
+
 export default function DetallePaciente({ alVolver }) {
   const { usuario } = useAutenticacion();
   const {
@@ -209,6 +187,10 @@ export default function DetallePaciente({ alVolver }) {
     guardarSolicitudPaciente,
     cambiarEstadoOperativo,
   } = usePacientes();
+
+  const [tabActiva, setTabActiva] = useState('general');
+
+  // Form Fields
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
   const [fechaNacimiento, setFechaNacimiento] = useState('');
@@ -241,17 +223,23 @@ export default function DetallePaciente({ alVolver }) {
   const [ppiAnios, setPpiAnios] = useState([]);
   const [actaAcuerdoAnios, setActaAcuerdoAnios] = useState([]);
   const [integracionHorario, setIntegracionHorario] = useState('');
+  const [autorizadoDesde, setAutorizadoDesde] = useState('');
+  const [autorizadoHasta, setAutorizadoHasta] = useState('');
+
+  // Status & Feedback
   const [guardado, setGuardado] = useState(false);
+  const [guardando, setGuardando] = useState(false);
   const [errorGuardado, setErrorGuardado] = useState('');
-  const [mostrarHorarios, setMostrarHorarios] = useState(false);
-  const [mesesSeleccionados, setMesesSeleccionados] = useState(() => new Set());
-  const [mostrarCronogramaBase, setMostrarCronogramaBase] = useState(false);
+
+  // Turnos & Solicitudes
+  const [mesesSeleccionados, setMesesSeleccionados] = useState(() => new Set([new Date().getMonth() + 1]));
   const [cronogramaGeneralDraft, setCronogramaGeneralDraft] = useState({});
   const [tratamientoOs, setTratamientoOs] = useState('');
   const [mesOs, setMesOs] = useState(() => new Date().getMonth() + 1);
   const [anioOs, setAnioOs] = useState(() => new Date().getFullYear());
-  const [autorizadoDesde, setAutorizadoDesde] = useState('');
-  const [autorizadoHasta, setAutorizadoHasta] = useState('');
+  const [descargandoPdf, setDescargandoPdf] = useState(false);
+
+  // Solicitudes
   const [solicitudFechaInicio, setSolicitudFechaInicio] = useState('');
   const [solicitudFechaFin, setSolicitudFechaFin] = useState('');
   const [solicitudTratamientos, setSolicitudTratamientos] = useState(() => new Set());
@@ -260,7 +248,8 @@ export default function DetallePaciente({ alVolver }) {
   const [mensajeSolicitud, setMensajeSolicitud] = useState('');
   const [errorSolicitud, setErrorSolicitud] = useState('');
   const [guardandoSolicitud, setGuardandoSolicitud] = useState(false);
-  
+
+  // Operational State Modal
   const [razonDesestimacion, setRazonDesestimacion] = useState('');
   const [mostrandoModalDesestimar, setMostrandoModalDesestimar] = useState(false);
   const estadoOperativo = pacienteSeleccionado?.patient_state_name || 'Nuevo';
@@ -278,27 +267,15 @@ export default function DetallePaciente({ alVolver }) {
         o?.hasTemplate !== false
     );
     setObraSocialPdfId(existePlantilla ? obraSocialActual : '');
-    setUltimoControlFisiatrico(
-      normalizarFechaParaInput(pacienteSeleccionado.ultimoControlFisiatrico)
-    );
-    setFechaAltaControlFisiatrico(
-      normalizarFechaParaInput(pacienteSeleccionado.fechaAltaControlFisiatrico)
-    );
-    setFechaVencimientoControlFisiatrico(
-      normalizarFechaParaInput(pacienteSeleccionado.fechaVencimientoControlFisiatrico)
-    );
-    setUltimoControlTrabajoSocial(
-      normalizarFechaParaInput(pacienteSeleccionado.ultimoControlTrabajoSocial)
-    );
-    setFechaAltaControlTrabajoSocial(
-      normalizarFechaParaInput(pacienteSeleccionado.fechaAltaControlTrabajoSocial)
-    );
-    setFechaVencimientoControlTrabajoSocial(
-      normalizarFechaParaInput(pacienteSeleccionado.fechaVencimientoControlTrabajoSocial)
-    );
+    setUltimoControlFisiatrico(normalizarFechaParaInput(pacienteSeleccionado.ultimoControlFisiatrico));
+    setFechaAltaControlFisiatrico(normalizarFechaParaInput(pacienteSeleccionado.fechaAltaControlFisiatrico));
+    setFechaVencimientoControlFisiatrico(normalizarFechaParaInput(pacienteSeleccionado.fechaVencimientoControlFisiatrico));
+    setUltimoControlTrabajoSocial(normalizarFechaParaInput(pacienteSeleccionado.ultimoControlTrabajoSocial));
+    setFechaAltaControlTrabajoSocial(normalizarFechaParaInput(pacienteSeleccionado.fechaAltaControlTrabajoSocial));
+    setFechaVencimientoControlTrabajoSocial(normalizarFechaParaInput(pacienteSeleccionado.fechaVencimientoControlTrabajoSocial));
     setDni(pacienteSeleccionado.dni || '');
     setCuit(pacienteSeleccionado.cuit || '');
-    setNroAfiliado(pacienteSeleccionado.nroAfiliado || '');
+    setNroAfiliado(pacienteSeleccionado.nroAfiliado || pacienteSeleccionado.numeroAfiliado || '');
     setDiagnostico(pacienteSeleccionado.diagnostico || '');
     setModulo(normalizarModulosPaciente(pacienteSeleccionado.modulos || pacienteSeleccionado.modulo));
     setPadreTutor(pacienteSeleccionado.padreTutor || '');
@@ -330,11 +307,8 @@ export default function DetallePaciente({ alVolver }) {
     setMensajeSolicitud('');
     setErrorSolicitud('');
     setGuardandoSolicitud(false);
-    setMostrarHorarios(false);
-    setMostrarCronogramaBase(false);
     setCronogramaGeneralDraft({});
     setTratamientoOs(listaTrat.length ? listaTrat[0] : '');
-    setMesesSeleccionados(new Set());
   }, [pacienteSeleccionado, obrasSociales]);
 
   useEffect(() => {
@@ -390,6 +364,7 @@ export default function DetallePaciente({ alVolver }) {
     });
     return mapa;
   }, [pacienteSeleccionado]);
+
   const horariosDisponiblesPaciente = useMemo(
     () =>
       resolverHorariosPorObraSocial(
@@ -439,9 +414,7 @@ export default function DetallePaciente({ alVolver }) {
     const diaNombre = DIAS_SEMANA[dow];
     const base = obtenerHorasBase(mes, tratamiento);
     const horasBase = base[diaNombre] || [];
-    const fechaStr = `${ANIO_BASE}-${String(mes).padStart(2, '0')}-${String(
-      diaNumero
-    ).padStart(2, '0')}`;
+    const fechaStr = `${ANIO_BASE}-${String(mes).padStart(2, '0')}-${String(diaNumero).padStart(2, '0')}`;
     const overridesTratamiento =
       overridesMap[fechaStr] && overridesMap[fechaStr][tratamiento]
         ? overridesMap[fechaStr][tratamiento]
@@ -459,9 +432,7 @@ export default function DetallePaciente({ alVolver }) {
   };
 
   const alternarExcepcion = (mes, tratamiento, diaNumero, hora, activo) => {
-    const fechaStr = `${ANIO_BASE}-${String(mes).padStart(2, '0')}-${String(
-      diaNumero
-    ).padStart(2, '0')}`;
+    const fechaStr = `${ANIO_BASE}-${String(mes).padStart(2, '0')}-${String(diaNumero).padStart(2, '0')}`;
     guardarExcepcionTurno(
       pacienteSeleccionado.id,
       tratamiento,
@@ -471,119 +442,11 @@ export default function DetallePaciente({ alVolver }) {
     );
   };
 
-  const guardarCambios = async (e) => {
-    e.preventDefault();
-    if (!pacienteSeleccionado) return;
-    setErrorGuardado('');
-    const nombreLimpio = String(nombre || '').trim();
-    const apellidoLimpio = String(apellido || '').trim();
-    const fechaNac = String(fechaNacimiento || '').trim();
-    const dniLimpio = String(dni || '').trim();
-    const cuitLimpio = String(cuit || '').trim();
-    const telPadreLimpio = String(telefonoPadreTutor || '').trim();
-    const telMadreLimpio = String(telefonoMadreTutora || '').trim();
-
-    if (!nombreLimpio || !apellidoLimpio || !fechaNac) {
-      setErrorGuardado('Nombre, apellido y fecha de nacimiento son obligatorios.');
-      return;
-    }
-    const regexNombreAp = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s\-\']+$/;
-    if (!regexNombreAp.test(nombreLimpio) || !regexNombreAp.test(apellidoLimpio)) {
-      setErrorGuardado('El nombre y apellido solo pueden contener letras y espacios.');
-      return;
-    }
-    if (!/^\d{7,8}$/.test(dniLimpio)) {
-      setErrorGuardado('El DNI debe tener 7 u 8 dígitos numéricos.');
-      return;
-    }
-    if (cuitLimpio && !/^\d{2}\-?\d{8}\-?\d{1}$/.test(cuitLimpio)) {
-      setErrorGuardado('El CUIT debe tener 11 dígitos numéricos (ej: 20-12345678-9).');
-      return;
-    }
-    const regexTel = /^[\d\s\-\+\(\)]+$/;
-    if (telPadreLimpio && !regexTel.test(telPadreLimpio)) {
-      setErrorGuardado('El teléfono del padre/tutor contiene caracteres no válidos.');
-      return;
-    }
-    if (telMadreLimpio && !regexTel.test(telMadreLimpio)) {
-      setErrorGuardado('El teléfono de la madre/tutora contiene caracteres no válidos.');
-      return;
-    }
-
-    try {
-      await actualizarPaciente(pacienteSeleccionado.id, {
-        nombre: nombre.trim(),
-        apellido: apellido.trim(),
-        fechaNacimiento,
-        obraSocial: obraSocial.trim(),
-        ultimoControlFisiatrico,
-        fechaAltaControlFisiatrico,
-        fechaVencimientoControlFisiatrico,
-        ultimoControlTrabajoSocial,
-        fechaAltaControlTrabajoSocial,
-        fechaVencimientoControlTrabajoSocial,
-        dni: dni.trim(),
-        cuit: cuit.trim(),
-        nroAfiliado: nroAfiliado.trim(),
-        numeroAfiliado: nroAfiliado.trim(),
-        affiliateNumber: nroAfiliado.trim(),
-        affiliate_number: nroAfiliado.trim(),
-        diagnostico: diagnostico.trim(),
-        modulo,
-        modulos: modulo,
-        padreTutor: padreTutor.trim(),
-        telefonoPadreTutor: telefonoPadreTutor.trim(),
-        madreTutora: madreTutora.trim(),
-        telefonoMadreTutora: telefonoMadreTutora.trim(),
-        calle: calle.trim(),
-        numeracion: numeracion.trim(),
-        barrio: barrio.trim(),
-        piso: piso.trim(),
-        sector: sector.trim(),
-        escuela: escuela.trim(),
-        anioGrado: anioGrado.trim(),
-        turnoEscolar: turnoEscolar.trim(),
-        carAnios,
-        ppiAnios,
-        actaAcuerdoAnios,
-        integracionHorario: integracionHorario.trim(),
-        autorizadoDesde: autorizadoDesde || null,
-        autorizadoHasta: autorizadoHasta || null,
-      });
-      setGuardado(true);
-      setTimeout(() => setGuardado(false), 2500);
-    } catch (err) {
-      const msg = String(err?.message || '').trim();
-      setErrorGuardado(msg || 'No se pudieron guardar los cambios.');
-    }
-  };
-
-  const confirmarEliminacion = () => {
-    if (!pacienteSeleccionado) return;
-    if (!usuario?.isAdmin) return;
-    const ok = window.confirm('Estas seguro de eliminar este paciente?');
-    if (!ok) return;
-    eliminarPaciente(pacienteSeleccionado.id);
-    alVolver();
-  };
-
-  const confirmarQuitarTratamiento = (tratamiento) => {
-    if (!pacienteSeleccionado) return;
-    const ok = window.confirm(
-      `Estas seguro de quitar el tratamiento ${tratamiento}?`
-    );
-    if (!ok) return;
-    eliminarTratamiento(pacienteSeleccionado.id, tratamiento);
-  };
-
   const alternarMesSeleccionado = (mes) => {
     setMesesSeleccionados((prev) => {
       const nuevo = new Set(prev);
-      if (nuevo.has(mes)) {
-        nuevo.delete(mes);
-      } else {
-        nuevo.add(mes);
-      }
+      if (nuevo.has(mes)) nuevo.delete(mes);
+      else nuevo.add(mes);
       return nuevo;
     });
   };
@@ -618,28 +481,6 @@ export default function DetallePaciente({ alVolver }) {
       else next.add(tratamiento);
       return next;
     });
-  };
-
-  const usarMismosTratamientosSolicitud = () => {
-    const actuales = Array.isArray(pacienteSeleccionado?.tratamientos)
-      ? pacienteSeleccionado.tratamientos
-      : [];
-    setModoSolicitudTratamientos('mismos');
-    setSolicitudTratamientos(new Set(actuales));
-    setAplicarCambiosSolicitud(false);
-    setMensajeSolicitud('');
-    setErrorSolicitud('');
-  };
-
-  const usarNuevosTratamientosSolicitud = () => {
-    const actuales = Array.isArray(pacienteSeleccionado?.tratamientos)
-      ? pacienteSeleccionado.tratamientos
-      : [];
-    setModoSolicitudTratamientos('nuevos');
-    setSolicitudTratamientos(new Set(actuales));
-    setAplicarCambiosSolicitud(true);
-    setMensajeSolicitud('');
-    setErrorSolicitud('');
   };
 
   const guardarSolicitud = async () => {
@@ -714,93 +555,6 @@ export default function DetallePaciente({ alVolver }) {
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [pacientes, diagnostico]);
 
-  const obrasSocialesPorId = useMemo(() => {
-    const mapa = {};
-    (obrasSociales || []).forEach((o) => {
-      if (!o?.id) return;
-      mapa[String(o.id)] = o.label || o.id;
-    });
-    return mapa;
-  }, [obrasSociales]);
-
-  const ordenarObrasSociales = useMemo(() => {
-    return (obrasSociales || [])
-      .filter((o) => o?.id)
-      .slice()
-      .sort((a, b) => String(a.id).localeCompare(String(b.id)));
-  }, [obrasSociales]);
-
-  const descargarObraSocial = async () => {
-    if (!pacienteSeleccionado) return;
-    const obraSocialId = String(obraSocialPdfId || '').trim();
-    if (!obraSocialId) {
-      const obraActual = String(obraSocial || '').trim();
-      const obraConfig = (obrasSociales || []).find(
-        (o) => String(o?.id || '').trim() === obraActual
-      );
-      if (obraConfig && obraConfig.hasTemplate === false) {
-        window.alert('La obra social seleccionada existe, pero no tiene plantilla para imprimir.');
-        return;
-      }
-      window.alert(
-        'Selecciona una obra social desde "Lista de obras sociales (carpeta - CUIT)" para generar el PDF.'
-      );
-      return;
-    }
-    if (!String(tratamientoOs || '').trim()) {
-      window.alert('Selecciona un tratamiento para generar la planilla.');
-      return;
-    }
-    const mesNum = Number(mesOs);
-    const anioNum = Number(anioOs);
-    if (!Number.isInteger(mesNum) || mesNum < 1 || mesNum > 12) {
-      window.alert('Mes inválido.');
-      return;
-    }
-    if (!Number.isInteger(anioNum) || anioNum < 2000 || anioNum > 2100) {
-      window.alert('Año inválido.');
-      return;
-    }
-    const url = `/api/patients/${encodeURIComponent(
-      pacienteSeleccionado.id
-    )}/obras-sociales/${encodeURIComponent(obraSocialId)}?tratamiento=${encodeURIComponent(
-      String(tratamientoOs).trim()
-    )}&mes=${encodeURIComponent(String(mesNum))}&anio=${encodeURIComponent(
-      String(anioNum)
-    )}`;
-    const finalUrl = resolverApiUrl(url) || url;
-    const token = obtenerToken();
-    const headers = {};
-    if (token) headers.Authorization = `Bearer ${token}`;
-    try {
-      const respuesta = await fetch(finalUrl, {
-        method: 'GET',
-        headers,
-        credentials: 'include',
-      });
-      if (!respuesta.ok) {
-        let mensaje = `Error ${respuesta.status}`;
-        try {
-          const data = await respuesta.json();
-          if (data && data.error) mensaje = data.error;
-        } catch (err) {}
-        window.alert(`No se pudo descargar el PDF: ${mensaje}`);
-        return;
-      }
-      const blob = await respuesta.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
-      const enlace = document.createElement('a');
-      enlace.href = blobUrl;
-      enlace.download = `${obraSocialId}.pdf`;
-      document.body.appendChild(enlace);
-      enlace.click();
-      enlace.remove();
-      window.URL.revokeObjectURL(blobUrl);
-    } catch (err) {
-      window.alert('No se pudo descargar el PDF. Revisa la conexión con el servidor.');
-    }
-  };
-
   const turnosPorMes = pacienteSeleccionado?.turnosPorMes || {};
 
   const claveEnTodosLosMeses = (tratamiento, clave) => {
@@ -860,10 +614,8 @@ export default function DetallePaciente({ alVolver }) {
       });
     });
     setCronogramaGeneralDraft({});
-  };
-
-  const descartarCronogramaGeneral = () => {
-    setCronogramaGeneralDraft({});
+    setGuardado(true);
+    setTimeout(() => setGuardado(false), 2500);
   };
 
   const alternarTratamientoPaciente = (tratamiento, activo) => {
@@ -878,1074 +630,1268 @@ export default function DetallePaciente({ alVolver }) {
     }
   };
 
+  const confirmarQuitarTratamiento = (tratamiento) => {
+    if (!pacienteSeleccionado) return;
+    const ok = window.confirm(`¿Estás seguro de quitar el tratamiento ${tratamiento}?`);
+    if (!ok) return;
+    eliminarTratamiento(pacienteSeleccionado.id, tratamiento);
+  };
+
+  const descargarObraSocial = async () => {
+    if (!pacienteSeleccionado) return;
+    const obraSocialId = String(obraSocialPdfId || '').trim();
+    if (!obraSocialId) {
+      window.alert('Selecciona una obra social válida con plantilla para generar el PDF.');
+      return;
+    }
+    if (!String(tratamientoOs || '').trim()) {
+      window.alert('Selecciona un tratamiento para generar la planilla.');
+      return;
+    }
+    setDescargandoPdf(true);
+    const url = `/api/patients/${encodeURIComponent(
+      pacienteSeleccionado.id
+    )}/obras-sociales/${encodeURIComponent(obraSocialId)}?tratamiento=${encodeURIComponent(
+      String(tratamientoOs).trim()
+    )}&mes=${encodeURIComponent(String(mesOs))}&anio=${encodeURIComponent(
+      String(anioOs)
+    )}`;
+    const finalUrl = resolverApiUrl(url) || url;
+    const token = obtenerToken();
+    const headers = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    try {
+      const respuesta = await fetch(finalUrl, {
+        method: 'GET',
+        headers,
+        credentials: 'include',
+      });
+      if (!respuesta.ok) {
+        let mensaje = `Error ${respuesta.status}`;
+        try {
+          const data = await respuesta.json();
+          if (data && data.error) mensaje = data.error;
+        } catch (err) {}
+        window.alert(`No se pudo descargar el PDF: ${mensaje}`);
+        return;
+      }
+      const blob = await respuesta.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const enlace = document.createElement('a');
+      enlace.href = blobUrl;
+      enlace.download = `${obraSocialId}-${pacienteSeleccionado.apellido || 'paciente'}.pdf`;
+      document.body.appendChild(enlace);
+      enlace.click();
+      enlace.remove();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      window.alert('Error de conexión al generar el PDF.');
+    } finally {
+      setDescargandoPdf(false);
+    }
+  };
+
+  const guardarCambios = async (e) => {
+    if (e) e.preventDefault();
+    if (!pacienteSeleccionado) return;
+    setErrorGuardado('');
+    setGuardando(true);
+    const nombreLimpio = String(nombre || '').trim();
+    const apellidoLimpio = String(apellido || '').trim();
+    const fechaNac = String(fechaNacimiento || '').trim();
+    const dniLimpio = String(dni || '').trim();
+    const cuitLimpio = String(cuit || '').trim();
+
+    if (!nombreLimpio || !apellidoLimpio || !fechaNac) {
+      setErrorGuardado('Nombre, apellido y fecha de nacimiento son obligatorios.');
+      setGuardando(false);
+      return;
+    }
+    if (dniLimpio && !/^\d{7,8}$/.test(dniLimpio)) {
+      setErrorGuardado('El DNI debe tener 7 u 8 dígitos numéricos.');
+      setGuardando(false);
+      return;
+    }
+
+    try {
+      await actualizarPaciente(pacienteSeleccionado.id, {
+        nombre: nombre.trim(),
+        apellido: apellido.trim(),
+        fechaNacimiento,
+        obraSocial: obraSocial.trim(),
+        ultimoControlFisiatrico,
+        fechaAltaControlFisiatrico,
+        fechaVencimientoControlFisiatrico,
+        ultimoControlTrabajoSocial,
+        fechaAltaControlTrabajoSocial,
+        fechaVencimientoControlTrabajoSocial,
+        dni: dni.trim(),
+        cuit: cuit.trim(),
+        nroAfiliado: nroAfiliado.trim(),
+        numeroAfiliado: nroAfiliado.trim(),
+        diagnostico: diagnostico.trim(),
+        modulo,
+        modulos: modulo,
+        padreTutor: padreTutor.trim(),
+        telefonoPadreTutor: telefonoPadreTutor.trim(),
+        madreTutora: madreTutora.trim(),
+        telefonoMadreTutora: telefonoMadreTutora.trim(),
+        calle: calle.trim(),
+        numeracion: numeracion.trim(),
+        barrio: barrio.trim(),
+        piso: piso.trim(),
+        sector: sector.trim(),
+        escuela: escuela.trim(),
+        anioGrado: anioGrado.trim(),
+        turnoEscolar: turnoEscolar.trim(),
+        carAnios,
+        ppiAnios,
+        actaAcuerdoAnios,
+        integracionHorario: integracionHorario.trim(),
+        autorizadoDesde: autorizadoDesde || null,
+        autorizadoHasta: autorizadoHasta || null,
+      });
+      setGuardado(true);
+      setTimeout(() => setGuardado(false), 2500);
+    } catch (err) {
+      const msg = String(err?.message || '').trim();
+      setErrorGuardado(msg || 'No se pudieron guardar los cambios.');
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  const confirmarEliminacion = () => {
+    if (!pacienteSeleccionado || !usuario?.isAdmin) return;
+    const ok = window.confirm('¿Estás seguro de eliminar este paciente de forma permanente?');
+    if (!ok) return;
+    eliminarPaciente(pacienteSeleccionado.id);
+    alVolver();
+  };
+
   if (!pacienteSeleccionado) {
     return (
-      <div className="p-6 max-w-2xl mx-auto">
-        <div className="py-16 text-center rounded-2xl border-2 border-dashed border-surface-200 bg-surface-50/50">
-          <p className="text-surface-600 font-medium">No hay paciente seleccionado.</p>
+      <div className="mx-auto max-w-2xl p-8">
+        <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center shadow-sm">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+            <span className="material-symbols-outlined text-3xl">person_off</span>
+          </div>
+          <h3 className="text-base font-bold text-slate-800">No hay paciente seleccionado</h3>
+          <p className="mt-1 text-xs text-slate-500">Regresa a la lista o al buscador para elegir un paciente.</p>
           <button
+            type="button"
             onClick={alVolver}
-            className="mt-4 px-4 py-2.5 rounded-xl text-sm font-medium bg-surface-200 text-surface-800 hover:bg-surface-300 transition-colors duration-200"
+            className="mt-5 inline-flex items-center gap-1.5 rounded-xl bg-slate-800 px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-slate-900"
           >
-            Volver
+            <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+            Volver a la lista
           </button>
         </div>
       </div>
     );
   }
 
-  const inputBase = "w-full px-4 py-2.5 rounded-lg border border-surface-200 bg-white text-surface-800 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all duration-200";
-  const labelBase = "block text-sm font-medium text-surface-700 mb-1.5";
-  const seccionBase = "rounded-[28px] border border-surface-200/80 bg-gradient-to-br from-white to-surface-50/60 p-5 mb-5 shadow-sm shadow-black/5";
-  const tituloSeccion = "text-sm font-semibold text-primary-700 uppercase tracking-wide mb-4 mt-0";
-
-  const errorNombre = (nombre && !/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s\-\']+$/.test(nombre)) ? 'Solo se permiten letras y espacios.' : '';
-  const errorApellido = (apellido && !/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s\-\']+$/.test(apellido)) ? 'Solo se permiten letras y espacios.' : '';
-  const errorDni = (dni && !/^\d{7,8}$/.test(dni)) ? 'Debe tener 7 u 8 dígitos numéricos.' : '';
-  const errorCuit = (cuit && !/^\d{2}\-?\d{8}\-?\d{1}$/.test(cuit)) ? 'Debe tener 11 dígitos numéricos.' : '';
-  const errorTelPadre = (telefonoPadreTutor && !/^[\d\s\-\+\(\)]+$/.test(telefonoPadreTutor)) ? 'Solo se permiten números y símbolos telefónicos.' : '';
-  const errorTelMadre = (telefonoMadreTutora && !/^[\d\s\-\+\(\)]+$/.test(telefonoMadreTutora)) ? 'Solo se permiten números y símbolos telefónicos.' : '';
-
-  const labelObligatorio = (texto) => (
-    <label className={labelBase}>
-      {texto} <span className="text-rose-500 font-bold ml-1">*</span>
-    </label>
-  );
-
-  const getInputClass = (err) => `w-full px-4 py-2.5 rounded-lg border bg-white text-surface-800 placeholder:text-surface-400 focus:outline-none focus:ring-2 transition-all duration-200 ${err ? 'border-rose-500/50 focus:ring-rose-500/30 focus:border-rose-500' : 'border-surface-200 focus:ring-primary-500/30 focus:border-primary-500'}`;
+  const iniciales = `${(nombre || 'P').charAt(0)}${(apellido || '').charAt(0)}`.toUpperCase();
 
   return (
-    <div className="mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
-      <div className="mb-10 flex flex-col gap-6 rounded-[28px] border border-surface-200/70 bg-gradient-to-r from-primary-50/80 via-white to-white p-5 md:flex-row md:items-end md:justify-between sm:p-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <button
-            onClick={alVolver}
-            className="inline-flex items-center gap-2 rounded-xl border border-outline-variant/20 bg-white px-4 py-2.5 text-sm font-medium text-on-surface transition-all duration-200 hover:bg-surface-container hover:border-outline-variant/40"
-          >
-            <span className="material-symbols-outlined text-base" aria-hidden>arrow_back</span>
-            Volver
-          </button>
-          <h2 className="text-3xl font-extrabold tracking-tight text-on-surface">
-            Detalle del paciente
-          </h2>
-        </div>
-        <div className="text-sm text-on-surface-variant">
-          Gestion de historia clinica, autorizaciones y cronograma terapeutico.
-        </div>
-      </div>
-
-      <div className={seccionBase}>
-        <h4 className={tituloSeccion}>Flujo Operativo (Máquina de Estados)</h4>
-        <div className="flex flex-col md:flex-row items-center justify-between bg-surface-100 p-4 rounded-xl border border-surface-200 gap-4">
-          <div className="flex items-center gap-3">
-            <div className={`px-4 py-2 rounded-full font-bold text-sm tracking-wide shadow-sm
-              ${estadoOperativo === 'Nuevo' ? 'bg-blue-100 text-blue-800' :
-                estadoOperativo === 'En_admision' ? 'bg-amber-100 text-amber-800' :
-                estadoOperativo === 'En_expediente' ? 'bg-indigo-100 text-indigo-800' :
-                estadoOperativo === 'Desestimado' ? 'bg-red-100 text-red-800' :
-                'bg-gray-100 text-gray-800'}`}>
-              {String(estadoOperativo).replace('_', ' ').toUpperCase()}
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl space-y-6">
+        {/* Top Sticky Header & Patient Banner */}
+        <div className="flex flex-col justify-between gap-4 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm md:flex-row md:items-center">
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={alVolver}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+              title="Volver"
+            >
+              <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+            </button>
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-lg font-bold text-white shadow-md shadow-emerald-600/20">
+              {iniciales}
             </div>
-            <p className="text-sm text-surface-600">
-              {estadoOperativo === 'Nuevo' && 'Paciente recién registrado.'}
-              {estadoOperativo === 'En_admision' && 'Validando obra social y datos.'}
-              {estadoOperativo === 'En_expediente' && 'Armando expediente para auditoría.'}
-              {estadoOperativo === 'Desestimado' && 'El paciente no cumple con los requisitos.'}
-            </p>
+            <div>
+              <div className="flex flex-wrap items-center gap-2.5">
+                <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">
+                  {apellido} {nombre}
+                </h2>
+                <span className="rounded-lg bg-slate-100 px-2.5 py-1 font-mono text-xs font-medium text-slate-600">
+                  DNI {dni || 'Sin DNI'}
+                </span>
+                <span className="rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800 border border-emerald-200">
+                  {obraSocial || 'Sin Obra Social'}
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-slate-500">
+                Ficha clínica de paciente • Diagnóstico: <span className="font-semibold text-slate-700">{diagnostico || 'Sin diagnóstico asignado'}</span>
+              </p>
+            </div>
           </div>
-          
-          <div className="flex flex-wrap gap-2">
-            {estadoOperativo === 'Nuevo' && (
+
+          <div className="flex flex-wrap items-center gap-3">
+            {guardado && (
+              <span className="flex items-center gap-1 text-xs font-bold text-emerald-700">
+                <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                Guardado
+              </span>
+            )}
+            {errorGuardado && (
+              <span className="text-xs font-bold text-rose-600">{errorGuardado}</span>
+            )}
+            <button
+              type="button"
+              onClick={guardarCambios}
+              disabled={guardando}
+              className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-emerald-600/20 transition hover:bg-emerald-700 disabled:opacity-50"
+            >
+              <span className="material-symbols-outlined text-[18px]">save</span>
+              {guardando ? 'Guardando...' : 'Guardar Cambios'}
+            </button>
+            {usuario?.isAdmin && (
               <button
                 type="button"
-                onClick={() => cambiarEstadoOperativo(pacienteSeleccionado.id, 'En_admision')}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium shadow-sm hover:bg-blue-700 transition-colors"
+                onClick={confirmarEliminacion}
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 text-rose-600 transition hover:bg-rose-100 hover:text-rose-700"
+                title="Eliminar paciente"
               >
-                Iniciar Admisión
+                <span className="material-symbols-outlined text-[18px]">delete</span>
               </button>
-            )}
-            {estadoOperativo === 'En_admision' && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => cambiarEstadoOperativo(pacienteSeleccionado.id, 'En_expediente')}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium shadow-sm hover:bg-indigo-700 transition-colors"
-                >
-                  Validación Exitosa (Pasar a Expediente)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMostrandoModalDesestimar(true)}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium shadow-sm hover:bg-red-700 transition-colors"
-                >
-                  Desestimar
-                </button>
-              </>
             )}
           </div>
         </div>
-      </div>
 
-      {mostrandoModalDesestimar && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Desestimar Paciente</h3>
-            <p className="text-sm text-gray-600 mb-4">¿Por qué se desestima este paciente? (ej. falta CUD, obra social inválida)</p>
-            <textarea
-              className="w-full border border-gray-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-red-500 outline-none mb-4"
-              rows={3}
-              value={razonDesestimacion}
-              onChange={(e) => setRazonDesestimacion(e.target.value)}
-              placeholder="Motivo del rechazo..."
-            />
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setMostrandoModalDesestimar(false)}
-                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  cambiarEstadoOperativo(pacienteSeleccionado.id, 'Desestimado', razonDesestimacion);
-                  setMostrandoModalDesestimar(false);
-                  setRazonDesestimacion('');
-                }}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium shadow-sm"
-              >
-                Confirmar Desestimación
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <form onSubmit={guardarCambios} className="">
-        <div className={seccionBase}>
-          <h4 className={tituloSeccion}>Paciente</h4>
-          <div className="space-y-4">
-            <div>
-              {labelObligatorio('Nombre')}
-              <input
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-                className={getInputClass(errorNombre)}
-              />
-              {errorNombre && <p className="text-xs text-rose-500 mt-1 ml-1 font-medium">{errorNombre}</p>}
-            </div>
-            <div>
-              {labelObligatorio('Apellido')}
-              <input
-                value={apellido}
-                onChange={(e) => setApellido(e.target.value)}
-                className={getInputClass(errorApellido)}
-              />
-              {errorApellido && <p className="text-xs text-rose-500 mt-1 ml-1 font-medium">{errorApellido}</p>}
-            </div>
-            <div>
-              {labelObligatorio('Fecha de nacimiento')}
-              <input
-                type="date"
-                value={fechaNacimiento}
-                onChange={(e) => setFechaNacimiento(e.target.value)}
-                className={inputBase}
-              />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className={labelBase}>Último control fisiatrico</label>
-                <input
-                  type="date"
-                  value={ultimoControlFisiatrico}
-                  onChange={(e) => setUltimoControlFisiatrico(e.target.value)}
-                  className={inputBase}
-                />
+        {/* Operational State Stepper Banner */}
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center gap-3.5">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+                <span className="material-symbols-outlined text-[22px]">account_tree</span>
               </div>
               <div>
-                <label className={labelBase}>Vencimiento control fisiatrico</label>
-                <input
-                  type="date"
-                  value={fechaVencimientoControlFisiatrico}
-                  onChange={(e) => setFechaVencimientoControlFisiatrico(e.target.value)}
-                  className={inputBase}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className={labelBase}>Último control de trabajo social</label>
-                <input
-                  type="date"
-                  value={ultimoControlTrabajoSocial}
-                  onChange={(e) => setUltimoControlTrabajoSocial(e.target.value)}
-                  className={inputBase}
-                />
-              </div>
-              <div>
-                <label className={labelBase}>Vencimiento de trabajo social</label>
-                <input
-                  type="date"
-                  value={fechaVencimientoControlTrabajoSocial}
-                  onChange={(e) => setFechaVencimientoControlTrabajoSocial(e.target.value)}
-                  className={inputBase}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                {labelObligatorio('DNI')}
-                <input
-                  value={dni}
-                  onChange={(e) =>
-                    setDni(String(e.target.value || '').replace(/\D/g, '').slice(0, 8))
-                  }
-                  inputMode="numeric"
-                  maxLength={8}
-                  className={getInputClass(errorDni)}
-                />
-                {errorDni && <p className="text-xs text-rose-500 mt-1 ml-1 font-medium">{errorDni}</p>}
-              </div>
-              <div>
-                <label className={labelBase}>CUIT</label>
-                <input value={cuit} onChange={(e) => setCuit(e.target.value)} className={getInputClass(errorCuit)} />
-                {errorCuit && <p className="text-xs text-rose-500 mt-1 ml-1 font-medium">{errorCuit}</p>}
-              </div>
-              <div>
-                <label className={labelBase}>N° afiliado</label>
-                <input value={nroAfiliado} onChange={(e) => setNroAfiliado(e.target.value)} className={inputBase} />
-              </div>
-            </div>
-            <div>
-              <label className={labelBase}>Diagnóstico</label>
-              <input
-                value={diagnostico}
-                onChange={(e) => setDiagnostico(e.target.value)}
-                list="diagnosticos-paciente"
-                className={inputBase}
-              />
-              <datalist id="diagnosticos-paciente">
-                {diagnosticosDisponibles.map((d) => (
-                  <option key={`diag-p-${d}`} value={d} />
-                ))}
-              </datalist>
-            </div>
-            <div>
-              <label className={labelBase}>Modulo</label>
-              <div className="mt-2 flex flex-wrap gap-3">
-                {MODULOS_PACIENTE.map((m) => (
-                  <label
-                    key={m.id}
-                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-surface-200 hover:border-surface-300 cursor-pointer transition-colors duration-200"
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  Estado Operativo
+                </span>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wide ${
+                      estadoOperativo === 'Nuevo'
+                        ? 'bg-blue-100 text-blue-800'
+                        : estadoOperativo === 'En_admision'
+                        ? 'bg-amber-100 text-amber-800'
+                        : estadoOperativo === 'En_expediente'
+                        ? 'bg-indigo-100 text-indigo-800'
+                        : estadoOperativo === 'Desestimado'
+                        ? 'bg-rose-100 text-rose-800'
+                        : 'bg-emerald-100 text-emerald-800'
+                    }`}
                   >
-                    <input
-                      type="checkbox"
-                      checked={modulo.includes(m.id)}
-                      onChange={() =>
-                        setModulo((prev) =>
-                          prev.includes(m.id)
-                            ? prev.filter((item) => item !== m.id)
-                            : [...prev, m.id]
-                        )
-                      }
-                      className="rounded border-surface-300 text-primary-600 focus:ring-primary-500"
-                    />
-                    {m.label}
-                  </label>
-                ))}
-              </div>
-            </div>
-            <div className="pt-2 border-t border-surface-200">
-              <h5 className="text-sm font-semibold text-surface-800 mb-3">Autorización</h5>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className={labelBase}>Autorizado desde</label>
-                  <input
-                    type="date"
-                    value={autorizadoDesde}
-                    onChange={(e) => setAutorizadoDesde(e.target.value)}
-                    className={inputBase}
-                  />
-                </div>
-                <div>
-                  <label className={labelBase}>Vence el</label>
-                  <input
-                    type="date"
-                    value={autorizadoHasta}
-                    onChange={(e) => setAutorizadoHasta(e.target.value)}
-                    className={inputBase}
-                  />
+                    {String(estadoOperativo).replace('_', ' ')}
+                  </span>
+                  <span className="text-xs text-slate-500">
+                    {estadoOperativo === 'Nuevo' && 'Paciente registrado, listo para iniciar proceso de admisión.'}
+                    {estadoOperativo === 'En_admision' && 'En proceso de validación documental y de obra social.'}
+                    {estadoOperativo === 'En_expediente' && 'Armado y revisión de expediente clínico para auditoría.'}
+                    {estadoOperativo === 'Desestimado' && 'Paciente desestimado del proceso de admisión.'}
+                  </span>
                 </div>
               </div>
             </div>
-            <div>
-              <label className={labelBase}>CAR</label>
-              <div className="mt-2 flex flex-wrap gap-3">
-                {ANIOS_ESCOLARES.map((anio) => (
-                  <label
-                    key={`car-modulo-${anio}`}
-                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-surface-200 hover:border-surface-300 cursor-pointer transition-colors duration-200"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={carAnios.includes(anio)}
-                      onChange={() =>
-                        setCarAnios((prev) =>
-                          prev.includes(anio)
-                            ? prev.filter((item) => item !== anio)
-                            : [...prev, anio]
-                        )
-                      }
-                      className="rounded border-surface-300 text-primary-600 focus:ring-primary-500"
-                    />
-                    {anio}
-                  </label>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label className={labelBase}>PPI</label>
-              <div className="mt-2 flex flex-wrap gap-3">
-                {ANIOS_ESCOLARES.map((anio) => (
-                  <label
-                    key={`ppi-modulo-${anio}`}
-                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-surface-200 hover:border-surface-300 cursor-pointer transition-colors duration-200"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={ppiAnios.includes(anio)}
-                      onChange={() =>
-                        setPpiAnios((prev) =>
-                          prev.includes(anio)
-                            ? prev.filter((item) => item !== anio)
-                            : [...prev, anio]
-                        )
-                      }
-                      className="rounded border-surface-300 text-primary-600 focus:ring-primary-500"
-                    />
-                    {anio}
-                  </label>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label className={labelBase}>Acta Acuerdo</label>
-              <div className="mt-2 flex flex-wrap gap-3">
-                {ANIOS_ESCOLARES.map((anio) => (
-                  <label
-                    key={`acta-acuerdo-modulo-${anio}`}
-                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-surface-200 hover:border-surface-300 cursor-pointer transition-colors duration-200"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={actaAcuerdoAnios.includes(anio)}
-                      onChange={() =>
-                        setActaAcuerdoAnios((prev) =>
-                          prev.includes(anio)
-                            ? prev.filter((item) => item !== anio)
-                            : [...prev, anio]
-                        )
-                      }
-                      className="rounded border-surface-300 text-primary-600 focus:ring-primary-500"
-                    />
-                    {anio}
-                  </label>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className={seccionBase}>
-          <h4 className={tituloSeccion}>Escuela</h4>
-          <div className="space-y-4">
-            <div>
-              <label className={labelBase}>Escuela</label>
-              <input
-                value={escuela}
-                onChange={(e) => setEscuela(e.target.value)}
-                className={inputBase}
-              />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className={labelBase}>Año/Grado</label>
-                <input
-                  value={anioGrado}
-                  onChange={(e) => setAnioGrado(e.target.value)}
-                  className={inputBase}
-                />
-              </div>
-              <div>
-                <label className={labelBase}>Turno escolar</label>
-                <select
-                  value={turnoEscolar}
-                  onChange={(e) => setTurnoEscolar(e.target.value)}
-                  className={inputBase}
+
+            <div className="flex flex-wrap items-center gap-2">
+              {estadoOperativo === 'Nuevo' && (
+                <button
+                  type="button"
+                  onClick={() => cambiarEstadoOperativo(pacienteSeleccionado.id, 'En_admision')}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-blue-700"
                 >
-                  <option value="">(Seleccionar)</option>
-                  <option value="manana">Mañana</option>
-                  <option value="tarde">Tarde</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className={seccionBase}>
-          <h4 className={tituloSeccion}>Padres</h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className={labelBase}>Padre/Tutor</label>
-              <input
-                value={padreTutor}
-                onChange={(e) => setPadreTutor(e.target.value)}
-                className={inputBase}
-              />
-            </div>
-            <div>
-              <label className={labelBase}>Teléfono Padre/Tutor</label>
-              <input
-                value={telefonoPadreTutor}
-                onChange={(e) => setTelefonoPadreTutor(e.target.value)}
-                className={getInputClass(errorTelPadre)}
-              />
-              {errorTelPadre && <p className="text-xs text-rose-500 mt-1 ml-1 font-medium">{errorTelPadre}</p>}
-            </div>
-            <div>
-              <label className={labelBase}>Madre/Tutora</label>
-              <input
-                value={madreTutora}
-                onChange={(e) => setMadreTutora(e.target.value)}
-                className={inputBase}
-              />
-            </div>
-            <div>
-              <label className={labelBase}>Teléfono Madre/Tutora</label>
-              <input
-                value={telefonoMadreTutora}
-                onChange={(e) => setTelefonoMadreTutora(e.target.value)}
-                className={getInputClass(errorTelMadre)}
-              />
-              {errorTelMadre && <p className="text-xs text-rose-500 mt-1 ml-1 font-medium">{errorTelMadre}</p>}
-            </div>
-          </div>
-        </div>
-        <div className={seccionBase}>
-          <h4 className={tituloSeccion}>Domicilio</h4>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="sm:col-span-2">
-              <label className={labelBase}>Calle</label>
-              <input
-                value={calle}
-                onChange={(e) => setCalle(e.target.value)}
-                className={inputBase}
-              />
-            </div>
-            <div>
-              <label className={labelBase}>Numeración</label>
-              <input
-                value={numeracion}
-                onChange={(e) => setNumeracion(e.target.value)}
-                className={inputBase}
-              />
-            </div>
-            <div>
-              <label className={labelBase}>Barrio</label>
-              <input
-                value={barrio}
-                onChange={(e) => setBarrio(e.target.value)}
-                className={inputBase}
-              />
-            </div>
-            <div>
-              <label className={labelBase}>Piso</label>
-              <input
-                value={piso}
-                onChange={(e) => setPiso(e.target.value)}
-                className={inputBase}
-              />
-            </div>
-            <div>
-              <label className={labelBase}>Sector</label>
-              <input
-                value={sector}
-                onChange={(e) => setSector(e.target.value)}
-                className={inputBase}
-              />
+                  <span className="material-symbols-outlined text-[16px]">play_arrow</span>
+                  Iniciar Admisión
+                </button>
+              )}
+              {estadoOperativo === 'En_admision' && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => cambiarEstadoOperativo(pacienteSeleccionado.id, 'En_expediente')}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-indigo-700"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">check</span>
+                    Aprobar a Expediente
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMostrandoModalDesestimar(true)}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-xs font-bold text-rose-700 transition hover:bg-rose-100"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">close</span>
+                    Desestimar
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
 
-        <div className={seccionBase}>
-          <h4 className={tituloSeccion}>Obra social</h4>
-          <div className="space-y-4">
-            <div>
-              <label className={labelBase}>Obra social</label>
-              <select
-                value={String(obraSocial || '').trim()}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setObraSocial(val);
-                  setObraSocialPdfId(val);
-                }}
-                className={inputBase}
-              >
-                <option value="">(Seleccionar)</option>
-                {obrasSocialesDisponibles.map((o) => {
-                  const apiData = obrasSociales.find(osObj => osObj.id === o);
-                  const showSinPlantilla = apiData && apiData.hasTemplate === false;
-                  const isMissing = !apiData;
-                  return (
-                    <option key={`os-${o}`} value={o}>
-                      {o}{(showSinPlantilla || isMissing) ? ' (sin plantilla)' : ''}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className={labelBase}>Tratamiento (planilla)</label>
-                <select
-                  value={tratamientoOs}
-                  onChange={(e) => setTratamientoOs(e.target.value)}
-                  className={inputBase}
+        {/* Modal Desestimar */}
+        {mostrandoModalDesestimar && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm">
+            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+              <h3 className="text-lg font-extrabold text-slate-900">Desestimar Paciente</h3>
+              <p className="mt-1 text-xs text-slate-500">
+                Indica el motivo por el cual se desestima el ingreso de este paciente (ej: falta CUD, obra social sin convenio).
+              </p>
+              <textarea
+                rows={3}
+                value={razonDesestimacion}
+                onChange={(e) => setRazonDesestimacion(e.target.value)}
+                placeholder="Motivo del rechazo..."
+                className="mt-4 w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-800 focus:border-rose-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500/20"
+              />
+              <div className="mt-4 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setMostrandoModalDesestimar(false)}
+                  className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                 >
-                  <option value="">(Seleccionar)</option>
-                  {(pacienteSeleccionado.tratamientos || []).map((t) => (
-                    <option key={`t-os-${t}`} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className={labelBase}>Mes (planilla)</label>
-                <select
-                  value={String(mesOs)}
-                  onChange={(e) => setMesOs(Number(e.target.value))}
-                  className={inputBase}
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    cambiarEstadoOperativo(pacienteSeleccionado.id, 'Desestimado', razonDesestimacion);
+                    setMostrandoModalDesestimar(false);
+                    setRazonDesestimacion('');
+                  }}
+                  className="rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white hover:bg-rose-700"
                 >
-                  {MESES.map((m, idx) => (
-                    <option key={`mes-os-${idx + 1}`} value={idx + 1}>
-                      {m}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className={labelBase}>Año (planilla)</label>
-                <input
-                  value={String(anioOs)}
-                  onChange={(e) => setAnioOs(e.target.value)}
-                  className={inputBase}
-                />
+                  Confirmar Desestimación
+                </button>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={descargarObraSocial}
-              className="px-4 py-2.5 rounded-xl text-sm font-medium bg-primary-600 text-white shadow-sm hover:bg-primary-500 active:bg-primary-600 transition-all duration-200"
-            >
-              Descargar PDF de obra social
-            </button>
           </div>
-        </div>
+        )}
 
-        <div className="flex flex-wrap items-center gap-3 mb-6">
-          <button
-            type="submit"
-            className="px-4 py-2.5 rounded-xl text-sm font-medium bg-primary-600 text-white hover:bg-primary-500 active:bg-primary-600 transition-colors duration-200"
-          >
-            Guardar cambios
-          </button>
-          {usuario?.isAdmin ? (
-            <button
-              type="button"
-              onClick={confirmarEliminacion}
-              className="px-4 py-2.5 rounded-xl text-sm font-medium border border-rose-200 text-rose-700 hover:bg-rose-50 hover:border-rose-300 transition-colors duration-200"
-            >
-              Eliminar paciente
-            </button>
-          ) : null}
-          {guardado ? (
-            <span className="text-primary-600 font-medium text-sm">Cambios guardados.</span>
-          ) : null}
-          {errorGuardado ? (
-            <span className="text-rose-600 font-medium text-sm">{errorGuardado}</span>
-          ) : null}
-        </div>
-      </form>
-
-      <div className={seccionBase}>
-        <h3 className="text-base font-semibold text-surface-900 mb-2">Tratamientos</h3>
-        <p className="text-surface-500 text-sm mb-4">
-          Marca o desmarca tratamientos para este paciente.
-        </p>
-        <div className="flex flex-wrap gap-2 mb-6">
-          {tratamientosDisponibles.map((t) => {
-            const checked = (pacienteSeleccionado.tratamientos || []).includes(t);
+        {/* Tabbed Navigation Bar */}
+        <div className="flex overflow-x-auto rounded-2xl border border-slate-200/80 bg-white p-1.5 shadow-sm">
+          {TABS.map((tab) => {
+            const activa = tabActiva === tab.id;
             return (
-              <label
-                key={`trat-${t}`}
-                className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-colors duration-200 ${
-                  checked ? 'border-primary-300 bg-primary-50 text-primary-800' : 'border-surface-200 hover:border-surface-300'
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setTabActiva(tab.id)}
+                className={`flex items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-xs font-bold transition-all ${
+                  activa
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                 }`}
               >
-                <input
-                  type="checkbox"
-                  checked={checked}
-                  onChange={(e) => alternarTratamientoPaciente(t, e.target.checked)}
-                  className="rounded border-surface-300 text-primary-600 focus:ring-primary-500"
-                />
-                {t}
-              </label>
+                <span className="material-symbols-outlined text-[18px]">{tab.icon}</span>
+                {tab.label}
+              </button>
             );
           })}
         </div>
 
-        <h3 className="text-base font-semibold text-surface-900 mb-3">Tratamientos y meses</h3>
-        {(pacienteSeleccionado.tratamientos || []).length ? (
-          <div className="flex flex-wrap gap-3">
-            {pacienteSeleccionado.tratamientos.map((t) => {
-              const resumen = resumenTurnos[t];
-              return (
-                <div
-                  key={t}
-                  className="flex flex-wrap items-center gap-3 p-4 rounded-xl border border-surface-200 bg-surface-50/50"
-                >
-                  <strong className="text-surface-800">{t}</strong>
-                  <span className="text-surface-600 text-sm">
-                    {resumen && resumen.dias.size
-                      ? `Días: ${ordenarDiasResumen(resumen.dias).join(', ')}`
-                      : 'Días: -'}
-                  </span>
-                  <span className="text-surface-600 text-sm">
-                    {resumen && resumen.horas.size
-                      ? `Horarios: ${Array.from(resumen.horas).sort().join(', ')}`
-                      : 'Horarios: -'}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => confirmarQuitarTratamiento(t)}
-                    className="ml-auto px-3 py-1.5 rounded-lg text-sm font-medium text-rose-600 hover:bg-rose-50 transition-colors duration-200"
-                  >
-                    Quitar
-                  </button>
+        {/* Tab 1: Filiación & Datos Clínicos */}
+        {tabActiva === 'general' && (
+          <div className="space-y-6">
+            {/* Card: Datos Personales */}
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+              <h3 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-emerald-800">
+                <span className="material-symbols-outlined text-[20px] text-emerald-600">badge</span>
+                Datos de Filiación e Identificación
+              </h3>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-700">Nombre *</label>
+                  <input
+                    type="text"
+                    value={nombre}
+                    onChange={(e) => setNombre(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  />
                 </div>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="text-surface-500 text-sm">Sin tratamientos.</p>
-        )}
-      </div>
-
-      <div className={seccionBase}>
-        <h3 className="text-base font-semibold text-surface-900 mb-2">Solicitud</h3>
-        <p className="text-surface-500 text-sm mb-4">
-          Carga períodos de solicitud con terapias. Puedes dejar preguardada la próxima antes del vencimiento.
-        </p>
-        <div className="mb-4">
-          <div className="text-sm text-surface-600 mb-2">
-            <strong>Tratamientos actuales:</strong>{' '}
-            {(pacienteSeleccionado.tratamientos || []).length
-              ? (pacienteSeleccionado.tratamientos || []).join(', ')
-              : '-'}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={usarMismosTratamientosSolicitud}
-              className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors duration-200 ${
-                modoSolicitudTratamientos === 'mismos'
-                  ? 'border-primary-300 bg-primary-50 text-primary-800'
-                  : 'border-surface-200 text-surface-700 hover:bg-surface-100'
-              }`}
-            >
-              Mismos tratamientos
-            </button>
-            <button
-              type="button"
-              onClick={usarNuevosTratamientosSolicitud}
-              className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors duration-200 ${
-                modoSolicitudTratamientos === 'nuevos'
-                  ? 'border-primary-300 bg-primary-50 text-primary-800'
-                  : 'border-surface-200 text-surface-700 hover:bg-surface-100'
-              }`}
-            >
-              Nuevos tratamientos
-            </button>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-          <div>
-            <label className={labelBase}>Inicio solicitud</label>
-            <input
-              type="date"
-              value={solicitudFechaInicio}
-              onChange={(e) => setSolicitudFechaInicio(e.target.value)}
-              className={inputBase}
-            />
-          </div>
-          <div>
-            <label className={labelBase}>Fin solicitud</label>
-            <input
-              type="date"
-              value={solicitudFechaFin}
-              onChange={(e) => setSolicitudFechaFin(e.target.value)}
-              className={inputBase}
-            />
-          </div>
-        </div>
-        <div className="mb-4">
-          <label className={labelBase}>Terapias de la solicitud</label>
-          {modoSolicitudTratamientos === 'mismos' ? (
-            <p className="text-surface-600 text-sm">
-              Se usarán los tratamientos actuales del paciente para esta solicitud.
-            </p>
-          ) : tratamientosSolicitudDisponibles.length ? (
-            <div className="flex flex-wrap gap-2">
-              {tratamientosSolicitudDisponibles.map((t) => {
-                const checked = solicitudTratamientos.has(t);
-                return (
-                  <label
-                    key={`sol-${t}`}
-                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-colors duration-200 ${
-                      checked
-                        ? 'border-primary-300 bg-primary-50 text-primary-800'
-                        : 'border-surface-200 hover:border-surface-300'
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => alternarTratamientoSolicitud(t)}
-                      className="rounded border-surface-300 text-primary-600 focus:ring-primary-500"
-                    />
-                    {t}
-                  </label>
-                );
-              })}
-            </div>
-          ) : (
-            <p className="text-surface-500 text-sm">
-              Este paciente todavía no tiene terapias asignadas.
-            </p>
-          )}
-        </div>
-        {modoSolicitudTratamientos === 'nuevos' ? (
-          <label className="inline-flex items-center gap-2 text-sm text-surface-700 mb-4">
-            <input
-              type="checkbox"
-              checked={aplicarCambiosSolicitud}
-              onChange={(e) => setAplicarCambiosSolicitud(e.target.checked)}
-              className="rounded border-surface-300 text-primary-600 focus:ring-primary-500"
-            />
-            Aplicar nuevos tratamientos automáticamente desde la fecha de inicio
-          </label>
-        ) : null}
-        <div className="flex flex-wrap items-center gap-3 mb-4">
-          <button
-            type="button"
-            onClick={guardarSolicitud}
-            disabled={guardandoSolicitud}
-            className="px-4 py-2.5 rounded-xl text-sm font-medium bg-primary-600 text-white hover:bg-primary-500 active:bg-primary-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors duration-200"
-          >
-            {guardandoSolicitud ? 'Guardando solicitud...' : 'Guardar solicitud'}
-          </button>
-          {mensajeSolicitud ? (
-            <span className="text-primary-600 font-medium text-sm">{mensajeSolicitud}</span>
-          ) : null}
-          {errorSolicitud ? (
-            <span className="text-rose-600 font-medium text-sm">{errorSolicitud}</span>
-          ) : null}
-        </div>
-        <div className="pt-4 border-t border-surface-200">
-          <h4 className="text-sm font-semibold text-surface-800 mb-3">
-            Historial de solicitudes (últimos 12 meses)
-          </h4>
-          {historialSolicitudes.length ? (
-            <div className="space-y-2">
-              {historialSolicitudes.map((sol) => (
-                <div
-                  key={`hist-sol-${sol.id}`}
-                  className="rounded-lg border border-surface-200 bg-surface-50/60 p-3"
-                >
-                  <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <strong className="text-surface-800">
-                      {sol.fechaInicio || '-'} a {sol.fechaFin || '-'}
-                    </strong>
-                    <span className="text-xs px-2 py-0.5 rounded-full border border-surface-200 text-surface-600 bg-white">
-                      {sol.vigente ? 'Vigente' : sol.futura ? 'Futura' : 'Vencida'}
-                    </span>
-                  </div>
-                  <div className="text-sm text-surface-600">
-                    Terapias: {(sol.tratamientos || []).length ? sol.tratamientos.join(', ') : '-'}
-                  </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-700">Apellido *</label>
+                  <input
+                    type="text"
+                    value={apellido}
+                    onChange={(e) => setApellido(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  />
                 </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-surface-500 text-sm">Sin solicitudes registradas en el último año.</p>
-          )}
-        </div>
-      </div>
-
-      <div className={seccionBase}>
-        <button
-          type="button"
-          onClick={() => setMostrarCronogramaBase((prev) => !prev)}
-          className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-sm font-medium bg-surface-100 text-surface-700 hover:bg-surface-200 border border-surface-200 transition-colors duration-200"
-        >
-          {mostrarCronogramaBase
-            ? 'Ocultar Cronograma general'
-            : 'Cronograma general'}
-        </button>
-        {mostrarCronogramaBase ? (
-          <div className="mt-4 space-y-4">
-            {(pacienteSeleccionado.tratamientos || []).length ? (
-              (pacienteSeleccionado.tratamientos || []).map((t) => (
-                <div key={`cronograma-${t}`} className="pt-4 border-t border-surface-200 first:pt-0 first:border-t-0">
-                  <strong className="text-surface-800">{t}</strong>
-                  {t === 'Integracion' ? (
-                    <div className="mt-3">
-                      <label className={labelBase}>Horario de Integración (texto libre)</label>
-                      <textarea
-                        value={integracionHorario}
-                        onChange={(e) => setIntegracionHorario(e.target.value)}
-                        rows={3}
-                        className={`${inputBase} resize-y`}
-                        placeholder="Ej: Lunes y Miércoles 14:00 a 15:00"
-                      />
-                    </div>
-                  ) : (
-                    <div className="overflow-x-auto mt-3">
-                      <table className="w-full min-w-[500px] table-fixed border-collapse">
-                        <thead>
-                          <tr>
-                            <th className="text-left p-2 text-sm font-medium text-surface-600">Hora</th>
-                            {DIAS.map((d) => (
-                              <th key={`dia-${d}`} className="text-left p-2 text-sm font-medium text-surface-600">
-                                {ETIQUETAS_DIAS[d] || d}
-                              </th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {horariosDisponiblesPaciente.map((hora) => (
-                            <tr key={`hora-${hora}`}>
-                              <td className="p-2 whitespace-nowrap text-sm text-surface-600">
-                                {hora}
-                              </td>
-                              {DIAS.map((dia) => {
-                                const clave = `${dia}-${hora}`;
-                                const marcado = obtenerMarcadoGeneral(t, clave);
-                                return (
-                                  <td key={clave} className="p-2">
-                                    <input
-                                      type="checkbox"
-                                      checked={marcado}
-                                      onChange={() => alternarDraftGeneral(t, clave)}
-                                      className="rounded border-surface-300 text-primary-600 focus:ring-primary-500"
-                                    />
-                                  </td>
-                                );
-                              })}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-700">Fecha de Nacimiento *</label>
+                  <input
+                    type="date"
+                    value={fechaNacimiento}
+                    onChange={(e) => setFechaNacimiento(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  />
                 </div>
-              ))
-            ) : (
-              <p className="text-surface-500 text-sm">Asigna tratamientos para habilitar el cronograma.</p>
-            )}
-            <div className="flex flex-wrap items-center gap-3 pt-4">
-              <button
-                type="button"
-                onClick={guardarCronogramaGeneral}
-                disabled={!hayCambiosGeneral}
-                className="px-4 py-2.5 rounded-xl text-sm font-medium bg-primary-600 text-white hover:bg-primary-500 active:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-              >
-                Guardar cronograma general
-              </button>
-              <button
-                type="button"
-                onClick={descartarCronogramaGeneral}
-                disabled={!hayCambiosGeneral}
-                className="px-4 py-2.5 rounded-xl text-sm font-medium border border-surface-200 text-surface-700 hover:bg-surface-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-              >
-                Descartar cambios
-              </button>
-              {hayCambiosGeneral ? (
-                <span className="text-surface-500 text-sm">Cambios pendientes sin guardar.</span>
-              ) : null}
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-700">DNI (7-8 dígitos)</label>
+                  <input
+                    type="text"
+                    value={dni}
+                    maxLength={8}
+                    onChange={(e) => setDni(String(e.target.value || '').replace(/\D/g, '').slice(0, 8))}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 font-mono text-xs text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-700">CUIT / CUIL</label>
+                  <input
+                    type="text"
+                    value={cuit}
+                    placeholder="20-12345678-9"
+                    onChange={(e) => setCuit(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 font-mono text-xs text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-700">N° Afiliado</label>
+                  <input
+                    type="text"
+                    value={nroAfiliado}
+                    onChange={(e) => setNroAfiliado(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  />
+                </div>
+                <div className="sm:col-span-2 lg:col-span-3">
+                  <label className="mb-1.5 block text-xs font-bold text-slate-700">Diagnóstico Principal</label>
+                  <input
+                    type="text"
+                    value={diagnostico}
+                    list="diagnosticos-paciente"
+                    onChange={(e) => setDiagnostico(e.target.value)}
+                    placeholder="Ej: Trastorno del espectro autista (TEA), Retraso madurativo..."
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  />
+                  <datalist id="diagnosticos-paciente">
+                    {diagnosticosDisponibles.map((d) => (
+                      <option key={`diag-${d}`} value={d} />
+                    ))}
+                  </datalist>
+                </div>
+              </div>
             </div>
-          </div>
-        ) : null}
-      </div>
 
-      <div className={seccionBase}>
-        <button
-          type="button"
-          onClick={() => setMostrarHorarios((prev) => !prev)}
-          className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-sm font-medium bg-surface-100 text-surface-700 hover:bg-surface-200 border border-surface-200 transition-colors duration-200"
-        >
-          {mostrarHorarios ? 'Ocultar horarios' : 'Configurar horarios por fecha'}
-        </button>
-
-        {mostrarHorarios ? (
-          <div className="mt-4">
-            <h3 className="text-base font-semibold text-surface-900 mb-3">Horarios por fecha (excepciones)</h3>
-            <div className="mb-4">
-              <div className="text-sm font-medium text-surface-700 mb-2">Meses</div>
-              <div className="flex flex-wrap gap-2">
-                {MESES.map((mesNombre, idx) => {
-                  const mes = idx + 1;
+            {/* Card: Módulos Clínicos */}
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+              <h3 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-emerald-800">
+                <span className="material-symbols-outlined text-[20px] text-emerald-600">view_module</span>
+                Módulos Clínicos Asignados
+              </h3>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                {MODULOS_PACIENTE.map((m) => {
+                  const marcado = modulo.includes(m.id);
                   return (
-                    <label
-                      key={mes}
-                      className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-surface-200 hover:border-surface-300 cursor-pointer transition-colors"
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() =>
+                        setModulo((prev) =>
+                          prev.includes(m.id) ? prev.filter((x) => x !== m.id) : [...prev, m.id]
+                        )
+                      }
+                      className={`flex items-center gap-3 rounded-2xl border p-4 text-left transition-all ${
+                        marcado
+                          ? 'border-emerald-500 bg-emerald-50/50 shadow-sm ring-2 ring-emerald-500/20'
+                          : 'border-slate-200 bg-slate-50 hover:bg-slate-100'
+                      }`}
                     >
-                      <input
-                        type="checkbox"
-                        checked={mesesSeleccionados.has(mes)}
-                        onChange={() => alternarMesSeleccionado(mes)}
-                        className="rounded border-surface-300 text-primary-600 focus:ring-primary-500"
-                      />
-                      {mesNombre}
-                    </label>
+                      <div
+                        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg ${
+                          marcado ? 'bg-emerald-600 text-white' : 'border border-slate-300 bg-white'
+                        }`}
+                      >
+                        {marcado && <span className="material-symbols-outlined text-[16px]">check</span>}
+                      </div>
+                      <div>
+                        <span className="block text-xs font-bold text-slate-900">{m.id}</span>
+                        <span className="text-[11px] text-slate-500">{m.label}</span>
+                      </div>
+                    </button>
                   );
                 })}
               </div>
             </div>
-            {(pacienteSeleccionado.tratamientos || []).length ? (
-            <div className="space-y-8">
-              {!mesesSeleccionados.size ? (
-                <p className="text-surface-500 text-sm">
-                  Selecciona al menos un mes para ver y editar horarios.
-                </p>
-              ) : null}
-              {MESES.map((mesNombre, idx) => {
-                const mes = idx + 1;
-                if (!mesesSeleccionados.has(mes)) return null;
+
+            {/* Card: Controles Clínicos & Vencimientos */}
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+              <h3 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-emerald-800">
+                <span className="material-symbols-outlined text-[20px] text-emerald-600">health_and_safety</span>
+                Controles de Especialidad y Vencimientos
+              </h3>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                  <h4 className="mb-3 text-xs font-bold text-slate-800">Control Fisiátrico</h4>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="mb-1 block text-[11px] font-semibold text-slate-600">Último control</label>
+                      <input
+                        type="date"
+                        value={ultimoControlFisiatrico}
+                        onChange={(e) => setUltimoControlFisiatrico(e.target.value)}
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-[11px] font-semibold text-slate-600">Alta de control</label>
+                      <input
+                        type="date"
+                        value={fechaAltaControlFisiatrico}
+                        onChange={(e) => setFechaAltaControlFisiatrico(e.target.value)}
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-[11px] font-semibold text-slate-600">Vencimiento</label>
+                      <input
+                        type="date"
+                        value={fechaVencimientoControlFisiatrico}
+                        onChange={(e) => setFechaVencimientoControlFisiatrico(e.target.value)}
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                  <h4 className="mb-3 text-xs font-bold text-slate-800">Control de Trabajo Social</h4>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="mb-1 block text-[11px] font-semibold text-slate-600">Último control</label>
+                      <input
+                        type="date"
+                        value={ultimoControlTrabajoSocial}
+                        onChange={(e) => setUltimoControlTrabajoSocial(e.target.value)}
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-[11px] font-semibold text-slate-600">Alta de control</label>
+                      <input
+                        type="date"
+                        value={fechaAltaControlTrabajoSocial}
+                        onChange={(e) => setFechaAltaControlTrabajoSocial(e.target.value)}
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-[11px] font-semibold text-slate-600">Vencimiento</label>
+                      <input
+                        type="date"
+                        value={fechaVencimientoControlTrabajoSocial}
+                        onChange={(e) => setFechaVencimientoControlTrabajoSocial(e.target.value)}
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                  <h4 className="mb-3 text-xs font-bold text-slate-800">Período de Autorización</h4>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="mb-1 block text-[11px] font-semibold text-slate-600">Autorizado desde</label>
+                      <input
+                        type="date"
+                        value={autorizadoDesde}
+                        onChange={(e) => setAutorizadoDesde(e.target.value)}
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-[11px] font-semibold text-slate-600">Vence el</label>
+                      <input
+                        type="date"
+                        value={autorizadoHasta}
+                        onChange={(e) => setAutorizadoHasta(e.target.value)}
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card: Documentación Escolar por Años */}
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+              <h3 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-emerald-800">
+                <span className="material-symbols-outlined text-[20px] text-emerald-600">fact_check</span>
+                Documentación Escolar y Proyectos Pedagógicos
+              </h3>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div>
+                  <label className="mb-2 block text-xs font-bold text-slate-700">Años CAR</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {ANIOS_ESCOLARES.map((anio) => (
+                      <button
+                        key={`car-${anio}`}
+                        type="button"
+                        onClick={() =>
+                          setCarAnios((prev) =>
+                            prev.includes(anio) ? prev.filter((x) => x !== anio) : [...prev, anio]
+                          )
+                        }
+                        className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                          carAnios.includes(anio)
+                            ? 'bg-emerald-600 text-white shadow-sm'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        {anio}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-xs font-bold text-slate-700">Años PPI</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {ANIOS_ESCOLARES.map((anio) => (
+                      <button
+                        key={`ppi-${anio}`}
+                        type="button"
+                        onClick={() =>
+                          setPpiAnios((prev) =>
+                            prev.includes(anio) ? prev.filter((x) => x !== anio) : [...prev, anio]
+                          )
+                        }
+                        className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                          ppiAnios.includes(anio)
+                            ? 'bg-emerald-600 text-white shadow-sm'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        {anio}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-xs font-bold text-slate-700">Acta Acuerdo</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {ANIOS_ESCOLARES.map((anio) => (
+                      <button
+                        key={`acta-${anio}`}
+                        type="button"
+                        onClick={() =>
+                          setActaAcuerdoAnios((prev) =>
+                            prev.includes(anio) ? prev.filter((x) => x !== anio) : [...prev, anio]
+                          )
+                        }
+                        className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                          actaAcuerdoAnios.includes(anio)
+                            ? 'bg-emerald-600 text-white shadow-sm'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        {anio}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 2: Familia & Domicilio */}
+        {tabActiva === 'contacto' && (
+          <div className="space-y-6">
+            {/* Card: Familiares / Tutores */}
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+              <h3 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-emerald-800">
+                <span className="material-symbols-outlined text-[20px] text-emerald-600">family_restroom</span>
+                Padres y Tutores Responsables
+              </h3>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-700">Padre / Tutor</label>
+                  <input
+                    type="text"
+                    value={padreTutor}
+                    onChange={(e) => setPadreTutor(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-700">Teléfono Padre / Tutor</label>
+                  <input
+                    type="text"
+                    value={telefonoPadreTutor}
+                    onChange={(e) => setTelefonoPadreTutor(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-700">Madre / Tutora</label>
+                  <input
+                    type="text"
+                    value={madreTutora}
+                    onChange={(e) => setMadreTutora(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-700">Teléfono Madre / Tutora</label>
+                  <input
+                    type="text"
+                    value={telefonoMadreTutora}
+                    onChange={(e) => setTelefonoMadreTutora(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Card: Escuela */}
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+              <h3 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-emerald-800">
+                <span className="material-symbols-outlined text-[20px] text-emerald-600">school</span>
+                Institución Educativa
+              </h3>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-700">Escuela / Colegio</label>
+                  <input
+                    type="text"
+                    value={escuela}
+                    onChange={(e) => setEscuela(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-700">Año / Grado / Sala</label>
+                  <input
+                    type="text"
+                    value={anioGrado}
+                    placeholder="Ej: 3er Grado A"
+                    onChange={(e) => setAnioGrado(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-700">Turno Escolar</label>
+                  <select
+                    value={turnoEscolar}
+                    onChange={(e) => setTurnoEscolar(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  >
+                    <option value="">(Seleccionar)</option>
+                    <option value="manana">Mañana</option>
+                    <option value="tarde">Tarde</option>
+                    <option value="jornada_completa">Jornada Completa</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Card: Domicilio */}
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+              <h3 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-emerald-800">
+                <span className="material-symbols-outlined text-[20px] text-emerald-600">location_on</span>
+                Domicilio y Residencia
+              </h3>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="sm:col-span-2">
+                  <label className="mb-1.5 block text-xs font-bold text-slate-700">Calle</label>
+                  <input
+                    type="text"
+                    value={calle}
+                    onChange={(e) => setCalle(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-700">Número</label>
+                  <input
+                    type="text"
+                    value={numeracion}
+                    onChange={(e) => setNumeracion(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-700">Barrio</label>
+                  <input
+                    type="text"
+                    value={barrio}
+                    onChange={(e) => setBarrio(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-700">Piso / Dpto</label>
+                  <input
+                    type="text"
+                    value={piso}
+                    onChange={(e) => setPiso(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-700">Sector / Manzana</label>
+                  <input
+                    type="text"
+                    value={sector}
+                    onChange={(e) => setSector(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 3: Obra Social & PDF */}
+        {tabActiva === 'obrasocial' && (
+          <div className="space-y-6">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+              <h3 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-emerald-800">
+                <span className="material-symbols-outlined text-[20px] text-emerald-600">picture_as_pdf</span>
+                Generación y Descarga de Planilla de Obra Social
+              </h3>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div className="sm:col-span-3">
+                  <label className="mb-1.5 block text-xs font-bold text-slate-700">Obra Social Asignada</label>
+                  <select
+                    value={String(obraSocial || '').trim()}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setObraSocial(val);
+                      setObraSocialPdfId(val);
+                    }}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  >
+                    <option value="">(Seleccionar Obra Social)</option>
+                    {obrasSocialesDisponibles.map((o) => (
+                      <option key={`os-select-${o}`} value={o}>
+                        {o}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-700">Terapia para la Planilla</label>
+                  <select
+                    value={tratamientoOs}
+                    onChange={(e) => setTratamientoOs(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  >
+                    <option value="">(Seleccionar Terapia)</option>
+                    {(pacienteSeleccionado.tratamientos || []).map((t) => (
+                      <option key={`t-os-${t}`} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-700">Mes de la Planilla</label>
+                  <select
+                    value={String(mesOs)}
+                    onChange={(e) => setMesOs(Number(e.target.value))}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  >
+                    {MESES.map((m, idx) => (
+                      <option key={`mes-os-${idx + 1}`} value={idx + 1}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-700">Año de la Planilla</label>
+                  <input
+                    type="number"
+                    value={String(anioOs)}
+                    onChange={(e) => setAnioOs(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={descargarObraSocial}
+                  disabled={descargandoPdf}
+                  className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
+                >
+                  <span className="material-symbols-outlined text-[18px]">download</span>
+                  {descargandoPdf ? 'Generando PDF...' : 'Descargar Planilla Oficial en PDF'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 4: Terapias & Solicitudes */}
+        {tabActiva === 'terapias' && (
+          <div className="space-y-6">
+            {/* Active Therapies */}
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+              <h3 className="mb-2 text-sm font-bold uppercase tracking-wider text-emerald-800">
+                Terapias Asignadas
+              </h3>
+              <p className="mb-4 text-xs text-slate-500">
+                Selecciona las disciplinas terapéuticas que realiza el paciente en CENEIN.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {tratamientosDisponibles.map((t) => {
+                  const marcado = (pacienteSeleccionado.tratamientos || []).includes(t);
+                  return (
+                    <button
+                      key={`trat-button-${t}`}
+                      type="button"
+                      onClick={() => alternarTratamientoPaciente(t, !marcado)}
+                      className={`flex items-center gap-2 rounded-xl border px-3.5 py-2 text-xs font-semibold transition ${
+                        marcado
+                          ? 'border-emerald-500 bg-emerald-50 text-emerald-800 shadow-sm ring-2 ring-emerald-500/20'
+                          : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[16px]">
+                        {marcado ? 'check_circle' : 'add_circle'}
+                      </span>
+                      {t}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Solicitudes de Período */}
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+              <h3 className="mb-2 text-sm font-bold uppercase tracking-wider text-emerald-800">
+                Carga de Período de Solicitud
+              </h3>
+              <p className="mb-4 text-xs text-slate-500">
+                Planifica solicitudes de cobertura terapéutica para auditoría médica.
+              </p>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-700">Inicio de Solicitud</label>
+                  <input
+                    type="date"
+                    value={solicitudFechaInicio}
+                    onChange={(e) => setSolicitudFechaInicio(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-800"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-slate-700">Fin de Solicitud</label>
+                  <input
+                    type="date"
+                    value={solicitudFechaFin}
+                    onChange={(e) => setSolicitudFechaFin(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-800"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <label className="mb-2 block text-xs font-bold text-slate-700">Terapias incluidas en la solicitud</label>
+                <div className="flex flex-wrap gap-2">
+                  {tratamientosSolicitudDisponibles.map((t) => {
+                    const marcado = solicitudTratamientos.has(t);
+                    return (
+                      <button
+                        key={`sol-treat-${t}`}
+                        type="button"
+                        onClick={() => alternarTratamientoSolicitud(t)}
+                        className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                          marcado
+                            ? 'bg-emerald-600 text-white shadow-sm'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        {t}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="mt-5 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={guardarSolicitud}
+                  disabled={guardandoSolicitud}
+                  className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-black disabled:opacity-50"
+                >
+                  {guardandoSolicitud ? 'Guardando...' : 'Guardar Solicitud'}
+                </button>
+                {mensajeSolicitud && <span className="text-xs font-bold text-emerald-700">{mensajeSolicitud}</span>}
+                {errorSolicitud && <span className="text-xs font-bold text-rose-600">{errorSolicitud}</span>}
+              </div>
+
+              {/* Historial Solicitudes */}
+              <div className="mt-6 border-t border-slate-100 pt-5">
+                <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Historial de Solicitudes (Últimos 12 meses)
+                </h4>
+                {historialSolicitudes.length > 0 ? (
+                  <div className="space-y-2">
+                    {historialSolicitudes.map((sol) => (
+                      <div
+                        key={`sol-row-${sol.id}`}
+                        className="flex flex-col justify-between gap-2 rounded-xl border border-slate-100 bg-slate-50 p-3 sm:flex-row sm:items-center"
+                      >
+                        <div>
+                          <span className="font-bold text-slate-800">
+                            {sol.fechaInicio || '-'} al {sol.fechaFin || '-'}
+                          </span>
+                          <p className="mt-0.5 text-xs text-slate-500">
+                            Terapias: {(sol.tratamientos || []).join(', ') || 'Ninguna'}
+                          </p>
+                        </div>
+                        <span
+                          className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                            sol.vigente
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : sol.futura
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-slate-200 text-slate-600'
+                          }`}
+                        >
+                          {sol.vigente ? 'Vigente' : sol.futura ? 'Futura' : 'Vencida'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400">No hay solicitudes registradas en el último año.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 5: Cronograma de Turnos */}
+        {tabActiva === 'cronograma' && (
+          <div className="space-y-6">
+            {/* Cronograma General Semanal */}
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+              <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-800">
+                    Cronograma Base Semanal
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Configura los turnos fijos de cada semana para replicar en todos los meses.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={guardarCronogramaGeneral}
+                    disabled={!hayCambiosGeneral}
+                    className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-40"
+                  >
+                    Guardar Cronograma Base
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCronogramaGeneralDraft({})}
+                    disabled={!hayCambiosGeneral}
+                    className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+                  >
+                    Descartar
+                  </button>
+                </div>
+              </div>
+
+              {(pacienteSeleccionado.tratamientos || []).length > 0 ? (
+                <div className="space-y-6">
+                  {(pacienteSeleccionado.tratamientos || []).map((t) => (
+                    <div key={`crono-base-${t}`} className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+                      <h4 className="mb-2.5 flex items-center gap-2 text-xs font-bold text-slate-800">
+                        <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                        {t}
+                      </h4>
+
+                      {t === 'Integracion' ? (
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-slate-600">
+                            Horario de Integración Escolar (texto libre):
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={integracionHorario}
+                            onChange={(e) => setIntegracionHorario(e.target.value)}
+                            placeholder="Ej: Martes y Jueves 09:00 a 11:00 en Escuela Normal..."
+                            className="w-full rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                          />
+                        </div>
+                      ) : (
+                        <div className="max-h-64 overflow-y-auto rounded-xl border border-slate-200 bg-white">
+                          <table className="w-full text-left text-xs">
+                            <thead className="sticky top-0 bg-slate-100 font-semibold text-slate-700">
+                              <tr>
+                                <th className="py-2 pl-3 pr-2">Hora</th>
+                                {DIAS.map((d) => (
+                                  <th key={d} className="px-2 py-2 text-center">
+                                    {ETIQUETAS_DIAS[d] || d}
+                                  </th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                              {horariosDisponiblesPaciente.map((hora) => (
+                                <tr key={`hora-base-${hora}`} className="hover:bg-slate-50/80">
+                                  <td className="py-1.5 pl-3 pr-2 font-mono text-[11px] font-medium text-slate-600">
+                                    {hora}
+                                  </td>
+                                  {DIAS.map((dia) => {
+                                    const clave = `${dia}-${hora}`;
+                                    const marcado = obtenerMarcadoGeneral(t, clave);
+                                    return (
+                                      <td key={`slot-${clave}`} className="px-2 py-1.5 text-center">
+                                        <input
+                                          type="checkbox"
+                                          checked={marcado}
+                                          onChange={() => alternarDraftGeneral(t, clave)}
+                                          className="h-4 w-4 cursor-pointer rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                                        />
+                                      </td>
+                                    );
+                                  })}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-slate-200 p-8 text-center text-xs text-slate-400">
+                  Asigna terapias al paciente para habilitar la grilla de turnos.
+                </div>
+              )}
+            </div>
+
+            {/* Excepciones Mensuales / Horarios por Fecha */}
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+              <h3 className="mb-2 text-sm font-bold uppercase tracking-wider text-emerald-800">
+                Turnos por Fecha Específica (Excepciones)
+              </h3>
+              <p className="mb-4 text-xs text-slate-500">
+                Selecciona meses para revisar o ajustar turnos en fechas puntuales del calendario.
+              </p>
+
+              <div className="mb-5 flex flex-wrap gap-1.5">
+                {MESES.map((m, idx) => {
+                  const mesNum = idx + 1;
+                  const seleccionado = mesesSeleccionados.has(mesNum);
+                  return (
+                    <button
+                      key={`mes-btn-${m}`}
+                      type="button"
+                      onClick={() => alternarMesSeleccionado(mesNum)}
+                      className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
+                        seleccionado
+                          ? 'bg-emerald-600 text-white shadow-sm'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      {m}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {Array.from(mesesSeleccionados).map((mes) => {
+                const mesNombre = MESES[mes - 1];
                 const semanas = obtenerCalendarioMes(mes);
                 return (
-                  <div key={mes} className="rounded-xl border border-surface-200 bg-white overflow-hidden shadow-sm">
-                    <div className="px-4 py-3 bg-surface-50 border-b border-surface-200">
-                      <h4 className="font-semibold text-surface-800">{mesNombre}</h4>
+                  <div key={`mes-cal-${mes}`} className="mb-6 rounded-2xl border border-slate-200 overflow-hidden">
+                    <div className="bg-slate-100 px-4 py-2.5 font-bold text-xs text-slate-800">
+                      {mesNombre} {ANIO_BASE}
                     </div>
-                    <div className="p-4 space-y-6">
+                    <div className="p-4 space-y-4">
                       {(pacienteSeleccionado.tratamientos || []).map((t) => (
-                        <div key={t} className="rounded-lg border border-surface-200 bg-surface-50/50 overflow-hidden">
-                          <div className="px-3 py-2 bg-surface-100/80 border-b border-surface-200 text-sm font-medium text-surface-700">
-                            {t}
-                          </div>
+                        <div key={`cal-treat-${t}`} className="rounded-xl border border-slate-100 bg-slate-50/50 p-3">
+                          <h5 className="mb-2 text-xs font-bold text-slate-800">{t}</h5>
                           <div className="overflow-x-auto">
-                            <table className="w-full min-w-[520px] border-collapse">
+                            <table className="w-full min-w-[500px] border-collapse text-xs">
                               <thead>
-                                <tr className="bg-surface-100">
-                                  <th className="text-left p-2.5 text-xs font-semibold text-surface-600 border-b border-r border-surface-200 w-14">Lun</th>
-                                  <th className="text-left p-2.5 text-xs font-semibold text-surface-600 border-b border-r border-surface-200 w-14">Mar</th>
-                                  <th className="text-left p-2.5 text-xs font-semibold text-surface-600 border-b border-r border-surface-200 w-14">Mie</th>
-                                  <th className="text-left p-2.5 text-xs font-semibold text-surface-600 border-b border-r border-surface-200 w-14">Jue</th>
-                                  <th className="text-left p-2.5 text-xs font-semibold text-surface-600 border-b border-surface-200 w-14">Viernes</th>
+                                <tr className="border-b border-slate-200 text-slate-500">
+                                  {DIAS.map((d) => (
+                                    <th key={`cal-head-${d}`} className="p-2 text-left font-semibold">
+                                      {ETIQUETAS_DIAS[d] || d}
+                                    </th>
+                                  ))}
                                 </tr>
                               </thead>
                               <tbody>
                                 {semanas.map((semana, idxSemana) => (
-                                  <tr key={`${mes}-semana-${idxSemana}`} className="border-b border-surface-100 last:border-b-0">
-                                    {semana.map((diaNumero, idxDia) => (
-                                      <td
-                                        key={`${mes}-${idxSemana}-${idxDia}`}
-                                        className="p-2 align-top border-r border-surface-100 last:border-r-0 min-w-[96px] max-w-[132px]"
-                                      >
-                                        {diaNumero ? (
-                                          (() => {
-                                            const horasDia = obtenerHorasDia(mes, t, diaNumero);
-                                            const disponibles = horariosDisponiblesPaciente.filter(
-                                              (h) => !horasDia.includes(h)
-                                            );
-                                            const fechaStr = `${ANIO_BASE}-${String(mes).padStart(2, '0')}-${String(
-                                              diaNumero
-                                            ).padStart(2, '0')}`;
-                                            return (
-                                              <div className="space-y-1.5">
-                                                <span className="inline-block text-xs font-semibold text-surface-700">
-                                                  {diaNumero}
-                                                </span>
-                                                {horasDia.length ? (
-                                                  <div className="space-y-1">
-                                                    {horasDia.map((hora) => {
-                                                      const overrideActual =
-                                                        overridesMap[fechaStr] &&
-                                                        overridesMap[fechaStr][t] &&
-                                                        overridesMap[fechaStr][t][hora];
-                                                      const activo =
-                                                        overrideActual === undefined
-                                                          ? true
-                                                          : overrideActual;
-                                                      return (
-                                                        <label
-                                                          key={`${diaNumero}-${hora}`}
-                                                          className="flex items-center gap-1.5 text-xs cursor-pointer hover:bg-surface-100 rounded px-1 py-0.5 -mx-1"
-                                                        >
-                                                          <input
-                                                            type="checkbox"
-                                                            checked={activo}
-                                                            onChange={(e) =>
-                                                              alternarExcepcion(
-                                                                mes,
-                                                                t,
-                                                                diaNumero,
-                                                                hora,
-                                                                e.target.checked
-                                                              )
-                                                            }
-                                                            className="rounded border-surface-300 text-primary-600 focus:ring-primary-500 shrink-0"
-                                                          />
-                                                          <span className="truncate">{hora}</span>
-                                                        </label>
-                                                      );
-                                                    })}
-                                                  </div>
-                                                ) : (
-                                                  <span className="text-surface-400 text-xs">Sin horarios</span>
-                                                )}
-                                                <select
-                                                  defaultValue=""
-                                                  onChange={(e) => {
-                                                    const hora = e.target.value;
-                                                    if (!hora) return;
-                                                    alternarExcepcion(
-                                                      mes,
-                                                      t,
-                                                      diaNumero,
-                                                      hora,
-                                                      true
-                                                    );
-                                                    e.target.value = '';
-                                                  }}
-                                                  className="w-full text-xs px-2 py-1 rounded border border-surface-200 bg-white mt-0.5"
+                                  <tr key={`sem-${idxSemana}`} className="border-b border-slate-100">
+                                    {semana.map((diaNumero, idxDia) => {
+                                      if (!diaNumero) {
+                                        return <td key={`vacio-${idxDia}`} className="p-2 text-slate-200">—</td>;
+                                      }
+                                      const horasDia = obtenerHorasDia(mes, t, diaNumero);
+                                      const fechaStr = `${ANIO_BASE}-${String(mes).padStart(2, '0')}-${String(diaNumero).padStart(2, '0')}`;
+                                      const disponibles = horariosDisponiblesPaciente.filter((h) => !horasDia.includes(h));
+
+                                      return (
+                                        <td key={`dia-cell-${diaNumero}`} className="p-2 align-top">
+                                          <span className="font-bold text-slate-700">{diaNumero}</span>
+                                          <div className="mt-1 space-y-1">
+                                            {horasDia.map((hora) => {
+                                              const overrideActual =
+                                                overridesMap[fechaStr] &&
+                                                overridesMap[fechaStr][t] &&
+                                                overridesMap[fechaStr][t][hora];
+                                              const activo = overrideActual === undefined ? true : overrideActual;
+                                              return (
+                                                <label
+                                                  key={`h-exc-${diaNumero}-${hora}`}
+                                                  className="flex items-center gap-1 rounded bg-white px-1.5 py-0.5 text-[11px] shadow-sm border border-slate-200"
                                                 >
-                                                  <option value="">+ Agregar</option>
-                                                  {disponibles.map((h) => (
-                                                    <option key={h} value={h}>
-                                                      {h}
-                                                    </option>
-                                                  ))}
-                                                </select>
-                                              </div>
-                                            );
-                                          })()
-                                        ) : (
-                                          <span className="text-surface-300 text-xs">—</span>
-                                        )}
-                                      </td>
-                                    ))}
+                                                  <input
+                                                    type="checkbox"
+                                                    checked={activo}
+                                                    onChange={(e) =>
+                                                      alternarExcepcion(mes, t, diaNumero, hora, e.target.checked)
+                                                    }
+                                                    className="h-3.5 w-3.5 rounded text-emerald-600"
+                                                  />
+                                                  <span className="font-mono">{hora}</span>
+                                                </label>
+                                              );
+                                            })}
+                                            <select
+                                              defaultValue=""
+                                              onChange={(e) => {
+                                                if (e.target.value) {
+                                                  alternarExcepcion(mes, t, diaNumero, e.target.value, true);
+                                                  e.target.value = '';
+                                                }
+                                              }}
+                                              className="w-full rounded border border-slate-200 bg-white px-1 py-0.5 text-[10px]"
+                                            >
+                                              <option value="">+ Hora</option>
+                                              {disponibles.map((h) => (
+                                                <option key={`disp-${h}`} value={h}>
+                                                  {h}
+                                                </option>
+                                              ))}
+                                            </select>
+                                          </div>
+                                        </td>
+                                      );
+                                    })}
                                   </tr>
                                 ))}
                               </tbody>
@@ -1958,11 +1904,8 @@ export default function DetallePaciente({ alVolver }) {
                 );
               })}
             </div>
-          ) : (
-            <p className="text-surface-500 text-sm">Asigna tratamientos para habilitar el cronograma.</p>
-          )}
           </div>
-        ) : null}
+        )}
       </div>
     </div>
   );

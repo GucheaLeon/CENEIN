@@ -11,22 +11,29 @@ function obtenerApiBaseUrl() {
 
 export function obtenerToken() {
   try {
-    if (typeof window === 'undefined' || !window.localStorage) return '';
-    return String(window.localStorage.getItem(TOKEN_STORAGE_KEY) || '');
+    if (typeof window === 'undefined') return '';
+    return String(
+      window.localStorage?.getItem(TOKEN_STORAGE_KEY)
+        || window.sessionStorage?.getItem(TOKEN_STORAGE_KEY)
+        || ''
+    );
   } catch (err) {
     return '';
   }
 }
 
-export function guardarToken(token) {
+export function guardarToken(token, recordarSesion = false) {
   try {
-    if (typeof window === 'undefined' || !window.localStorage) return;
+    if (typeof window === 'undefined') return;
     const limpio = String(token || '').trim();
     if (!limpio) {
-      window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+      window.localStorage?.removeItem(TOKEN_STORAGE_KEY);
+      window.sessionStorage?.removeItem(TOKEN_STORAGE_KEY);
       return;
     }
-    window.localStorage.setItem(TOKEN_STORAGE_KEY, limpio);
+    const almacenamiento = recordarSesion ? window.localStorage : window.sessionStorage;
+    almacenamiento?.setItem(TOKEN_STORAGE_KEY, limpio);
+    (recordarSesion ? window.sessionStorage : window.localStorage)?.removeItem(TOKEN_STORAGE_KEY);
   } catch (err) {}
 }
 
@@ -34,7 +41,7 @@ export function limpiarToken() {
   guardarToken('');
 }
 
-export async function iniciarSesionApi({ username, password }) {
+export async function iniciarSesionApi({ username, password, recordarSesion = false }) {
   const payload = {
     username: String(username || '').trim(),
     password: String(password || '').trim(),
@@ -48,7 +55,7 @@ export async function iniciarSesionApi({ username, password }) {
   // Guardar token en localStorage para que funcione en Safari/iOS donde la cookie
   // puede no persistir (ITP, modo privado, PWA, etc.). Las peticiones usan Authorization.
   const token = data && (data.token ?? data.accessToken ?? data.access_token);
-  if (token) guardarToken(token);
+  if (token) guardarToken(token, recordarSesion);
   return data;
 }
 
@@ -88,7 +95,7 @@ export function resolverApiUrl(path) {
 
 async function fetchJsonApi(path, opciones = {}) {
   const apiUrl = resolverApiUrl(path);
-  const urls = apiUrl ? [apiUrl] : [path];
+  const urls = apiUrl && apiUrl !== path ? [apiUrl, path] : [path];
 
   const headers = new Headers(opciones.headers || {});
   const token = obtenerToken();
@@ -121,15 +128,16 @@ async function fetchJsonApi(path, opciones = {}) {
           }
           error.data = errorData;
         }
-        if (respuesta.status === 401) {
-          throw error;
-        }
         throw error;
       }
+      if (respuesta.status === 204) return null;
       return await respuesta.json();
     } catch (err) {
       lastError = err;
       if (opciones && opciones.signal && opciones.signal.aborted) {
+        throw err;
+      }
+      if (err.status) {
         throw err;
       }
     }
@@ -139,7 +147,7 @@ async function fetchJsonApi(path, opciones = {}) {
 
 async function fetchBlobApi(path, opciones = {}) {
   const apiUrl = resolverApiUrl(path);
-  const urls = apiUrl ? [apiUrl] : [path];
+  const urls = apiUrl && apiUrl !== path ? [apiUrl, path] : [path];
 
   const headers = new Headers(opciones.headers || {});
   const token = obtenerToken();
@@ -162,12 +170,15 @@ async function fetchBlobApi(path, opciones = {}) {
           const data = await respuesta.json();
           if (data && data.error) detalle = `: ${data.error}`;
         } catch (err) {}
-        throw new Error(`HTTP ${respuesta.status}${detalle}`);
+        const error = new Error(`HTTP ${respuesta.status}${detalle}`);
+        error.status = respuesta.status;
+        throw error;
       }
       return await respuesta.blob();
     } catch (err) {
       lastError = err;
       if (opciones && opciones.signal && opciones.signal.aborted) throw err;
+      if (err.status) throw err;
     }
   }
   throw lastError || new Error('No se pudo conectar a la API.');
@@ -181,6 +192,8 @@ export async function obtenerPacientes(opciones = {}) {
     throw new Error('No se pudieron cargar los pacientes.');
   }
 }
+
+export const obtenerPacientesApi = obtenerPacientes;
 
 export async function obtenerPacientePorId(id, opciones = {}) {
   try {
@@ -484,6 +497,55 @@ export async function exportarAsistenciasPdf({
   });
 }
 
+export async function obtenerInformesApi(opciones = {}) {
+  const patientId = opciones.patientId ? `?patientId=${encodeURIComponent(opciones.patientId)}` : '';
+  return fetchJsonApi(`/api/reports${patientId}`, opciones);
+}
+
+export async function obtenerInformeApi(id) {
+  return fetchJsonApi(`/api/reports/${encodeURIComponent(id)}`);
+}
+
+export async function previsualizarInformeApi(data) {
+  return fetchJsonApi('/api/reports/preview', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+  });
+}
+
+export async function actualizarInformeApi(id, data) {
+  return fetchJsonApi(`/api/reports/${encodeURIComponent(id)}`, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+  });
+}
+
+export async function eliminarInformeApi(id) {
+  return fetchJsonApi(`/api/reports/${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+
+export async function obtenerPlantillasInformesApi(opciones = {}) {
+  return fetchJsonApi('/api/reports/templates', opciones);
+}
+
+export async function crearInformeApi(data) {
+  return fetchJsonApi('/api/reports', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+}
+
+export async function crearPlantillaInformeApi(data) {
+  return fetchJsonApi('/api/reports/templates', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+}
+
+export async function descargarInformePdfApi(id, opciones = {}) {
+  return fetchBlobApi(`/api/reports/${encodeURIComponent(id)}/pdf`, opciones);
+}
+
 export async function obtenerUsuariosApi(opciones = {}) {
   const data = await fetchJsonApi('/api/users', opciones);
   return Array.isArray(data) ? data : [];
@@ -505,11 +567,24 @@ export async function desbloquearUsuarioApi(username) {
   });
 }
 
-export async function crearUsuarioApi({ username, password, isAdmin }) {
+export async function obtenerRolesApi(opciones = {}) {
+  const data = await fetchJsonApi('/api/roles', opciones);
+  return Array.isArray(data) ? data : [];
+}
+
+export async function crearRolApi({ name, modules }) {
+  return fetchJsonApi('/api/roles', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, modules }),
+  });
+}
+
+export async function crearUsuarioApi({ username, password, isAdmin, roleId }) {
   return fetchJsonApi('/api/users', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password, isAdmin: Boolean(isAdmin) }),
+    body: JSON.stringify({ username, password, isAdmin: Boolean(isAdmin), roleId }),
   });
 }
 
@@ -608,6 +683,17 @@ export async function guardarRevisionAdmisionApi(admisionId, datos) {
   }
 }
 
+export async function finalizarAdmisionApi(admisionId) {
+  try {
+    return await fetchJsonApi(`/api/admisiones/${admisionId}/finalizar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (err) {
+    throw new Error(String(err?.message || 'No se pudo finalizar la admisión y crear el paciente.'));
+  }
+}
+
 export async function obtenerExpedienteAdmisionApi(admisionId, opciones = {}) {
   try {
     return await fetchJsonApi(`/api/admisiones/${admisionId}/expediente`, opciones);
@@ -617,31 +703,41 @@ export async function obtenerExpedienteAdmisionApi(admisionId, opciones = {}) {
 }
 
 export async function guardarExpedienteAdmisionApi(admisionId, formData) {
-  const apiBaseUrl = obtenerApiBaseUrl();
-  const url = apiBaseUrl
-    ? `${apiBaseUrl}/api/admisiones/${admisionId}/expediente`
-    : `/api/admisiones/${admisionId}/expediente`;
+  const path = `/api/admisiones/${admisionId}/expediente`;
+  const apiUrl = resolverApiUrl(path);
+  const urls = apiUrl && apiUrl !== path ? [apiUrl, path] : [path];
 
   const headers = new Headers();
   const token = obtenerToken();
   if (token) headers.set('Authorization', `Bearer ${token}`);
 
-  const respuesta = await fetch(url, {
-    method: 'POST',
-    headers,
-    credentials: 'include',
-    body: formData,
-  });
-
-  if (!respuesta.ok) {
-    let detalle = '';
+  let lastError = null;
+  for (const url of urls) {
     try {
-      const data = await respuesta.json();
-      if (data?.error) detalle = data.error;
-    } catch {}
-    throw new Error(detalle || `HTTP ${respuesta.status}`);
+      const respuesta = await fetch(url, {
+        method: 'POST',
+        headers,
+        credentials: 'include',
+        body: formData,
+      });
+
+      if (!respuesta.ok) {
+        let detalle = '';
+        try {
+          const data = await respuesta.json();
+          if (data?.error) detalle = data.error;
+        } catch {}
+        const error = new Error(detalle || `HTTP ${respuesta.status}`);
+        error.status = respuesta.status;
+        throw error;
+      }
+      return await respuesta.json();
+    } catch (err) {
+      lastError = err;
+      if (err.status) throw err;
+    }
   }
-  return await respuesta.json();
+  throw lastError || new Error('No se pudo conectar a la API.');
 }
 
 export function urlArchivoExpediente(admisionId, campo) {

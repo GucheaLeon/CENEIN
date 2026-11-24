@@ -72,6 +72,12 @@ function normalizarAniosEscolares(valor) {
 
 export function ProveedorPacientes({ children }) {
   const { usuario, cargando } = useAutenticacion();
+  const puedeLeerPacientes = Boolean(
+    usuario?.isAdmin ||
+      ['patients', 'alta', 'attendances', 'reports'].some((moduleKey) =>
+        usuario?.modules?.includes(moduleKey)
+      )
+  );
   const [pacientes, setPacientes] = useState([]);
   const [idSeleccionado, setIdSeleccionado] = useState(null);
   const [obrasSociales, setObrasSociales] = useState([]);
@@ -93,16 +99,22 @@ export function ProveedorPacientes({ children }) {
   );
 
   const refrescarPacientes = useCallback(async (signal) => {
+    if (!puedeLeerPacientes) {
+      setPacientes([]);
+      setIdSeleccionado(null);
+      return [];
+    }
     const lista = await obtenerPacientes({ signal });
     const deduplicada = Array.isArray(lista)
       ? lista.map(p => ({ ...p, tratamientos: Array.from(new Set(p.tratamientos || [])) }))
       : [];
     setPacientes(deduplicada);
-  }, []);
+    return deduplicada;
+  }, [puedeLeerPacientes]);
 
   useEffect(() => {
     if (cargando) return;
-    if (!usuario) {
+    if (!usuario || !puedeLeerPacientes) {
       setPacientes([]);
       setIdSeleccionado(null);
       return;
@@ -114,7 +126,7 @@ export function ProveedorPacientes({ children }) {
       setPacientes([]);
     });
     return () => controller.abort();
-  }, [cargando, usuario, refrescarPacientes]);
+  }, [cargando, usuario, puedeLeerPacientes, refrescarPacientes]);
 
   useEffect(() => {
     if (cargando) return;
